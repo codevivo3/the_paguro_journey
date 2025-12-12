@@ -1,5 +1,7 @@
+/* Global styles applied across the app */
 @import 'tailwindcss';
 
+/* CSS variables (design tokens) */
 :root {
   --paguro-ocean: #5BC2D9;
   --paguro-deep: #45736E;
@@ -8,12 +10,14 @@
   --paguro-coral: #F26938;
 }
 
+/* Global base styles */
 body {
   background: #000;
   color: #fff;
   font-family: 'Roboto Mono', monospace;
 }
 
+/* Prevent horizontal overflow */
 html, body {
   overflow-x: hidden;
 }
