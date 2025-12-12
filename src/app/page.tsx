@@ -1,11 +1,21 @@
-import Image from "next/image";
+import Hero from "@/components/Hero";
+import HeroVideo from "@/components/HeroVideo";
+import Navbar from "@/components/Navbar";
+
+export const metadata = {
+  title: {
+    default: 'The Paguro Journey',
+    template: '%s | The Paguro Journey',
+  },
+};
 
 export default function Home() {
   return (
     <>
       <main>
-        <h1>The Paguro Journey</h1>
-        <p>Website under contruction</p>
+        <Navbar />
+        <Hero />
+        <HeroVideo />
       </main>
     </>
   );
