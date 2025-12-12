@@ -1,6 +1,9 @@
-import Hero from "@/components/Hero";
-import HeroVideo from "@/components/HeroVideo";
-import Navbar from "@/components/Navbar";
+import CollabsSection from '@/components/CollabsSection';
+import LatestVidsSection from '@/components/LatestVidsSection';
+import Hero from '@/components/Hero';
+import HeroVideo from '@/components/HeroVideo';
+import IntroSection from '@/components/IntroSection';
+import Navbar from '@/components/Navbar';
 
 export const metadata = {
   title: {
@@ -16,6 +19,9 @@ export default function Home() {
         <Navbar />
         <Hero />
         <HeroVideo />
+        <IntroSection />
+        <CollabsSection />
+        <LatestVidsSection />
       </main>
     </>
   );

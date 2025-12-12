@@ -17,17 +17,3 @@ body {
 html, body {
   overflow-x: hidden;
 }
-
-@layer utilities {
-  .text-shadow {
-    text-shadow: 0 2px 8px rgba(133, 0, 0, 0.5);
-  }
-
-  .text-shadow-xl {
-    text-shadow: 0 4px 15px rgba(224, 0, 0, 0.7);
-  }
-
-  .text-shadow-soft {
-    text-shadow: 0 1px 5px rgba(221, 47, 47, 0.3);
-  }
-}
