@@ -1,23 +1,40 @@
 /* Global styles applied across the app */
 @import 'tailwindcss';
 
-/* CSS variables (design tokens) */
+/* -------------------------------------------------------------------------- */
+/* Design tokens: fonts & colors                                               */
+/* -------------------------------------------------------------------------- */
+
 :root {
+  /* Font families (wired from next/font in layout.tsx) */
+  --font-editorial: var(--font-libre-baskerville, serif); /* Headlines, titles */
+  --font-body: var(--font-merriweather, serif);           /* Long-form reading */
+  --font-ui: var(--font-k2d, sans-serif);                 /* Navigation, UI */
+
+  /* Text colors (avoid pure black/white for readability) */
+  --paguro-text-dark: #1d1d1f;  /* Soft black */
+  --paguro-text-light: #f5f5f5; /* Soft white */
+
+  /* Brand palette */
   --paguro-ocean: #5BC2D9;
-  --paguro-deep: #45736E;
+  --paguro-deep: #419BBF;
   --paguro-sand: #D5D9B8;
   --paguro-sunset: #F2A341;
-  --paguro-coral: #F26938;
+  --paguro-coral: #EB7134;
 }
 
-/* Global base styles */
+/* -------------------------------------------------------------------------- */
+/* Global base styles                                                          */
+/* -------------------------------------------------------------------------- */
+
 body {
-  background: #000;
-  color: #fff;
-  font-family: 'Roboto Mono', monospace;
+  background: var(--paguro-sand);
+  color: var(--paguro-text-dark);
+  font-family: var(--font-body);
 }
 
 /* Prevent horizontal overflow */
-html, body {
+html,
+body {
   overflow-x: hidden;
 }

@@ -2,17 +2,27 @@ import type { Metadata } from 'next';
 // Root layout shared across all routes
 import './globals.css';
 // Configure global fonts
-import { Inter, Roboto_Mono } from 'next/font/google';
+import { Merriweather, Libre_Baskerville, K2D } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 
-const inter = Inter({
+const merriweather = Merriweather({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-merriweather',
+  display: 'swap',
 });
 
-const robotoMono = Roboto_Mono({
+const libreBaskerville = Libre_Baskerville({
   subsets: ['latin'],
-  variable: '--font-roboto-mono',
+  weight: ['400', '700'],
+  variable: '--font-libre-baskerville',
+  display: 'swap',
+});
+
+const k2d = K2D({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-k2d',
+  display: 'swap',
 });
 
 // Default site metadata
@@ -28,8 +38,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en'>
-      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
+    <html
+      lang='en'
+      className={`${merriweather.variable} ${libreBaskerville.variable} ${k2d.variable}`}
+    >
+      <body className='antialiased'>
         {/* Render global navigation */}
         <Navbar />
         {/* Render current route */}
