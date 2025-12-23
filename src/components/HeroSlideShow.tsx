@@ -1,7 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
+
+import Image from 'next/image';
+
+import { useUI } from '@/context/ui-context';
 
 type HeroSlideShowProps = {
   /** Image paths under /public, e.g. "/hero/slide-1.jpg" */
@@ -19,7 +22,7 @@ type HeroSlideShowProps = {
 export default function HeroSlideShow({
   images,
   intervalMs = 5500,
-  transitionMs = 900,
+  transitionMs = 1000,
   overlay = false,
   className = '',
 }: HeroSlideShowProps) {
@@ -38,6 +41,9 @@ export default function HeroSlideShow({
     [images]
   );
 
+  const { isSearchOpen } = useUI();
+  const isPaused = isSearchOpen;
+
   const safeSlides = slides.filter(Boolean);
   const hasSlides = safeSlides.length > 0;
 
@@ -46,18 +52,19 @@ export default function HeroSlideShow({
   // Clamp index during render to avoid out-of-range access
   const safeIndex = safeSlides.length ? index % safeSlides.length : 0;
 
-  // Loop slides
+  // Loop slides (pause while Search modal is open)
   useEffect(() => {
-    
-    if (!hasSlides || safeSlides.length === 1) return;
-    
+    if (isPaused) return;
+    if (!hasSlides) return;
+
     const id = window.setInterval(() => {
+      // Use safeSlides.length to stay consistent with filtering
       setIndex((prev) => (prev + 1) % safeSlides.length);
     }, intervalMs);
-    
+
     return () => window.clearInterval(id);
-  }, [hasSlides, safeSlides.length, intervalMs]);
-  
+  }, [isPaused, hasSlides, safeSlides.length, intervalMs]);
+
   if (!hasSlides) {
     // Fail-safe: avoid crashing if paths are missing
     return (
@@ -70,7 +77,7 @@ export default function HeroSlideShow({
 
   return (
     <section
-      className={`relative w-full h-screen overflow-hidden ${className}`}
+      className={`relative w-full h-screen overflow-hidden ${className} shadow-[0_10px_50px_1px_rgba(0,0,0,0.3)]`}
       aria-label='Hero slideshow'
     >
       {/* Slides */}
@@ -105,7 +112,6 @@ export default function HeroSlideShow({
           aria-hidden='true'
         />
       )}
-
       {/* Optional "hidden" H1 for SEO can live in the page component, not here */}
     </section>
   );

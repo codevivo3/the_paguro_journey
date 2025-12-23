@@ -5,6 +5,7 @@ import LatestVidsSection from '@/components/LatestVidsSection';
 import IntroSection from '@/components/IntroSection';
 // import Navbar from '@/components/Navbar';
 import HeroSlideShow from '@/components/HeroSlideShow';
+import NewsletterForm from '@/components/NewsletterForm';
 
 export const metadata = {
   title: {
@@ -23,6 +24,7 @@ export default function Home() {
         <IntroSection />
         <CollabsSection />
         <LatestVidsSection />
+        <NewsletterForm />
       </main>
     </>
   );

@@ -1,18 +1,20 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 import Image from 'next/image';
 
+import { useUI } from '@/context/ui-context';
+
 export default function SearchModal() {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { isSearchOpen, openSearch, closeSearch } = useUI();
   const searchButtonRef = useRef<HTMLButtonElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const canUseDOM = typeof document !== 'undefined';
 
-  const closeSearch = () => {
-    setIsSearchOpen(false);
+  const closeAndRestoreFocus = () => {
+    closeSearch();
     // Restore focus after React commits the state update.
     requestAnimationFrame(() => {
       searchButtonRef.current?.focus({ preventScroll: true });
@@ -20,14 +22,10 @@ export default function SearchModal() {
   };
 
   useEffect(() => {
-    if (!isSearchOpen) {
-      // When closing, return focus to the trigger for good keyboard UX.
-      searchButtonRef.current?.focus();
-      return;
-    }
+    if (!isSearchOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeSearch();
+      if (event.key === 'Escape') closeAndRestoreFocus();
     };
 
     // Lock background scroll while the modal is open.
@@ -54,7 +52,7 @@ export default function SearchModal() {
       <button
         ref={searchButtonRef}
         type='button'
-        onClick={() => setIsSearchOpen(true)}
+        onClick={openSearch}
         aria-label='Search'
         className='inline-flex items-center justify-center h-10 w-10 rounded-full transition-colors duration-300 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50'
       >
@@ -66,7 +64,7 @@ export default function SearchModal() {
               role='dialog'
               aria-modal='true'
               aria-label='Search'
-              onClick={closeSearch}
+              onClick={closeAndRestoreFocus}
               className='fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md px-4'
             >
               <div
@@ -80,10 +78,15 @@ export default function SearchModal() {
                   <button
                     type='button'
                     aria-label='Close search modal'
-                    onClick={closeSearch}
+                    onClick={closeAndRestoreFocus}
                     className='text-black text-xl [font-family:var(--font-ui)]'
                   >
-                    ×
+                    <Image
+                      src='/cancel-black.svg'
+                      alt='Close'
+                      width={24}
+                      height={24}
+                    />
                   </button>
                 </div>
 

@@ -1,4 +1,5 @@
 import { posts } from '@/lib/posts';
+import Image from 'next/image';
 
 // `params` comes from the dynamic route `[slug]`
 type PageProps = {
@@ -26,22 +27,48 @@ export default async function BlogPostPage({ params }: PageProps) {
     return <h1>Post not found</h1>;
   }
 
-  // Main content wrapper
   return (
-    <main className='pt-24'>
-      {/* Blog post article */}
-      <article>
-        {/* Article header with title and date */}
-        <header>
-          <h1>{post.title}</h1>
-          <p>Published on — date placeholder</p>
-        </header>
+    <main className='px-6 pb-24 pt-28'>
+      <div className='mx-auto max-w-3xl'>
+        {/* Blog post article */}
+        <article className='space-y-10'>
+          {/* Article header */}
+          <header className='space-y-3'>
+            <h1 className='[font-family:var(--font-ui)] text-4xl font-semibold text-[color:var(--paguro-text-dark)]'>
+              {post.title}
+            </h1>
+            <p className='text-sm text-[color:var(--paguro-text-dark)]/60'>
+              Published on — date placeholder
+            </p>
+          </header>
 
-        {/* Article body section */}
-        <section>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        </section>
-      </article>
+          {/* Hero / cover placeholder (future CMS image) */}
+          <Image
+            src='/placeholder_view_vector.png'
+            alt=''
+            width={1200}
+            height={675}
+            className='aspect-video w-full rounded-2xl bg-black/10'
+            aria-hidden='true'
+          />
+
+          {/* Article body */}
+          <section className='prose prose-neutral max-w-none'>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </p>
+            <p>
+              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+              nisi ut aliquip ex ea commodo consequat.
+            </p>
+            <p>
+              Duis aute irure dolor in reprehenderit in voluptate velit esse
+              cillum dolore eu fugiat nulla pariatur.
+            </p>
+          </section>
+        </article>
+      </div>
     </main>
   );
 }

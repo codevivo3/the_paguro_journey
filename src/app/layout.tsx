@@ -1,9 +1,13 @@
 import type { Metadata } from 'next';
+
 // Root layout shared across all routes
 import './globals.css';
 // Configure global fonts
 import { Merriweather, Libre_Baskerville, K2D } from 'next/font/google';
+
 import Navbar from '@/components/Navbar';
+import { UIProvider } from '@/context/ui-context';
+import Footer from '@/components/Footer';
 
 const merriweather = Merriweather({
   subsets: ['latin'],
@@ -43,11 +47,16 @@ export default function RootLayout({
       className={`${merriweather.variable} ${libreBaskerville.variable} ${k2d.variable}`}
     >
       <body className='antialiased'>
-        {/* Render global navigation */}
-        <Navbar />
-        {/* Render current route */}
-        {children}
+        <UIProvider>
+          {/* Render global navigation */}
+          <Navbar />
+          {/* Render current route */}
+          {children}
+        </UIProvider>
       </body>
+      <footer>
+        <Footer />
+      </footer>
     </html>
   );
 }
