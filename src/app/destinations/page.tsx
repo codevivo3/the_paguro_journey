@@ -29,16 +29,20 @@ export default function DestinationsPage() {
       <div className='mx-auto max-w-5xl space-y-10'>
         {/* Page header */}
         <header className='text-center space-y-3'>
-          <h1 className='[font-family:var(--font-ui)] text-4xl font-semibold text-[color:var(--paguro-text-dark)]'>
+          <h1 className='[font-family:var(--font-ui)] text-[clamp(2.2rem,4vw,3rem)] font-semibold text-[color:var(--paguro-text-dark)]'>
             Destinations
           </h1>
-          <p className='mx-auto max-w-2xl text-[color:var(--paguro-text-dark)]/75'>
-            A simple map of places we’ve explored — with stories, videos, and practical notes.
+          <p className='mx-auto max-w-2xl text-[color:var(--paguro-text-dark)]/75 text-[clamp(1rem,1.6vw,1.125rem)]'>
+            A simple map of places we’ve explored — with stories, videos, and
+            practical notes.
           </p>
         </header>
 
         {/* Filters (placeholder) */}
-        <section aria-label='Filters' className='flex flex-wrap items-center justify-center gap-3'>
+        <section
+          aria-label='Filters'
+          className='flex flex-wrap items-center justify-center gap-3'
+        >
           <span className='text-sm text-[color:var(--paguro-text-dark)]/60'>
             Filters (later):
           </span>
@@ -65,7 +69,7 @@ export default function DestinationsPage() {
         {/* Destinations grid */}
         <section aria-label='Destinations' className='space-y-5'>
           <div className='flex items-baseline justify-between'>
-            <h2 className='[font-family:var(--font-ui)] text-2xl font-semibold text-[color:var(--paguro-text-dark)]'>
+            <h2 className='[font-family:var(--font-ui)] text-[clamp(1.5rem,2.5vw,1.75rem)] font-semibold text-[color:var(--paguro-text-dark)]'>
               Browse
             </h2>
             <span className='text-sm text-[color:var(--paguro-text-dark)]/60'>
@@ -80,11 +84,14 @@ export default function DestinationsPage() {
                 className='group overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg'
               >
                 {/* Image placeholder (later: cover image per destination) */}
-                <div className='aspect-video w-full bg-black/10' aria-hidden='true' />
+                <div
+                  className='aspect-video w-full bg-black/10'
+                  aria-hidden='true'
+                />
 
                 <div className='p-6 space-y-3'>
                   <div className='flex items-center justify-between gap-4'>
-                    <h3 className='[font-family:var(--font-ui)] text-xl font-semibold text-[color:var(--paguro-text-dark)]'>
+                    <h3 className='[font-family:var(--font-ui)] text-[clamp(1.125rem,1.6vw,1.25rem)] font-semibold text-[color:var(--paguro-text-dark)]'>
                       {d.title}
                     </h3>
                     <span className='rounded-full bg-black/5 px-3 py-1 text-xs text-[color:var(--paguro-text-dark)]/70'>
@@ -92,7 +99,7 @@ export default function DestinationsPage() {
                     </span>
                   </div>
 
-                  <p className='text-[color:var(--paguro-text-dark)]/75'>
+                  <p className='text-[color:var(--paguro-text-dark)]/75 text-[clamp(0.95rem,1.4vw,1rem)]'>
                     {d.subtitle}
                   </p>
 
@@ -117,8 +124,9 @@ export default function DestinationsPage() {
             How this page will evolve
           </p>
           <p className='mt-2'>
-            We’ll start small: a clean list of destinations. Later we can add destination pages (with a map, linked videos,
-            and related blog posts), plus filters and search.
+            We’ll start small: a clean list of destinations. Later we can add
+            destination pages (with a map, linked videos, and related blog
+            posts), plus filters and search.
           </p>
         </section>
       </div>

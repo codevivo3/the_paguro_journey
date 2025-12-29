@@ -32,11 +32,11 @@ export default function HeroSlideShow({
       images && images.length
         ? images
         : [
-            '/hero_slide_show/slide-1.jpg',
-            '/hero_slide_show/slide-2.jpg',
-            '/hero_slide_show/slide-3.jpg',
-            '/hero_slide_show/slide-4.jpg',
-            '/hero_slide_show/slide-5.jpg',
+            '/hero_slide_show/copertina-the-paguro-journey-1.jpg',
+            '/hero_slide_show/copertina-the-paguro-journey-2.jpg',
+            '/hero_slide_show/copertina-the-paguro-journey-3.jpg',
+            '/hero_slide_show/copertina-the-paguro-journey-4.jpg',
+            '/hero_slide_show/copertina-the-paguro-journey-5.jpg',
           ],
     [images]
   );
