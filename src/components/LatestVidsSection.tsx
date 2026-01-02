@@ -33,7 +33,7 @@ export default function LatestVidsSection() {
             Latest Videos
           </h3>
           <p className='text-[color:var(--paguro-text-dark)]/70'>
-            A quick look at the most recent adventures. (Placeholder cards —
+            Uno sguardo alle nostre avventure più recenti. (Placeholder cards —
             will be powered by the YouTube API.)
           </p>
         </header>
@@ -56,14 +56,14 @@ export default function LatestVidsSection() {
                   {video.title}
                 </h3>
 
-                <p className='text-[color:var(--paguro-text-dark)]/75'>
+                <p className='text-[color:var(--paguro-text-dark)]/75 text-sm'>
                   {video.description}
                 </p>
 
                 <div>
                   <Link
                     href={video.href}
-                    className='inline-flex items-center gap-2 text-[color:var(--paguro-deep)] font-medium transition-colors duration-200 group-hover:text-[color:var(--paguro-coral)]'
+                    className='inline-flex items-center gap-2 text-[color:var(--paguro-deep)] font-medium transition-colors duration-200 group-hover:text-[color:var(--paguro-coral)] text-sm'
                   >
                     Watch on YouTube
                     <span aria-hidden='true'>➜</span>

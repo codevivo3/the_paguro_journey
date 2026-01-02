@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
 import { useUI } from '@/context/ui-context';
+import HeroSlideControls from './HeroSlideControls';
 
 type HeroSlideShowProps = {
   /** Image paths under /public, e.g. "/hero/slide-1.jpg" */
@@ -49,6 +50,15 @@ export default function HeroSlideShow({
 
   const [index, setIndex] = useState(0);
 
+  const slideCount = safeSlides.length;
+
+  const goTo = (next: number) => {
+    setIndex(((next % slideCount) + slideCount) % slideCount);
+  };
+
+  const goNext = () => goTo(index + 1);
+  const goPrev = () => goTo(index - 1);
+
   // Clamp index during render to avoid out-of-range access
   const safeIndex = safeSlides.length ? index % safeSlides.length : 0;
 
@@ -77,7 +87,7 @@ export default function HeroSlideShow({
 
   return (
     <section
-      className={`relative w-full h-screen overflow-hidden ${className} shadow-[0_10px_50px_1px_rgba(0,0,0,0.3)]`}
+      className={`relative w-full h-[clamp(420px,60vh,700px)] md:h-[clamp(600px,100vh,900px)] overflow-hidden ${className} shadow-[0_10px_50px_1px_rgba(0,0,0,0.3)]`}
       aria-label='Hero slideshow'
     >
       {/* Slides */}
@@ -113,6 +123,13 @@ export default function HeroSlideShow({
         />
       )}
       {/* Optional "hidden" H1 for SEO can live in the page component, not here */}
+      <HeroSlideControls
+        count={slideCount}
+        activeIndex={safeIndex}
+        onPrev={goPrev}
+        onNext={goNext}
+        onSelect={goTo}
+      />
     </section>
   );
 }

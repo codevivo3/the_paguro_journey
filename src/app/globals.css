@@ -42,3 +42,59 @@ html,
 body {
   overflow-x: hidden;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Typography helpers (prose / long-form content)                              */
+/* -------------------------------------------------------------------------- */
+
+@layer components {
+  /* Force headings inside .prose to use UI font (not body serif) */
+  .prose :where(h1, h2, h3, h4) {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    color: var(--paguro-text-dark);
+  }
+
+  /* Fix hierarchy (your current issue: h2 looking smaller than body) */
+  .prose :where(h2) {
+    font-size: 1.5rem; /* ~text-2xl */
+    line-height: 1.25;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .prose :where(h3) {
+    font-size: 1.25rem; /* ~text-xl */
+    line-height: 1.3;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .prose :where(h2) {
+      font-size: 1.875rem; /* ~text-3xl */
+    }
+
+    .prose :where(h3) {
+      font-size: 1.5rem; /* ~text-2xl */
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 404 Animation                                                            */
+/* -------------------------------------------------------------------------- */
+
+@keyframes crab-walk {
+  from {
+    transform: translateX(-40vw) scaleX(-1);
+  }
+  to {
+    transform: translateX(120vw) scaleX(-1);
+  }
+}
+
+.crab-run {
+  width: 10rem; /* size of the crab */
+  animation: crab-walk 35s linear infinite;
+}

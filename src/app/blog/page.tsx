@@ -14,8 +14,8 @@ export default function BlogPage() {
             Blog
           </h1>
           <p className='mx-auto max-w-3xl text-[clamp(1rem,1.1vw,1.2rem)] leading-relaxed text-[color:var(--paguro-text-dark)]/75'>
-            Stories, reflections, and guides about mindful travel and
-            off-the-beaten-path destinations.
+            Racconti, riflessioni e guide per un viaggio consapevole, lontano
+            dai percorsi più battuti.
           </p>
         </header>
 
@@ -23,7 +23,7 @@ export default function BlogPage() {
         <section aria-label='Latest Articles' className='space-y-5'>
           <div className='flex items-baseline justify-between'>
             <h2 className='[font-family:var(--font-ui)] font-semibold text-[color:var(--paguro-text-dark)] text-[clamp(1.25rem,1.6vw,1.6rem)]'>
-              Latest posts
+              Pubblicazioni Recenti
             </h2>
             <span className='text-sm sm:text-base text-[color:var(--paguro-text-dark)]/60'>
               {posts.length} posts
@@ -40,7 +40,7 @@ export default function BlogPage() {
                   {/* Thumbnail placeholder (replace with CMS image later) */}
                   <div className='relative aspect-video w-full bg-black/10'>
                     <Image
-                      src={post.imageUrl1 || '/placeholder_view_vector.png'}
+                      src={post.coverImage || '/placeholder_view_vector.png'}
                       alt=''
                       fill
                       sizes='(max-width: 1024px) 100vw, 33vw'

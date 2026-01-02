@@ -9,12 +9,12 @@ export default function NewsletterForm() {
           Newsletter
         </h2>
         <p className='mt-2 text-[color:var(--paguro-text-dark)]/75'>
-          Want occasional updates (no spam, no clickbait)? Leave your email and
-          we’ll wire this to the newsletter tool later.
+          Iscriviti alla newsletter per ricevere nuovi racconti di viaggio,
+          video e aggiornamenti — senza spam.
         </p>
         <form className='mt-5 flex flex-col gap-3 sm:flex-row'>
           <label className='sr-only' htmlFor='email'>
-            Email address
+            Indirizzo email
           </label>
           <input
             id='email'
@@ -28,7 +28,7 @@ export default function NewsletterForm() {
             type='button'
             className='h-11 rounded-xl bg-[color:var(--paguro-deep)] px-5 [font-family:var(--font-ui)] font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[color:var(--paguro-coral)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
           >
-            Subscribe
+            Iscriviti
           </button>
         </form>
         <p className='mt-3 text-xs text-[color:var(--paguro-text-dark)]/60'>

@@ -1,6 +1,88 @@
 import { posts } from '@/lib/posts';
 import Image from 'next/image';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
+
+/* -------------------------------------------------------------------------- */
+/* Small, reusable building blocks                                             */
+/* -------------------------------------------------------------------------- */
+
+type CoverMediaProps = {
+  src: string;
+  alt: string;
+  href?: string;
+};
+
+function CoverMedia({ src, alt, href }: CoverMediaProps) {
+  const cover = (
+    <div className='relative aspect-video overflow-hidden rounded-2xl bg-black/10'>
+      <Image src={src} alt={alt} fill className='object-cover' priority />
+    </div>
+  );
+
+  // `Link`'s href can't be undefined. If there's no link yet, just render the cover.
+  return href ? (
+    <Link href={href} aria-label={`Open related media for: ${alt}`}>
+      {cover}
+    </Link>
+  ) : (
+    cover
+  );
+}
+
+type GalleryImageProps = {
+  src?: string;
+  alt: string;
+};
+
+function GalleryImage({ src, alt }: GalleryImageProps) {
+  if (!src) return null;
+
+  return (
+    <div className='relative aspect-video overflow-hidden rounded-2xl bg-black/10'>
+      <Image src={src} alt={alt} fill className='object-cover' />
+    </div>
+  );
+}
+
+function ArticleHeader({ title, date }: { title: string; date?: string }) {
+  return (
+    <header className='space-y-3'>
+      <h1 className='[font-family:var(--font-ui)] text-3xl font-semibold text-[color:var(--paguro-text-dark)] sm:text-4xl'>
+        {title}
+      </h1>
+      <p className='text-base text-[color:var(--paguro-text-dark)]/60 sm:text-lg'>
+        {date ? `Published on — ${date}` : 'Published on — (date coming soon)'}
+      </p>
+    </header>
+  );
+}
+
+const proseBlockClassName =
+  'prose prose-neutral prose-base md:prose-lg max-w-prose mx-auto mt-8 leading-relaxed ' +
+  'prose-p:text-[color:var(--paguro-text-dark)]/80 prose-li:text-[color:var(--paguro-text-dark)]/80 ' +
+  'prose-headings:[font-family:var(--font-editorial)] prose-headings:text-[color:var(--paguro-text-dark)] prose-headings:font-semibold ' +
+  'prose-h2:text-2xl md:prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-4 ' +
+  'prose-h3:text-xl md:prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-3';
+
+function ProseBlock({ children }: { children: React.ReactNode }) {
+  return <section className={proseBlockClassName}>{children}</section>;
+}
+
+function CalloutBox({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className='not-prose rounded-2xl border border-black/10 bg-white/60 p-6'>
+      <p className='[font-family:var(--font-ui)] text-lg font-semibold text-[color:var(--paguro-text-dark)]'>
+        {title}
+      </p>
+      <div className='mt-2 text-[color:var(--paguro-text-dark)]/70'>{children}</div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Types + SSG                                                                 */
+/* -------------------------------------------------------------------------- */
 
 // `params` comes from the dynamic route `[slug]`
 type PageProps = {
@@ -16,7 +98,10 @@ export function generateStaticParams() {
   }));
 }
 
-// This is the dynamic blog post page
+/* -------------------------------------------------------------------------- */
+/* Page                                                                        */
+/* -------------------------------------------------------------------------- */
+
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
 
@@ -24,49 +109,22 @@ export default async function BlogPostPage({ params }: PageProps) {
   const post = posts.find((p) => p.slug === slug);
 
   // Handles invalid or missing slugs
-  if (!post) {
-    return <h1>Post not found</h1>;
-  }
+  if (!post) notFound();
 
   return (
     <main className='px-6 pb-24 pt-28'>
       <div className='mx-auto max-w-6xl'>
-        {/* Blog post article */}
-        <article className='space-y-10 text-lg md:text-xl'>
-          {/* Article header */}
-          <header className='space-y-3'>
-            <h1 className='[font-family:var(--font-ui)] text-5xl font-semibold text-[color:var(--paguro-text-dark)]'>
-              {post.title}
-            </h1>
-            <p className='text-2xl text-[color:var(--paguro-text-dark)]/60'>
-              Published on — date placeholder
-            </p>
-          </header>
+        <article className='space-y-10'>
+          <ArticleHeader title={post.title} date={post.date} />
 
           {/* Hero / cover placeholder (future CMS image) */}
-          {(() => {
-            const cover = (
-              <div className='relative aspect-video overflow-hidden rounded-2xl bg-black/10'>
-                <Image
-                  src={post.imageUrl1 || '/placeholder_view_vector.png'}
-                  alt={post.title}
-                  fill
-                  className='object-cover'
-                  priority
-                />
-              </div>
-            );
+          <CoverMedia
+            src={post.coverImage || '/placeholder_view_vector.png'}
+            alt={post.title}
+            href={post.media?.url}
+          />
 
-            // `Link`'s href can't be undefined. If there's no link yet, just render the cover.
-            return post.linkAddress ? (
-              <Link href={post.linkAddress}>{cover}</Link>
-            ) : (
-              cover
-            );
-          })()}
-
-          {/* Article body */}
-          <section className='prose prose-neutral max-w-none mt-8 leading-relaxed prose-p:text-[color:var(--paguro-text-dark)]/80 prose-li:text-[color:var(--paguro-text-dark)]/80 prose-headings:text-[color:var(--paguro-text-dark)] prose-headings:[font-family:var(--font-ui)]'>
+          <ProseBlock>
             <p className='lead text-[color:var(--paguro-text-dark)]/80'>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer
               non feugiat arcu. Suspendisse potenti. In hac habitasse platea
@@ -81,9 +139,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               ullamcorper. Aliquam erat volutpat.
             </p>
 
-            <h2 className='[font-family:var(--font-ui)] text-[color:var(--paguro-text-dark)]'>
-              Lorem ipsum heading
-            </h2>
+            <h2>Lorem ipsum heading</h2>
 
             <p>
               Donec posuere, metus sit amet pulvinar blandit, arcu libero
@@ -132,24 +188,12 @@ export default async function BlogPostPage({ params }: PageProps) {
               morbi tristique senectus et netus et malesuada fames ac turpis
               egestas.
             </p>
-          </section>
+          </ProseBlock>
 
-          {/* Additional image */}
-          <div className='relative aspect-video overflow-hidden rounded-2xl bg-black/10'>
-            <Image
-              src={post.imageUrl2 || '/placeholder_view_vector.png'}
-              alt={post.title}
-              fill
-              className='object-cover'
-              priority
-            />
-          </div>
+          <GalleryImage src={post.gallery?.[0]} alt={post.title} />
 
-          {/* Article body continued */}
-          <section className='prose prose-neutral max-w-none mt-8 leading-relaxed prose-p:text-[color:var(--paguro-text-dark)]/80 prose-li:text-[color:var(--paguro-text-dark)]/80 prose-headings:text-[color:var(--paguro-text-dark)] prose-headings:[font-family:var(--font-ui)]'>
-            <h2 className='[font-family:var(--font-ui)] text-[color:var(--paguro-text-dark)]'>
-              Lorem ipsum: section two
-            </h2>
+          <ProseBlock>
+            <h2>Lorem ipsum: section two</h2>
 
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
@@ -172,9 +216,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               fermentum.
             </p>
 
-            <h3 className='[font-family:var(--font-ui)] text-[color:var(--paguro-text-dark)]'>
-              A smaller subheading
-            </h3>
+            <h3>A smaller subheading</h3>
 
             <p>
               Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
@@ -188,24 +230,12 @@ export default async function BlogPostPage({ params }: PageProps) {
               Vivamus in ipsum sed arcu pretium finibus. Phasellus tristique
               lectus in odio tempus, sit amet posuere nisl vulputate.
             </p>
-          </section>
+          </ProseBlock>
 
-          {/* Additional image */}
-          <div className='relative aspect-video overflow-hidden rounded-2xl bg-black/10'>
-            <Image
-              src={post.imageUrl3 || '/placeholder_view_vector.png'}
-              alt={post.title}
-              fill
-              className='object-cover'
-              priority
-            />
-          </div>
+          <GalleryImage src={post.gallery?.[1]} alt={post.title} />
 
-          {/* Article body continued */}
-          <section className='prose prose-neutral max-w-none mt-8 leading-relaxed prose-p:text-[color:var(--paguro-text-dark)]/80 prose-li:text-[color:var(--paguro-text-dark)]/80 prose-headings:text-[color:var(--paguro-text-dark)] prose-headings:[font-family:var(--font-ui)]'>
-            <h2 className='[font-family:var(--font-ui)] text-[color:var(--paguro-text-dark)]'>
-              Lorem ipsum: section three
-            </h2>
+          <ProseBlock>
+            <h2>Lorem ipsum: section three</h2>
 
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
@@ -221,16 +251,13 @@ export default async function BlogPostPage({ params }: PageProps) {
               iaculis egestas.
             </p>
 
-            <div className='not-prose rounded-2xl border border-black/10 bg-white/60 p-6'>
-              <p className='[font-family:var(--font-ui)] text-lg font-semibold text-[color:var(--paguro-text-dark)]'>
-                Placeholder callout
-              </p>
-              <p className='mt-2 text-[color:var(--paguro-text-dark)]/70'>
+            <CalloutBox title='Placeholder callout'>
+              <p>
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
                 vitae turpis at orci porta sollicitudin. (This is only to test a
                 “note box” style in a long article.)
               </p>
-            </div>
+            </CalloutBox>
 
             <p>
               Integer non lectus sit amet lorem convallis gravida. Sed viverra
@@ -245,7 +272,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               dignissim nibh. Praesent molestie, mauris at ultricies tristique,
               metus lacus finibus mi, non tincidunt nisi leo a orci.
             </p>
-          </section>
+          </ProseBlock>
         </article>
       </div>
     </main>

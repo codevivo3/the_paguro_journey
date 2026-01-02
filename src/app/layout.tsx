@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
-// Root layout shared across all routes
+// Global root layout shared across all routes (App Router)
 import './globals.css';
-// Configure global fonts
+// Configure global Google Fonts (exposed as CSS variables)
 import { Merriweather, Libre_Baskerville, K2D } from 'next/font/google';
 
 import Navbar from '@/components/Navbar';
@@ -29,13 +29,13 @@ const k2d = K2D({
   display: 'swap',
 });
 
-// Default site metadata
+// Default site metadata (SEO baseline)
 export const metadata: Metadata = {
   title: 'The Paguro Journey',
   description: 'Viaggia con Paguro: text, text e text.',
 };
 
-// Wrap all pages
+// Root layout component wrapping all pages
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -46,17 +46,16 @@ export default function RootLayout({
       lang='en'
       className={`${merriweather.variable} ${libreBaskerville.variable} ${k2d.variable}`}
     >
-      <body className='antialiased'>
+      <body suppressHydrationWarning className='antialiased'>
         <UIProvider>
-          {/* Render global navigation */}
+          {/* Global navigation (persistent across routes) */}
           <Navbar />
-          {/* Render current route */}
+          {/* Page content rendered by the active route */}
           {children}
+          {/* Global footer (persistent across routes) */}
+          <Footer />
         </UIProvider>
       </body>
-      <footer>
-        <Footer />
-      </footer>
     </html>
   );
 }

@@ -30,11 +30,11 @@ export default function DestinationsPage() {
         {/* Page header */}
         <header className='text-center space-y-3'>
           <h1 className='[font-family:var(--font-ui)] text-[clamp(2.2rem,4vw,3rem)] font-semibold text-[color:var(--paguro-text-dark)]'>
-            Destinations
+            Destinazioni
           </h1>
           <p className='mx-auto max-w-2xl text-[color:var(--paguro-text-dark)]/75 text-[clamp(1rem,1.6vw,1.125rem)]'>
-            A simple map of places we’ve explored — with stories, videos, and
-            practical notes.
+            Una mappa semplice dei luoghi che abbiamo esplorato — tra storie,
+            video e appunti pratici.
           </p>
         </header>
 
@@ -44,25 +44,25 @@ export default function DestinationsPage() {
           className='flex flex-wrap items-center justify-center gap-3'
         >
           <span className='text-sm text-[color:var(--paguro-text-dark)]/60'>
-            Filters (later):
+            Filtri (in arrivo):
           </span>
           <button
             type='button'
             className='rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[color:var(--paguro-text-dark)] shadow-sm'
           >
-            Continent
+            Continente
           </button>
           <button
             type='button'
             className='rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[color:var(--paguro-text-dark)] shadow-sm'
           >
-            Country
+            Paese
           </button>
           <button
             type='button'
             className='rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[color:var(--paguro-text-dark)] shadow-sm'
           >
-            Travel Style
+            Stile di viaggio
           </button>
         </section>
 
@@ -70,10 +70,10 @@ export default function DestinationsPage() {
         <section aria-label='Destinations' className='space-y-5'>
           <div className='flex items-baseline justify-between'>
             <h2 className='[font-family:var(--font-ui)] text-[clamp(1.5rem,2.5vw,1.75rem)] font-semibold text-[color:var(--paguro-text-dark)]'>
-              Browse
+              Esplora
             </h2>
             <span className='text-sm text-[color:var(--paguro-text-dark)]/60'>
-              {destinations.length} destinations
+              {destinations.length} destinazioni
             </span>
           </div>
 
@@ -109,7 +109,7 @@ export default function DestinationsPage() {
                       className='inline-flex items-center gap-2 text-[color:var(--paguro-deep)] font-medium transition-colors duration-200 group-hover:text-[color:var(--paguro-coral)]'
                       aria-label={`Open destination: ${d.title}`}
                     >
-                      Explore <span aria-hidden='true'>➜</span>
+                      Scopri <span aria-hidden='true'>➜</span>
                     </Link>
                   </div>
                 </div>
@@ -121,12 +121,10 @@ export default function DestinationsPage() {
         {/* Note (keep it honest while the feature is evolving) */}
         <section className='mx-auto max-w-3xl rounded-2xl border border-black/10 bg-white/60 p-6 text-[color:var(--paguro-text-dark)]/75'>
           <p className='[font-family:var(--font-ui)] font-semibold text-[color:var(--paguro-text-dark)]'>
-            How this page will evolve
+            Come evolverà questa pagina
           </p>
           <p className='mt-2'>
-            We’ll start small: a clean list of destinations. Later we can add
-            destination pages (with a map, linked videos, and related blog
-            posts), plus filters and search.
+            Inizieremo in modo semplice: una lista pulita delle destinazioni. In seguito potremo aggiungere pagine dedicate a ciascun luogo (con mappa, video collegati e articoli correlati), oltre a filtri e ricerca.
           </p>
         </section>
       </div>

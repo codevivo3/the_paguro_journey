@@ -38,7 +38,7 @@ export default function Navbar() {
           </Link>
 
           {/* Navigation */}
-          <ul className='flex items-center gap-6 text-white text-[clamp(0.95rem,1.1vw,1.15rem)]'>
+          <ul className='flex items-center gap-6 text-white text-[clamp(1rem,1.4vw,1.3rem)]'>
             <li>
               <Link
                 href={'/blog'}
@@ -54,7 +54,7 @@ export default function Navbar() {
                   isActive('/destinations') ? ACTIVE_CLASS : NORMAL_CLASS
                 }
               >
-                Destinations
+                Destinazioni
               </Link>
             </li>
             <li>
@@ -62,7 +62,7 @@ export default function Navbar() {
                 href='/about'
                 className={isActive('/about') ? ACTIVE_CLASS : NORMAL_CLASS}
               >
-                About
+                Chi Siamo
               </Link>
             </li>
             <li>
@@ -70,7 +70,7 @@ export default function Navbar() {
                 href={'/contact'}
                 className={isActive('/contact') ? ACTIVE_CLASS : NORMAL_CLASS}
               >
-                Contact
+                Contatti
               </Link>
             </li>
             <li>
