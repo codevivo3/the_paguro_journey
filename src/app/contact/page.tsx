@@ -20,7 +20,7 @@ function ContactCard({
   external?: boolean;
 }) {
   const content = (
-    <div className='group aspect-square rounded-2xl border border-black/10 bg-white p-2 shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md'>
+    <div className='group aspect-square rounded-2xl border border-black/10 bg-[color:var(--paguro-ivory)] p-2 shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md'>
       <div className='flex h-full flex-col items-center justify-center text-center'>
         <div className='grid h-14 w-14 place-items-center rounded-2xl bg-black/5 text-[color:var(--paguro-deep)] transition-colors duration-300 group-hover:text-[color:var(--paguro-coral)]'>
           <Icon className='h-7 w-7' />
@@ -69,21 +69,22 @@ function ContactCard({
 
 export default function ContactPage() {
   return (
-    <main className='px-6 pb-24 pt-28'>
+    <main className='px-6 pb-24 pt-24'>
       <div className='mx-auto max-w-3xl space-y-12'>
         {/* Page header */}
         <header className='space-y-4'>
-          <h1 className='[font-family:var(--font-ui)] text-4xl font-semibold text-[color:var(--paguro-text-dark)]'>
-            Contatti
-          </h1>
-          <p className='text-[color:var(--paguro-text-dark)]/70'>
+          <h1 className='t-page-title'>Contatti</h1>
+          <p className='t-page-subtitle'>
             Per collaborazioni, idee o anche solo per salutarci — scrivici senza
             problemi.
           </p>
         </header>
 
         {/* Contact options */}
-        <section aria-label='Contact options' className='grid grid-cols-2 gap-5 md:grid-cols-4 md:gap-6'>
+        <section
+          aria-label='Contact options'
+          className='grid grid-cols-2 gap-5 md:grid-cols-4 md:gap-6'
+        >
           <ContactCard
             href='mailto:thepagurojourney@gmail.com'
             title='Email'

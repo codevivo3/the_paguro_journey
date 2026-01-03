@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Paguro Journey 🌍
 
-## Getting Started
+A slow-travel storytelling platform combining long-form articles, destinations, and video content.
 
-First, run the development server:
+This project explores how travel stories can be presented with clarity, calm design, and long-term scalability in mind — avoiding clutter, hype, and short-form noise.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Project Overview
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**The Paguro Journey** is a modern web platform designed to grow over time:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Editorial blog posts (long-form, SEO-friendly)
+- Destination-based exploration (geographic & thematic)
+- Video integration (YouTube)
+- Clean UI with focus on readability and calm navigation
 
-## Learn More
+The project is currently in **active development** and serves both as:
+- a real collaborative project, and
+- a portfolio piece demonstrating architecture, design decisions, and scalability.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧠 Key Design Principles
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Slow & readable** → typography-first layouts
+- **Content-driven** → structure before visuals
+- **Scalable architecture** → ready for CMS (Sanity)
+- **No premature complexity** → features added when justified
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS + CSS variables (design tokens)
+- **Images:** Next/Image
+- **State:** Local + lightweight context where needed
+- **CMS (planned):** Sanity
+- **Deployment:** Vercel
+
+---
+
+## 🗂️ Current Features
+
+- Responsive navigation with active route styling
+- Hero slideshow with controls and pause logic
+- Blog system with dynamic slugs
+- Destinations as a structured content view
+- Reusable UI components (cards, sections, icons)
+- Accessibility-aware interactions (keyboard, focus states)
+- SEO-friendly structure (semantic HTML, hidden H1s where needed)
+
+---
+
+## 🚧 Roadmap
+
+Short-term:
+- Styling refinements (typography & spacing consistency)
+- CMS schema design (Sanity)
+- Content migration (posts, destinations, collaborations)
+
+Mid-term:
+- YouTube API integration
+- Search functionality
+- Destination ↔ blog cross-linking
+- Performance & SEO optimizations
+
+Long-term:
+- Editorial workflows
+- Internationalization
+- Advanced filtering & discovery
+
+---
+
+## 👤 My Role
+
+I’m responsible for:
+
+- Project architecture
+- Frontend development
+- Component design
+- Styling system & typography
+- CMS-ready data modeling
+- Performance & accessibility considerations
+
+This repository is maintained as part of my **developer portfolio** and reflects real-world decision-making rather than tutorial patterns.
+
+---
+
+## ⚠️ Notes
+
+- Content is placeholder where marked (Lorem Ipsum, mock data).
+- The project will eventually be deployed on a separate production account.
+- This repository remains public for portfolio and documentation purposes.
+
+---
+
+## 📄 License
+
+This project is shared for educational and portfolio purposes.  
+Design and content branding belong to their respective owners.
+
+---
+
+## © Attribution
+
+© 2026 codevivo.dev — Francesco De Vivo
+
+This project is developed and maintained by Francesco De Vivo as part of his professional portfolio.

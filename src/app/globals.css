@@ -7,24 +7,27 @@
 
 :root {
   /* Font families (wired from next/font in layout.tsx) */
-  --font-editorial: var(--font-libre-baskerville, serif); /* Headlines, titles */
-  --font-body: var(--font-merriweather, serif);           /* Long-form reading */
-  --font-ui: var(--font-k2d, sans-serif);                 /* Navigation, UI */
-  
+  --font-editorial: var(
+    --font-libre-baskerville,
+    serif
+  ); /* Headlines, titles */
+  --font-body: var(--font-merriweather, serif); /* Long-form reading */
+  --font-ui: var(--font-k2d, sans-serif); /* Navigation, UI */
+
   /* Brand palette */
-  --paguro-ocean: #5BC2D9;
-  --paguro-deep: #419BBF;
-  --paguro-sand: #D5D9B8;
-  --paguro-sunset: #F2A341;
-  --paguro-coral: #EB7134;
+  --paguro-ocean: #5bc2d9;
+  --paguro-deep: #419bbf;
+  --paguro-sand: #d5d9b8;
+  --paguro-sunset: #f2a341;
+  --paguro-coral: #eb7134;
 
   /* Text colors (avoid pure black/white for readability) */
-  --paguro-text-dark: #1d1d1f;  /* Soft black */
+  --paguro-text-dark: #1d1d1f; /* Soft black */
   --paguro-text-light: #f5f5f5; /* Soft white */
-  
+
   /* Neutrals */
-  --paguro-ivory: #F7F6F2;        /* Card / surface background */
-  --paguro-anthracite: #2B2B2B;   /* Primary dark color */
+  --paguro-ivory: #f7f6f2; /* Card / surface background */
+  --paguro-anthracite: #2b2b2b; /* Primary dark color */
 }
 
 /* -------------------------------------------------------------------------- */
@@ -44,18 +47,88 @@ body {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Typography helpers (prose / long-form content)                              */
+/* Typography system (site-wide)                                               */
 /* -------------------------------------------------------------------------- */
 
 @layer components {
-  /* Force headings inside .prose to use UI font (not body serif) */
+  /*
+    Typography boundaries (rules of the road)
+
+    1) Use the "t-*" classes for UI pages (home, lists, cards, about, contact, etc.).
+       This prevents every page from inventing its own clamp() sizes.
+
+    2) Use `.prose` ONLY for long-form article bodies (blog/[slug]).
+       `.prose` styles do nothing unless the wrapper has className="prose".
+
+    3) Headings (UI) use --font-ui. Long reading uses --font-body.
+       Keep that split — it’s the core of the visual hierarchy.
+  */
+
+  /* Page header */
+  .t-page-title {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    color: var(--paguro-text-dark);
+    font-size: clamp(1.9rem, 2.2vw, 2.6rem);
+    line-height: 1.1;
+  }
+
+  .t-page-subtitle {
+    color: color-mix(in srgb, var(--paguro-text-dark) 75%, transparent);
+    font-size: clamp(1rem, 1.1vw, 1.2rem);
+    line-height: 1.6;
+  }
+
+  /* Section header */
+  .t-section-title {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    color: var(--paguro-text-dark);
+    font-size: clamp(1.25rem, 1.6vw, 1.6rem);
+    line-height: 1.2;
+  }
+
+  /* Card / tile titles */
+  .t-card-title {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    color: var(--paguro-text-dark);
+    font-size: clamp(1.15rem, 1.35vw, 1.35rem);
+    line-height: 1.25;
+  }
+
+  /* Card / tile body text (slightly smaller than default body to keep hierarchy) */
+  .t-card-body {
+    color: color-mix(in srgb, var(--paguro-text-dark) 75%, transparent);
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+
+  /* Default body text for UI pages */
+  .t-body {
+    color: color-mix(in srgb, var(--paguro-text-dark) 75%, transparent);
+    line-height: 1.7;
+  }
+
+  /* Small meta (counts, dates, labels) */
+  .t-meta {
+    color: color-mix(in srgb, var(--paguro-text-dark) 60%, transparent);
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Long-form content: use ONLY inside an element with class="prose"          */
+  /* ------------------------------------------------------------------------ */
+
+  /* Headings inside .prose should use UI font (not body serif) */
   .prose :where(h1, h2, h3, h4) {
     font-family: var(--font-ui);
     font-weight: 600;
     color: var(--paguro-text-dark);
   }
 
-  /* Fix hierarchy (your current issue: h2 looking smaller than body) */
+  /* Fix hierarchy (prevents h2/h3 looking smaller than body) */
   .prose :where(h2) {
     font-size: 1.5rem; /* ~text-2xl */
     line-height: 1.25;

@@ -48,10 +48,16 @@ export default function Footer() {
           >
             Contatti
           </Link>
+          <Link
+            href='/media-kit'
+            className='transition-colors hover:text-[color:var(--paguro-coral)]'
+          >
+            Media Kit
+          </Link>
         </nav>
 
         {/* Social */}
-        <div className='flex flex-col items-center'>
+        <div className='flex flex-col items-center md:justify-self-end'>
           <div className='flex items-center gap-5'>
             <a
               href='mailto:thepagurojourney@gmail.com'
@@ -60,7 +66,7 @@ export default function Footer() {
               aria-label='Email'
               className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
             >
-              <MailIcon className='h-5 w-5' />
+              <MailIcon className='h-7.5 w-7.5' />
             </a>
             <a
               href='https://www.youtube.com/@thepagurojourney'
@@ -69,7 +75,7 @@ export default function Footer() {
               aria-label='YouTube'
               className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
             >
-              <YouTubeIcon className='h-5 w-5' />
+              <YouTubeIcon className='h-7.5 w-7.5' />
             </a>
             <a
               href='https://www.instagram.com/the_paguro_journey/'
@@ -78,7 +84,7 @@ export default function Footer() {
               aria-label='Instagram'
               className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
             >
-              <InstagramIcon className='h-5 w-5' />
+              <InstagramIcon className='h-6 w-6' />
             </a>
             <a
               href='https://www.tiktok.com/login?redirect_url=https%3A%2F%2Fwww.tiktok.com%2F%40the_paguro_journey&lang=en&enter_method=mandatory'
@@ -87,7 +93,7 @@ export default function Footer() {
               aria-label='TikTok'
               className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
             >
-              <TikTokIcon className='h-5 w-5' />
+              <TikTokIcon className='h-6 w-6' />
             </a>
           </div>
         </div>

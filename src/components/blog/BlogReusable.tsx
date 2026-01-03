@@ -37,9 +37,7 @@ export function Prose({
   return (
     <div
       className={cx(
-        // keep it simple: readability first
-        'mx-auto max-w-3xl text-[color:var(--paguro-text-dark)]',
-        'leading-relaxed',
+        'prose mx-auto max-w-3xl text-[color:var(--paguro-text-dark)] leading-relaxed',
         className
       )}
     >
@@ -66,17 +64,17 @@ export function ArticleHeader({
   return (
     <header className={cx('mx-auto max-w-3xl space-y-3', className)}>
       {eyebrow && (
-        <p className='[font-family:var(--font-ui)] text-sm uppercase tracking-wide text-[color:var(--paguro-text-dark)]/60'>
+        <p className='t-meta uppercase tracking-wide'>
           {eyebrow}
         </p>
       )}
 
-      <h1 className='[font-family:var(--font-editorial)] text-4xl sm:text-5xl font-semibold text-[color:var(--paguro-text-dark)]'>
+      <h1 className='t-page-title'>
         {title}
       </h1>
 
       {date && (
-        <p className='text-sm text-[color:var(--paguro-text-dark)]/60'>
+        <p className='t-meta'>
           {date}
         </p>
       )}
@@ -167,16 +165,11 @@ export function CalloutBox({
       )}
     >
       {title && (
-        <p className='[font-family:var(--font-ui)] font-semibold text-[color:var(--paguro-text-dark)]'>
+        <p className='t-section-title'>
           {title}
         </p>
       )}
-      <div
-        className={cx(
-          title ? 'mt-2' : '',
-          'text-[color:var(--paguro-text-dark)]/80'
-        )}
-      >
+      <div className='t-body'>
         {children}
       </div>
     </aside>

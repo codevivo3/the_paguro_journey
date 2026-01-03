@@ -1,24 +1,24 @@
 import Link from 'next/link';
-import Image from 'next/image';
+// import Image from 'next/image';
 
-// Placeholder data — later replace with YouTube Data API results
+// Placeholder data — will be replaced by YouTube API results
 const latestVideos = [
   {
     id: 'video-1',
-    title: 'Video Title One',
-    description: 'Short description or excerpt.',
+    title: 'Titolo Video Uno',
+    description: 'Breve descrizione o estratto.',
     href: '#',
   },
   {
     id: 'video-2',
-    title: 'Video Title Two',
-    description: 'Short description or excerpt.',
+    title: 'Titolo Video Due',
+    description: 'Breve descrizione o estratto.',
     href: '#',
   },
   {
     id: 'video-3',
-    title: 'Video Title Three',
-    description: 'Short description or excerpt.',
+    title: 'Titolo Video Tre',
+    description: 'Breve descrizione o estratto.',
     href: '#',
   },
 ];
@@ -30,11 +30,10 @@ export default function LatestVidsSection() {
         {/* Section heading */}
         <header className='text-center space-y-3'>
           <h3 className='[font-family:var(--font-ui)] text-4xl font-semibold text-[color:var(--paguro-text-dark)]'>
-            Latest Videos
+            Ultimi Video
           </h3>
           <p className='text-[color:var(--paguro-text-dark)]/70'>
-            Uno sguardo alle nostre avventure più recenti. (Placeholder cards —
-            will be powered by the YouTube API.)
+            Uno sguardo alle nostre avventure più recenti. (Placeholder cards — will be powered by the YouTube API.)
           </p>
         </header>
 
@@ -65,7 +64,7 @@ export default function LatestVidsSection() {
                     href={video.href}
                     className='inline-flex items-center gap-2 text-[color:var(--paguro-deep)] font-medium transition-colors duration-200 group-hover:text-[color:var(--paguro-coral)] text-sm'
                   >
-                    Watch on YouTube
+                    Guarda su YouTube
                     <span aria-hidden='true'>➜</span>
                   </Link>
                 </div>

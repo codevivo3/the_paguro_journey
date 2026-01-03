@@ -85,40 +85,43 @@ export default function HeroSlideShow({
     );
   }
 
+  // Full-viewport hero: <Image fill /> only fills a parent with an explicit height.
   return (
     <section
-      className={`relative w-full h-[clamp(420px,60vh,700px)] md:h-[clamp(600px,100vh,900px)] overflow-hidden ${className} shadow-[0_10px_50px_1px_rgba(0,0,0,0.3)]`}
+      className={`relative w-full h-[100svh] overflow-hidden ${className}`}
       aria-label='Hero slideshow'
     >
-      {/* Slides */}
-      {safeSlides.map((src, i) => {
-        const isActive = i === safeIndex;
-        return (
-          <div
-            key={`${src}-${i}`}
-            className={
-              'absolute inset-0 transition-opacity ease-in-out ' +
-              (isActive ? 'opacity-100' : 'opacity-0')
-            }
-            style={{ transitionDuration: `${transitionMs}ms` }}
-            aria-hidden={!isActive}
-          >
-            <Image
-              src={src}
-              alt='' // decorative (hero content text is rendered in HTML elsewhere)
-              fill
-              priority={i === 0}
-              sizes='100vw'
-              className='object-cover'
-            />
-          </div>
-        );
-      })}
+      {/* Slides (full-viewport cinematic hero) */}
+      <div className='absolute inset-0 bg-black'>
+        {safeSlides.map((src, i) => {
+          const isActive = i === safeIndex;
+          return (
+            <div
+              key={`${src}-${i}`}
+              className={
+                'absolute inset-0 transition-opacity ease-in-out ' +
+                (isActive ? 'opacity-100' : 'opacity-0')
+              }
+              style={{ transitionDuration: `${transitionMs}ms` }}
+              aria-hidden={!isActive}
+            >
+              <Image
+                src={src}
+                alt=''
+                fill
+                priority={i === 0}
+                sizes='100vw'
+                className='object-cover'
+              />
+            </div>
+          );
+        })}
+      </div>
 
       {/* Optional contrast overlay */}
       {overlay && (
         <div
-          className='absolute inset-0 z-10 bg-gradient-to-b from-black/35 via-black/35 to-black/60'
+          className='pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-black/20 to-black/55'
           aria-hidden='true'
         />
       )}

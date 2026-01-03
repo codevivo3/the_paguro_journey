@@ -53,7 +53,16 @@ export default function CollabsSection() {
         */}
         <div className='text-center'>
           <p className='text-sm text-[color:var(--paguro-text-dark)]/60'>
-            Vuoi collaborare? <span className='font-medium'>Scrivici</span> ➜
+            Vuoi collaborare?{' '}
+            <a
+              href='mailto:thepagurojourney@gmail.com'
+              target='_blank'
+              rel='noopener noreferrer'
+              aria-label='Email'
+              className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
+            >
+              Scrivici ➜
+            </a>
           </p>
         </div>
       </div>
