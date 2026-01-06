@@ -20,17 +20,17 @@ function ContactCard({
   external?: boolean;
 }) {
   const content = (
-    <div className='group aspect-square rounded-2xl border border-black/10 bg-[color:var(--paguro-ivory)] p-2 shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md'>
+    <div className='group aspect-square rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-2 shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md'>
       <div className='flex h-full flex-col items-center justify-center text-center'>
-        <div className='grid h-14 w-14 place-items-center rounded-2xl bg-black/5 text-[color:var(--paguro-deep)] transition-colors duration-300 group-hover:text-[color:var(--paguro-coral)]'>
+        <div className='grid h-14 w-14 place-items-center rounded-2xl bg-white text-[color:var(--paguro-ocean)] transition-colors duration-300 group-hover:text-[color:var(--paguro-coral)] border'>
           <Icon className='h-7 w-7' />
         </div>
 
         <div className='mt-4 space-y-1'>
-          <div className='[font-family:var(--font-ui)] text-lg font-semibold text-[color:var(--paguro-text-dark)]'>
+          <div className='[font-family:var(--font-ui)] text-lg font-semibold text-[color:var(--paguro-text)]'>
             {title}
           </div>
-          <div className='text-xs text-[color:var(--paguro-text-dark)]/70'>
+          <div className='text-xs text-[color:var(--paguro-text-muted)]'>
             {subtitle}
           </div>
         </div>

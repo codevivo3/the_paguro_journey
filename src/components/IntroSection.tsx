@@ -5,7 +5,7 @@ export default function IntroSection() {
         <h2 className='flex justify-center my-6 [font-family:var(--font-ui)] font-bold text-6xl'>
           Racconti di Viaggio
         </h2>
-        <p className='[font-family:var(--font-body)] text-black'>
+        <p className='[font-family:var(--font-body)] text-[color:var(--paguro-text)]'>
           Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate
           quis quam facilis reiciendis impedit debitis eos deleniti vero at
           maxime. Dolorem numquam pariatur ullam ipsum corrupti illum. Illum

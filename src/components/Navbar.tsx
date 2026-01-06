@@ -6,6 +6,8 @@ import SearchModal from './SearchModal';
 import Link from 'next/link';
 import Image from 'next/image';
 
+import SwitchTheme from './SwitchTheme';
+
 export default function Navbar() {
   const pathname = usePathname();
 
@@ -75,6 +77,9 @@ export default function Navbar() {
             </li>
             <li>
               <SearchModal />
+            </li>
+            <li>
+              <SwitchTheme />
             </li>
           </ul>
         </div>

@@ -3,20 +3,18 @@ import Link from 'next/link';
 // Temporary homepage CTA placeholder component
 export default function CallToAction() {
   return (
-    <section className='py-20 px-6'>
+    <section className='py-20 px-6 bg-[color:var(--paguro-bg)]'>
       <div className='mx-auto max-w-3xl text-center space-y-6'>
         {/* Section eyebrow/label */}
-        <p className='[font-family:var(--font-ui)] text-sm uppercase tracking-wide text-[color:var(--paguro-text-dark)]/60'>
+        <p className='t-meta [font-family:var(--font-ui)] uppercase tracking-wide'>
           Call to action
         </p>
 
         {/* CTA headline */}
-        <h2 className='[font-family:var(--font-ui)] text-3xl font-semibold text-[color:var(--paguro-text-dark)]'>
-          Lorem ipsum dolor sit amet
-        </h2>
+        <h2 className='t-section-title text-3xl'>Lorem ipsum dolor sit amet</h2>
 
         {/* Supporting copy */}
-        <p className='text-[color:var(--paguro-text-dark)]/75'>
+        <p className='t-body'>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
           eiusmod tempor incididunt ut labore.
         </p>
@@ -25,7 +23,7 @@ export default function CallToAction() {
           {/* Placeholder action link to be wired later */}
           <Link
             href='#'
-            className='inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-deep)] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[color:var(--paguro-coral)]'
+            className='inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-ocean)] px-6 py-3 text-lg text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)] font-extrabold [font-family:var(--font-ui)]'
           >
             Placeholder CTA <span aria-hidden>➜</span>
           </Link>

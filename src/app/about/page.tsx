@@ -18,11 +18,11 @@ export default function AboutPage() {
           alt='Foto di Valentina e Mattia in un paesaggio naturale'
           width={1200}
           height={675}
-          className='w-full rounded-2xl'
+          className='w-full rounded-2xl border border-black/10'
         />
 
         {/* Editorial content */}
-        <section className='prose prose-neutral max-w-none'>
+        <section className='prose max-w-none text-[color:var(--paguro-text)] prose-p:text-[color:var(--paguro-text-muted)] prose-li:text-[color:var(--paguro-text-muted)] prose-blockquote:text-[color:var(--paguro-text-muted)] prose-a:text-[color:var(--paguro-deep)] hover:prose-a:text-[color:var(--paguro-coral)]'>
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
             lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod
@@ -44,16 +44,16 @@ export default function AboutPage() {
         </section>
 
         {/* Call to action */}
-        <section className='mt-16 rounded-2xl bg-[color:var(--paguro-ivory)] p-8 text-center'>
+        <section className='mt-16 rounded-2xl bg-[color:var(--paguro-surface)] p-8 text-center'>
           <h2 className='t-section-title'>Continua il viaggio</h2>
-          <p className='mt-3 t-body text-[color:var(--paguro-text-dark)]/70'>
+          <p className='mt-3 t-body'>
             Scopri i racconti, i video e le destinazioni che hanno dato forma a
             questo progetto.
           </p>
           <div className='mt-6'>
             <Link
               href='/blog'
-              className='inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-deep)] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[color:var(--paguro-coral)]'
+              className='inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-ocean)] px-6 py-3 text-sm font-medium text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)]'
             >
               Vai al blog <span aria-hidden='true'>➜</span>
             </Link>
@@ -62,7 +62,7 @@ export default function AboutPage() {
 
         {/* Media Kit Link */}
         <section className='text-center'>
-          <p className='t-body text-[color:var(--paguro-text-dark)]/75'>
+          <p className='t-body'>
             Per collaborazioni, stampa e partnership puoi consultare il nostro{' '}
             <Link
               href='/media-kit'

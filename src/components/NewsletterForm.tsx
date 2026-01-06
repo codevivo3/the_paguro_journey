@@ -22,11 +22,11 @@ export default function NewsletterForm() {
             inputMode='email'
             autoComplete='email'
             placeholder='you@example.com'
-            className='h-11 w-full flex-1 rounded-xl border border-black/10 bg-white px-4 text-[color:var(--paguro-text-dark)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
+            className='h-11 w-full flex-1 rounded-full border border-black/10 bg-white px-4 text-[color:var(--paguro-text-dark)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
           />
           <button
             type='button'
-            className='h-11 rounded-xl bg-[color:var(--paguro-deep)] px-5 [font-family:var(--font-ui)] font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[color:var(--paguro-coral)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
+            className='inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-ocean)] px-6 py-3 text-sm font-medium text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)]'
           >
             Iscriviti
           </button>

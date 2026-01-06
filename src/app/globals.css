@@ -28,6 +28,49 @@
   /* Neutrals */
   --paguro-ivory: #f7f6f2; /* Card / surface background */
   --paguro-anthracite: #2b2b2b; /* Primary dark color */
+
+  /* ---------------------------------------------------------------------- */
+  /* Semantic tokens (use these in components, swap values per theme)        */
+  /* ---------------------------------------------------------------------- */
+
+  /* Light theme surfaces */
+  --paguro-bg: var(--paguro-sand);
+  --paguro-surface: var(--paguro-ivory);
+
+  /* Light theme text */
+  --paguro-text: var(--paguro-text-dark);
+  --paguro-text-muted: color-mix(in srgb, var(--paguro-text-dark) 75%, transparent);
+  --paguro-text-meta: color-mix(in srgb, var(--paguro-text-dark) 60%, transparent);
+
+  /* Light theme borders */
+  --paguro-border: rgba(29, 29, 31, 0.10);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dark theme overrides                                                       */
+/* Toggle by setting <html data-theme="dark"> ...                           */
+/* -------------------------------------------------------------------------- */
+
+:root[data-theme='dark'] {
+  /* Brand palette (dark equivalents) */
+  --paguro-ocean: #2a677a;
+  --paguro-deep: #2a3a35;
+
+  /* Keep accents consistent */
+  --paguro-sunset: #f2a341;
+  --paguro-coral: #eb7134;
+
+  /* Surfaces */
+  --paguro-bg: #171b1a;
+  --paguro-surface: #2a3a35;
+
+  /* Text */
+  --paguro-text: #e8eceb;
+  --paguro-text-muted: rgba(232, 236, 235, 0.70);
+  --paguro-text-meta: rgba(232, 236, 235, 0.60);
+
+  /* Borders */
+  --paguro-border: rgba(232, 236, 235, 0.08);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -35,8 +78,8 @@
 /* -------------------------------------------------------------------------- */
 
 body {
-  background: var(--paguro-sand);
-  color: var(--paguro-text-dark);
+  background: var(--paguro-bg);
+  color: var(--paguro-text);
   font-family: var(--font-body);
 }
 
@@ -68,13 +111,13 @@ body {
   .t-page-title {
     font-family: var(--font-ui);
     font-weight: 600;
-    color: var(--paguro-text-dark);
+    color: var(--paguro-text);
     font-size: clamp(1.9rem, 2.2vw, 2.6rem);
     line-height: 1.1;
   }
 
   .t-page-subtitle {
-    color: color-mix(in srgb, var(--paguro-text-dark) 75%, transparent);
+    color: var(--paguro-text-muted);
     font-size: clamp(1rem, 1.1vw, 1.2rem);
     line-height: 1.6;
   }
@@ -83,7 +126,7 @@ body {
   .t-section-title {
     font-family: var(--font-ui);
     font-weight: 600;
-    color: var(--paguro-text-dark);
+    color: var(--paguro-text);
     font-size: clamp(1.25rem, 1.6vw, 1.6rem);
     line-height: 1.2;
   }
@@ -92,27 +135,27 @@ body {
   .t-card-title {
     font-family: var(--font-ui);
     font-weight: 600;
-    color: var(--paguro-text-dark);
+    color: var(--paguro-text);
     font-size: clamp(1.15rem, 1.35vw, 1.35rem);
     line-height: 1.25;
   }
 
   /* Card / tile body text (slightly smaller than default body to keep hierarchy) */
   .t-card-body {
-    color: color-mix(in srgb, var(--paguro-text-dark) 75%, transparent);
+    color: var(--paguro-text-muted);
     font-size: 0.9rem;
     line-height: 1.65;
   }
 
   /* Default body text for UI pages */
   .t-body {
-    color: color-mix(in srgb, var(--paguro-text-dark) 75%, transparent);
+    color: var(--paguro-text-muted);
     line-height: 1.7;
   }
 
   /* Small meta (counts, dates, labels) */
   .t-meta {
-    color: color-mix(in srgb, var(--paguro-text-dark) 60%, transparent);
+    color: var(--paguro-text-meta);
     font-size: 0.95rem;
     line-height: 1.4;
   }
@@ -125,7 +168,7 @@ body {
   .prose :where(h1, h2, h3, h4) {
     font-family: var(--font-ui);
     font-weight: 600;
-    color: var(--paguro-text-dark);
+    color: var(--paguro-text);
   }
 
   /* Fix hierarchy (prevents h2/h3 looking smaller than body) */

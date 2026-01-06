@@ -7,23 +7,23 @@ import MailIcon from './icons/MailIcon';
 
 export default function Footer() {
   return (
-    <footer className='mt-32 border-t border-black/10 bg-white py-16 text-[color:var(--paguro-text-dark)]'>
+    <footer className='mt-32 border-t border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] py-16 text-[color:var(--paguro-text)]'>
       <div className='mx-auto max-w-5xl px-6 grid gap-10 md:grid-cols-3'>
         {/* Identity */}
         <div className='space-y-2'>
           <Link
             href={'/'}
-            className='text-xl [font-family:var(--font-ui)] font-semibold transition-colors hover:text-[color:var(--paguro-coral)]'
+            className='text-xl [font-family:var(--font-ui)] font-semibold text-[color:var(--paguro-text)] transition-colors hover:text-[color:var(--paguro-coral)]'
           >
             The Paguro Journey
           </Link>
-          <p className='mt-2 text-sm text-[color:var(--paguro-text-dark)]/70'>
+          <p className='mt-2 text-sm t-body'>
             Viaggi consapevoli, destinazioni fuori rotta.
           </p>
         </div>
 
         {/* Navigation */}
-        <nav className='flex flex-col items-center gap-2 text-sm'>
+        <nav className='flex flex-col items-center gap-2 text-sm text-[color:var(--paguro-text)]'>
           <Link
             href='/blog'
             className='transition-colors hover:text-[color:var(--paguro-coral)]'
@@ -57,7 +57,7 @@ export default function Footer() {
         </nav>
 
         {/* Social */}
-        <div className='flex flex-col items-center md:justify-self-end'>
+        <div className='flex flex-col items-center md:justify-self-end text-[color:var(--paguro-text)]'>
           <div className='flex items-center gap-5'>
             <a
               href='mailto:thepagurojourney@gmail.com'
@@ -99,7 +99,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className='mt-12 text-center text-xs opacity-50'>
+      <div className='mt-12 text-center text-xs t-meta'>
         © {new Date().getFullYear()} The Paguro Journey
       </div>
     </footer>

@@ -9,10 +9,10 @@ export default function CollabsSection() {
       <div className='mx-auto max-w-5xl space-y-8'>
         {/* Section header: title + short intro */}
         <header className='text-center space-y-3'>
-          <h2 className='[font-family:var(--font-ui)] text-3xl font-semibold text-[color:var(--paguro-text-dark)]'>
+          <h2 className='t-section-title text-center'>
             Collaborazioni
           </h2>
-          <p className='mx-auto max-w-2xl text-[color:var(--paguro-text-dark)]/75'>
+          <p className='t-body mx-auto max-w-2xl'>
             Progetti e realtà con cui abbiamo collaborato nel tempo.
           </p>
         </header>
@@ -29,7 +29,7 @@ export default function CollabsSection() {
                 target='_blank'
                 rel='noopener noreferrer'
                 aria-label={`Apri collaborazione: ${c.name}`}
-                className='group flex items-center justify-center rounded-2xl border border-black/10 bg-[color:var(--paguro-ivory)] px-4 py-5 shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20'
+                className='group flex items-center justify-center rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-5 shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-border)]'
               >
                 {/* Fixed-height logo container
                     Keeps logos vertically aligned even with different aspect ratios
@@ -52,7 +52,7 @@ export default function CollabsSection() {
             Lightweight prompt for future contact or collaborations
         */}
         <div className='text-center'>
-          <p className='text-sm text-[color:var(--paguro-text-dark)]/60'>
+          <p className='t-meta'>
             Vuoi collaborare?{' '}
             <a
               href='mailto:thepagurojourney@gmail.com'

@@ -28,14 +28,14 @@ export default function BlogPage() {
             {posts.map((post) => (
               <article
                 key={post.slug}
-                className='group overflow-hidden rounded-2xl border border-black/10 bg-[color:var(--paguro-ivory)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg'
+                className='group overflow-hidden rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg'
               >
                 <Link
                   href={`/blog/${post.slug}`}
                   className='flex h-full flex-col'
                 >
                   {/* Cover image (local now, later from Sanity) */}
-                  <div className='relative aspect-video w-full bg-black/10'>
+                  <div className='relative aspect-video w-full bg-[color:var(--paguro-border)]'>
                     <Image
                       src={post.coverImage || '/world-placeholder.png'}
                       alt={post.title}
@@ -52,7 +52,7 @@ export default function BlogPage() {
                     <p className='t-card-body'>{post.excerpt}</p>
 
                     <div className='mt-auto pt-4'>
-                      <span className='t-meta text-sm inline-flex items-center gap-2 text-[color:var(--paguro-deep)] font-medium transition-colors duration-200 group-hover:text-[color:var(--paguro-coral)]'>
+                      <span className='inline-flex items-center gap-2 font-medium transition-colors duration-200 text-sm text-[color:var(--paguro-text)] hover:text-[color:var(--paguro-coral)]'>
                         Leggi l&apos;articolo <span aria-hidden='true'>➜</span>
                       </span>
                     </div>

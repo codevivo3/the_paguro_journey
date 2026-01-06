@@ -37,7 +37,7 @@ export function Prose({
   return (
     <div
       className={cx(
-        'prose mx-auto max-w-3xl text-[color:var(--paguro-text-dark)] leading-relaxed',
+        'prose mx-auto max-w-3xl text-[color:var(--paguro-text)] prose-p:text-[color:var(--paguro-text-muted)] leading-relaxed',
         className
       )}
     >
@@ -101,7 +101,7 @@ export function CoverMedia({
 
   return (
     <div className={cx('mx-auto mt-8 max-w-5xl', className)}>
-      <div className='relative aspect-[16/9] overflow-hidden rounded-2xl bg-black/5'>
+      <div className='relative aspect-[16/9] overflow-hidden rounded-2xl [font-family:var(--font-ui)]'>
         <Image
           src={src}
           alt={alt ?? ''}
@@ -129,7 +129,7 @@ export function GalleryImage({
   return (
     <div
       className={cx(
-        'relative aspect-[4/3] overflow-hidden rounded-2xl bg-black/5',
+        'relative aspect-[4/3] overflow-hidden rounded-2xl bg-[color:var(--paguro-surface)]',
         className
       )}
     >
@@ -160,7 +160,7 @@ export function CalloutBox({
   return (
     <aside
       className={cx(
-        'mx-auto max-w-3xl rounded-2xl border border-black/10 bg-[color:var(--paguro-ivory)] p-5',
+        'mx-auto max-w-3xl rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-5',
         className
       )}
     >
@@ -177,5 +177,5 @@ export function CalloutBox({
 }
 
 export function Divider({ className }: { className?: string }) {
-  return <hr className={cx('my-10 border-black/10', className)} />;
+  return <hr className={cx('my-10 border-[color:var(--paguro-border)]', className)} />;
 }

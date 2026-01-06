@@ -22,24 +22,24 @@ export default function DestinationsPage() {
           aria-label='Filters'
           className='flex flex-wrap items-center justify-center gap-3'
         >
-          <span className='text-sm text-[color:var(--paguro-text-dark)]/60'>
+          <span className='text-sm text-[color:var(--paguro-text)]/60'>
             Filtri (in arrivo):
           </span>
           <button
             type='button'
-            className='rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[color:var(--paguro-text-dark)] shadow-sm'
+            className='rounded-full border-2 border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm'
           >
             Continente
           </button>
           <button
             type='button'
-            className='rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[color:var(--paguro-text-dark)] shadow-sm'
+            className='rounded-full border-2 border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm'
           >
             Paese
           </button>
           <button
             type='button'
-            className='rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-[color:var(--paguro-text-dark)] shadow-sm'
+            className='rounded-full border-2 border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm'
           >
             Stile di viaggio
           </button>
@@ -56,9 +56,9 @@ export default function DestinationsPage() {
             {destinations.map((d) => (
               <article
                 key={d.countrySlug}
-                className='group overflow-hidden rounded-2xl border border-black/10 bg-[color:var(--paguro-ivory)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg'
+                className='group flex flex-col overflow-hidden rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg'
               >
-                <div className='relative aspect-video w-full bg-black/10'>
+                <div className='relative aspect-video w-full'>
                   <Image
                     fill
                     src={d.coverImage || '/world-placeholder.png'}
@@ -67,23 +67,23 @@ export default function DestinationsPage() {
                     className='object-cover'
                   />
                 </div>
-                <div className='p-6 space-y-3'>
+                <div className='flex flex-1 flex-col p-6'>
                   <div className='flex items-center justify-between gap-4'>
                     <h3 className='t-card-title'>{d.country}</h3>
-                    <span className='t-meta rounded-full bg-black/5 px-3 py-1'>
+                    <span className='rounded-full border-2 border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm'>
                       {d.region}
                     </span>
                   </div>
 
                   <p className='t-meta'>Blog {d.count}</p>
 
-                  <div className='pt-2'>
+                  <div className='mt-auto pt-4'>
                     <Link
                       href={`/destinations/${d.countrySlug}`}
-                      className='inline-flex items-center gap-2 text-[color:var(--paguro-deep)] font-medium transition-colors duration-200 group-hover:text-[color:var(--paguro-coral)]'
+                      className='inline-flex items-center gap-2 font-medium transition-colors duration-200 text-sm text-[color:var(--paguro-text)] hover:text-[color:var(--paguro-coral)]'
                       aria-label={`Open destination: ${d.country}`}
                     >
-                      Scopri di piu <span aria-hidden='true'>➜</span>
+                      Scopri di più <span aria-hidden='true'>➜</span>
                     </Link>
                   </div>
                 </div>
@@ -93,7 +93,7 @@ export default function DestinationsPage() {
         </section>
 
         {/* Note (keep it honest while the feature is evolving) */}
-        <section className='mx-auto max-w-3xl rounded-2xl border border-black/10 bg-white/60 p-6 text-[color:var(--paguro-text-dark)]/75'>
+        <section className='mx-auto max-w-3xl rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)]/70 p-6 text-[color:var(--paguro-text)]'>
           <p className='t-card-title'>Come evolverà questa pagina</p>
           <p className='mt-2'>
             Inizieremo in modo semplice: una lista pulita delle destinazioni. In

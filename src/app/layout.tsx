@@ -43,9 +43,19 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang='en'
+      lang='it'
+      data-theme=''
       className={`${merriweather.variable} ${libreBaskerville.variable} ${k2d.variable}`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function () {
+            try {var stored = localStorage.getItem('theme');
+            var theme = stored === 'dark' || stored === 'light' ? stored : (window.matchMedia'(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.dataset.theme = theme; document.documentElement.style.colorScheme = theme;} catch (e) {}})();`,
+          }}
+        />
+      </head>
       <body suppressHydrationWarning className='antialiased'>
         <UIProvider>
           {/* Global navigation (persistent across routes) */}

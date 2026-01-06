@@ -2,6 +2,7 @@ import Link from 'next/link';
 import HermitCrabLottie from '@/components/lottie/HermitCrabLottie';
 
 // Custom App Router 404 page
+// This page follows the global typography + theme tokens for light/dark consistency
 export default function NotFound() {
   return (
     <main className='px-6 pb-24 pt-28'>
@@ -9,18 +10,18 @@ export default function NotFound() {
         {/* Playful visual cue for a missing page: Hermit Crab Lottie animation */}
 
         {/* HTTP error code */}
-        <h1 className='[font-family:var(--font-ui)] text-4xl tracking-wide text-[color:var(--paguro-text-dark)]/60'>
+        <h1 className='t-meta text-4xl tracking-wide'>
           404
         </h1>
         <HermitCrabLottie className='crab-run' />
 
         {/* User-facing message */}
-        <h1 className='[font-family:var(--font-editorial)] text-3xl font-semibold text-[color:var(--paguro-text-dark)]'>
+        <h1 className='t-page-title'>
           Page not found
         </h1>
 
         {/* Gently guides users back into the site */}
-        <p className='text-[color:var(--paguro-text-dark)]/75'>
+        <p className='t-body'>
           La pagina che stavi cercando non esiste, viaggia verso altre
           destinazioni del nostro sito!
         </p>
@@ -29,7 +30,7 @@ export default function NotFound() {
         <div className='flex items-center justify-center gap-3'>
           <Link
             href='/'
-            className='rounded-full bg-[color:var(--paguro-deep)] px-5 py-2 text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)]'
+            className='rounded-full bg-[color:var(--paguro-ocean)] px-5 py-2 text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)]'
           >
             Home Page
           </Link>

@@ -29,10 +29,10 @@ export default function LatestVidsSection() {
       <div className='mx-auto max-w-5xl space-y-8'>
         {/* Section heading */}
         <header className='text-center space-y-3'>
-          <h3 className='[font-family:var(--font-ui)] text-4xl font-semibold text-[color:var(--paguro-text-dark)]'>
+          <h3 className='t-section-title'>
             Ultimi Video
           </h3>
-          <p className='text-[color:var(--paguro-text-dark)]/70'>
+          <p className='t-body'>
             Uno sguardo alle nostre avventure più recenti. (Placeholder cards — will be powered by the YouTube API.)
           </p>
         </header>
@@ -42,7 +42,7 @@ export default function LatestVidsSection() {
           {latestVideos.map((video) => (
             <article
               key={video.id}
-              className='group overflow-hidden rounded-2xl border border-black/10 bg-[#f5f5f5] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg'
+              className='group flex h-full flex-col overflow-hidden rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg'
             >
               {/* Thumbnail placeholder */}
               <div
@@ -50,23 +50,23 @@ export default function LatestVidsSection() {
                 aria-hidden='true'
               />
 
-              <div className='p-6 space-y-3'>
-                <h3 className='[font-family:var(--font-ui)] text-xl font-semibold text-[color:var(--paguro-text-dark)]'>
+              <div className='flex flex-1 flex-col p-6 space-y-3'>
+                <h3 className='t-card-title'>
                   {video.title}
                 </h3>
 
-                <p className='text-[color:var(--paguro-text-dark)]/75 text-sm'>
+                <p className='t-card-body'>
                   {video.description}
                 </p>
 
-                <div>
-                  <Link
+                <div className='mt-auto pt-4'>
+                  <a
                     href={video.href}
-                    className='inline-flex items-center gap-2 text-[color:var(--paguro-deep)] font-medium transition-colors duration-200 group-hover:text-[color:var(--paguro-coral)] text-sm'
+                    className='inline-flex items-center gap-2 font-medium transition-colors duration-200 text-sm text-[color:var(--paguro-text)] hover:text-[color:var(--paguro-coral)]'
                   >
                     Guarda su YouTube
                     <span aria-hidden='true'>➜</span>
-                  </Link>
+                  </a>
                 </div>
               </div>
             </article>
