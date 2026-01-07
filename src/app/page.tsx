@@ -34,7 +34,7 @@ export default function Home() {
         {/* Primary call-to-action (temporary placeholder) */}
         <CallToAction />
         {/* Partner and collaboration highlights */}
-        <CollabsSection />
+        {/* <CollabsSection /> */}
         {/* Latest video content preview */}
         <LatestVidsSection />
         {/* Newsletter signup to capture early interest */}

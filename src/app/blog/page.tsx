@@ -1,7 +1,14 @@
-import Link from 'next/link';
 import Image from 'next/image';
 
 import { posts } from '@/lib/posts';
+
+import {
+  Card,
+  CardMedia,
+  CardBody,
+  CardTitle,
+  CardText,
+} from '@/components/ui/Card';
 
 // Blog index page → /blog
 export default function BlogPage() {
@@ -26,39 +33,30 @@ export default function BlogPage() {
 
           <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
             {posts.map((post) => (
-              <article
+              <Card
                 key={post.slug}
-                className='group overflow-hidden rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg'
+                href={`/blog/${post.slug}`}
+                ariaLabel={`Apri articolo: ${post.title}`}
               >
-                <Link
-                  href={`/blog/${post.slug}`}
-                  className='flex h-full flex-col'
-                >
-                  {/* Cover image (local now, later from Sanity) */}
-                  <div className='relative aspect-video w-full bg-[color:var(--paguro-border)]'>
-                    <Image
-                      src={post.coverImage || '/world-placeholder.png'}
-                      alt={post.title}
-                      fill
-                      sizes='(max-width: 1024px) 100vw, 33vw'
-                      className='object-cover'
-                      priority={false}
-                    />
+                <CardMedia className='aspect-video'>
+                  <Image
+                    src={post.coverImage || '/world-placeholder.png'}
+                    alt={post.title}
+                    fill
+                    sizes='(max-width: 1024px) 100vw, 33vw'
+                    className='object-cover'
+                  />
+                </CardMedia>
+
+                <CardBody>
+                  <CardTitle>{post.title}</CardTitle>
+                  <CardText>{post.excerpt}</CardText>
+
+                  <div className='mt-auto pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 group-hover:text-[color:var(--paguro-link-hover)]'>
+                    Leggi l&apos;articolo <span aria-hidden>➜</span>
                   </div>
-
-                  <div className='flex flex-1 flex-col gap-3 p-6'>
-                    <h3 className='t-card-title'>{post.title}</h3>
-
-                    <p className='t-card-body'>{post.excerpt}</p>
-
-                    <div className='mt-auto pt-4'>
-                      <span className='inline-flex items-center gap-2 font-medium transition-colors duration-200 text-sm text-[color:var(--paguro-text)] hover:text-[color:var(--paguro-coral)]'>
-                        Leggi l&apos;articolo <span aria-hidden='true'>➜</span>
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </article>
+                </CardBody>
+              </Card>
             ))}
           </div>
         </section>

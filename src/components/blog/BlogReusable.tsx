@@ -100,8 +100,8 @@ export function CoverMedia({
   if (!src) return null;
 
   return (
-    <div className={cx('mx-auto mt-8 max-w-5xl', className)}>
-      <div className='relative aspect-[16/9] overflow-hidden rounded-2xl [font-family:var(--font-ui)]'>
+    <div className={cx('mx-auto mt-8 max-w-3xl', className)}>
+      <div className='relative aspect-[16/9] overflow-hidden rounded-sm [font-family:var(--font-ui)]'>
         <Image
           src={src}
           alt={alt ?? ''}
@@ -129,7 +129,7 @@ export function GalleryImage({
   return (
     <div
       className={cx(
-        'relative aspect-[4/3] overflow-hidden rounded-2xl bg-[color:var(--paguro-surface)]',
+        'relative aspect-[16/9] overflow-hidden rounded-sm bg-[color:var(--paguro-surface)]',
         className
       )}
     >
@@ -160,7 +160,7 @@ export function CalloutBox({
   return (
     <aside
       className={cx(
-        'mx-auto max-w-3xl rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-5',
+        'mx-auto my-3 max-w-3xl rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-5',
         className
       )}
     >

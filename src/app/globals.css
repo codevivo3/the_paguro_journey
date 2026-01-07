@@ -1,59 +1,60 @@
 /* Global styles applied across the app */
 @import 'tailwindcss';
 
-/* -------------------------------------------------------------------------- */
-/* Design tokens: fonts & colors                                               */
-/* -------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------- */
+/* Design tokens: fonts & colors                                           */
+/* ----------------------------------------------------------------------- */
 
 :root {
   /* Font families (wired from next/font in layout.tsx) */
-  --font-editorial: var(
-    --font-libre-baskerville,
-    serif
-  ); /* Headlines, titles */
+  --font-editorial: var(--font-libre-baskerville, serif); /* Headlines, titles */
   --font-body: var(--font-merriweather, serif); /* Long-form reading */
-  --font-ui: var(--font-k2d, sans-serif); /* Navigation, UI */
+  --font-ui: var(--font-plus-jakarta, sans-serif); /* Navigation, UI */
 
-  /* Brand palette */
+  /* ----------------------------------------------------------------------- */
+  /* Base brand palette (kept for references + future tweaks)                */
+  /* ----------------------------------------------------------------------- */
   --paguro-ocean: #5bc2d9;
   --paguro-deep: #419bbf;
   --paguro-sand: #d5d9b8;
   --paguro-sunset: #f2a341;
   --paguro-coral: #eb7134;
 
-  /* Text colors (avoid pure black/white for readability) */
-  --paguro-text-dark: #1d1d1f; /* Soft black */
-  --paguro-text-light: #f5f5f5; /* Soft white */
+  /* ----------------------------------------------------------------------- */
+  /* Semantic tokens (USE THESE in components — swap values per theme)       */
+  /* ----------------------------------------------------------------------- */
 
-  /* Neutrals */
-  --paguro-ivory: #f7f6f2; /* Card / surface background */
-  --paguro-anthracite: #2b2b2b; /* Primary dark color */
-
-  /* ---------------------------------------------------------------------- */
-  /* Semantic tokens (use these in components, swap values per theme)        */
-  /* ---------------------------------------------------------------------- */
-
-  /* Light theme surfaces */
+  /* Surfaces */
   --paguro-bg: var(--paguro-sand);
-  --paguro-surface: var(--paguro-ivory);
+  --paguro-surface: #EDF0E1; /* card / surface background */
 
-  /* Light theme text */
-  --paguro-text: var(--paguro-text-dark);
-  --paguro-text-muted: color-mix(in srgb, var(--paguro-text-dark) 75%, transparent);
-  --paguro-text-meta: color-mix(in srgb, var(--paguro-text-dark) 60%, transparent);
+  /* Text */
+  --paguro-text: #1d1d1f; /* soft black */
+  --paguro-text-muted: color-mix(in srgb, var(--paguro-text) 75%, transparent);
+  --paguro-text-meta: color-mix(in srgb, var(--paguro-text) 60%, transparent);
 
-  /* Light theme borders */
-  --paguro-border: rgba(29, 29, 31, 0.10);
+  /* Borders */
+  --paguro-border: rgba(29, 29, 31, 0.1);
+
+  /* Links (must pass contrast on surfaces) */
+  --paguro-link: #1f5f76; /* darker teal for light surfaces */
+  --paguro-link-hover: var(--paguro-coral);
+
+  /* Buttons */
+  --paguro-btn-text: #ffffff; /* Bright white for primary buttons / links */
+
+  --paguro-icon-bg: rgba(91, 194, 217, 0.12);
+  --paguro-icon-fg: var(--paguro-ocean);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Dark theme overrides                                                       */
-/* Toggle by setting <html data-theme="dark"> ...                           */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
+/* Dark theme overrides                                                      */
+/* Toggle by setting <html data-theme="dark"> ...                            */
+/* ------------------------------------------------------------------------- */
 
 :root[data-theme='dark'] {
   /* Brand palette (dark equivalents) */
-  --paguro-ocean: #2a677a;
+  --paguro-ocean: #5bc2d9;
   --paguro-deep: #2a3a35;
 
   /* Keep accents consistent */
@@ -66,16 +67,28 @@
 
   /* Text */
   --paguro-text: #e8eceb;
-  --paguro-text-muted: rgba(232, 236, 235, 0.70);
-  --paguro-text-meta: rgba(232, 236, 235, 0.60);
+  --paguro-text-muted: rgba(232, 236, 235, 0.7);
+  --paguro-text-meta: rgba(232, 236, 235, 0.6);
 
   /* Borders */
   --paguro-border: rgba(232, 236, 235, 0.08);
+
+  /* Links (bright on dark surfaces) */
+  --paguro-link: #9bd9e8;
+  --paguro-link-hover: var(--paguro-sunset);
+
+  /* Buttons */
+  --paguro-btn-text: #ffffff;
+
+  
+
+  --paguro-icon-bg: rgba(91, 194, 217, 0.22);
+  --paguro-icon-fg: #9BD9E8;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Global base styles                                                          */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
+/* Global base styles                                                        */
+/* ------------------------------------------------------------------------- */
 
 body {
   background: var(--paguro-bg);
@@ -89,9 +102,9 @@ body {
   overflow-x: hidden;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Typography system (site-wide)                                               */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
+/* Typography system (site-wide)                                             */
+/* ------------------------------------------------------------------------- */
 
 @layer components {
   /*
@@ -111,7 +124,7 @@ body {
   .t-page-title {
     font-family: var(--font-ui);
     font-weight: 600;
-    color: var(--paguro-text);
+    color: var(--paguro-text-muted);
     font-size: clamp(1.9rem, 2.2vw, 2.6rem);
     line-height: 1.1;
   }
@@ -198,7 +211,7 @@ body {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 404 Animation                                                            */
+/* 404 Animation                                                              */
 /* -------------------------------------------------------------------------- */
 
 @keyframes crab-walk {

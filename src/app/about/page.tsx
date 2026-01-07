@@ -1,3 +1,4 @@
+import Button from '@/components/ui/Button';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -18,7 +19,7 @@ export default function AboutPage() {
           alt='Foto di Valentina e Mattia in un paesaggio naturale'
           width={1200}
           height={675}
-          className='w-full rounded-2xl border border-black/10'
+          className='w-full rounded-sm '
         />
 
         {/* Editorial content */}
@@ -44,19 +45,16 @@ export default function AboutPage() {
         </section>
 
         {/* Call to action */}
-        <section className='mt-16 rounded-2xl bg-[color:var(--paguro-surface)] p-8 text-center'>
+        <section className='mt-16 rounded-sm bg-[color:var(--paguro-surface)] p-8 text-center'>
           <h2 className='t-section-title'>Continua il viaggio</h2>
           <p className='mt-3 t-body'>
             Scopri i racconti, i video e le destinazioni che hanno dato forma a
             questo progetto.
           </p>
           <div className='mt-6'>
-            <Link
-              href='/blog'
-              className='inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-ocean)] px-6 py-3 text-sm font-medium text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)]'
-            >
+            <Button href='/blog'>
               Vai al blog <span aria-hidden='true'>➜</span>
-            </Link>
+            </Button>
           </div>
         </section>
 

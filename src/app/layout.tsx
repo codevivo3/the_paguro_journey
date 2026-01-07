@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 // Global root layout shared across all routes (App Router)
 import './globals.css';
 // Configure global Google Fonts (exposed as CSS variables)
-import { Merriweather, Libre_Baskerville, K2D } from 'next/font/google';
+import { Merriweather, Libre_Baskerville, Plus_Jakarta_Sans } from 'next/font/google';
 
 import Navbar from '@/components/Navbar';
 import { UIProvider } from '@/context/ui-context';
@@ -22,10 +22,10 @@ const libreBaskerville = Libre_Baskerville({
   display: 'swap',
 });
 
-const k2d = K2D({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['400', '600', '700'],
-  variable: '--font-k2d',
+  variable: '--font-plus-jakarta',
   display: 'swap',
 });
 
@@ -44,15 +44,15 @@ export default function RootLayout({
   return (
     <html
       lang='it'
-      data-theme=''
-      className={`${merriweather.variable} ${libreBaskerville.variable} ${k2d.variable}`}
+      suppressHydrationWarning
+      className={`${merriweather.variable} ${libreBaskerville.variable} ${plusJakarta.variable}`}
     >
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function () {
             try {var stored = localStorage.getItem('theme');
-            var theme = stored === 'dark' || stored === 'light' ? stored : (window.matchMedia'(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.dataset.theme = theme; document.documentElement.style.colorScheme = theme;} catch (e) {}})();`,
+            var theme = stored === 'dark' || stored === 'light' ? stored : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.dataset.theme = theme; document.documentElement.style.colorScheme = theme;} catch (e) {}})();`,
           }}
         />
       </head>

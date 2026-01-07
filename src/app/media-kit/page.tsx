@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Button from '@/components/ui/Button';
 
 export const metadata = {
   title: 'Media Kit',
@@ -28,20 +28,16 @@ export default function MediaKitPage() {
             </p>
 
             <div className='pt-2 flex flex-wrap gap-3'>
-              <a
-                href='/media-kit/paguro-media-kit.pdf'
-                download
-                className='inline-flex items-center justify-center rounded-full bg-[color:var(--paguro-ocean)] px-5 py-2 text-sm font-medium text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-border)]'
-              >
+              <Button href='/media-kit/paguro-media-kit.pdf'>
                 Scarica PDF ➜
-              </a>
+              </Button>
 
-              <Link
+              <Button
                 href='/contact'
-                className='inline-flex items-center justify-center rounded-full border border-[color:var(--paguro-border)] bg-[color:var(--paguro-border)] px-5 py-2 text-sm font-medium text-[color:var(--paguro-text)] transition-colors hover:bg-[color:var(--paguro-text-muted)] hover:text-[color:var(--paguro-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-border)]'
+                className='bg-[color:var(--paguro-sand)] text-[color:var(--paguro-text)]'
               >
                 Contattaci ➜
-              </Link>
+              </Button>
             </div>
           </div>
         </section>

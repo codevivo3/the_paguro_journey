@@ -15,9 +15,9 @@ export default function Navbar() {
     pathname === href || pathname.startsWith(`${href}/`);
 
   const ACTIVE_CLASS =
-    'inline-flex items-center px-3 py-1 rounded-3xl transition-colors duration-500 bg-white/20 hover:text-[color:var(--paguro-text-light)] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 font-semibold';
+    'inline-flex items-center px-3 py-1 rounded-3xl transition-colors duration-500 bg-white/20 border border-white/20  hover:text-[color:var(--paguro-text-light)] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 font-semibold';
   const NORMAL_CLASS =
-    'inline-flex items-center px-3 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:text-[color:var(--paguro-text-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50';
+    'inline-flex items-center px-3 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50';
 
   return (
     <>
@@ -30,11 +30,11 @@ export default function Navbar() {
             className='flex items-center rounded-xl transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:scale-110 active:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
           >
             <Image
-              src='/logo/paguro-logo-orange.svg'
+              src='/logo/paguro-logo-white.svg'
               alt='The Paguro Journey'
               width={100}
               height={100}
-              className='h-10 sm:h-11 md:h-12 w-auto drop-shadow-sm'
+              className='h-10 sm:h-11 md:h-12 w-auto '
               priority
             />
           </Link>

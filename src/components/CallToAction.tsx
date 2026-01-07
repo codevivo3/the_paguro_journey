@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Button from './ui/Button';
 
 // Temporary homepage CTA placeholder component
 export default function CallToAction() {
@@ -21,12 +21,9 @@ export default function CallToAction() {
 
         <div>
           {/* Placeholder action link to be wired later */}
-          <Link
-            href='#'
-            className='inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-ocean)] px-6 py-3 text-lg text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)] font-extrabold [font-family:var(--font-ui)]'
-          >
+          <Button href="/blog">
             Placeholder CTA <span aria-hidden>➜</span>
-          </Link>
+          </Button>
         </div>
       </div>
     </section>

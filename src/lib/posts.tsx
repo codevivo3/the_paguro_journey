@@ -135,6 +135,75 @@ export const destinations: Destination[] = [
   },
 ];
 
+export type Facts = {
+  title: string;
+  pill: string;
+  text: string;
+};
+
+export const facts: Facts[] = [
+  {
+    title: 'Curiosità \n\n Asia',
+    pill: 'Asia',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn dettaglio interessante sulla regione per spezzare la griglia.',
+  },
+  {
+    title: 'Curiosità \n\n Centro America',
+    pill: 'Centro America',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Un dettaglio geografico che aiuta a capire il contesto. Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn dettaglio geografico che aiuta a capire il contesto. Piccola nota di contesto o tip di viaggio.',
+  },
+  {
+    title: 'Curiosità \n\n Europa',
+    pill: 'Europa',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn fatto storico o culturale raccontato in breve.',
+  },
+  {
+    title: 'Tip di viaggio',
+    pill: 'Mindful',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn suggerimento pratico per viaggiare con più consapevolezza.',
+  },
+  {
+    title: 'Lo sapevi?',
+    pill: 'Cultura',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUna curiosità locale che difficilmente trovi nelle guide.',
+  },
+  {
+    title: 'Consiglio pratico',
+    pill: 'On the road',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn piccolo trucco che ti semplifica il viaggio.',
+  },
+  {
+    title: 'Nota dal campo',
+    pill: 'Esperienza',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn appunto nato direttamente sul posto.',
+  },
+  {
+    title: 'Viaggiare lento',
+    pill: 'Slow travel',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nPerché fermarsi più a lungo cambia il modo di vedere un luogo.',
+  },
+  {
+    title: 'Geografia rapida',
+    pill: 'Territorio',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Un dettaglio geografico che aiuta a capire il contesto. Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn dettaglio geografico che aiuta a capire il contesto.',
+  },
+  {
+    title: 'Piccola storia',
+    pill: 'Storie',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn frammento narrativo che dà carattere al luogo.',
+  },
+  {
+    title: 'Errore comune',
+    pill: 'Attenzione',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUna cosa da evitare quando si visita questa zona.',
+  },
+  {
+    title: 'Osservazione',
+    pill: 'Diario',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUna riflessione personale nata viaggiando.',
+  },
+];
+
 // --- Local data -------------------------------------------------------------
 
 export const posts: Post[] = [
@@ -310,11 +379,13 @@ export function getDestinationCards(): DestinationCard[] {
         region: d.region,
         regionSlug: d.regionSlug,
         count: related.length,
-        coverImage: coverFromPost ?? d.coverImage ?? DESTINATION_PLACEHOLDER_COVER,
+        coverImage:
+          coverFromPost ?? d.coverImage ?? DESTINATION_PLACEHOLDER_COVER,
       };
     })
     .sort((a, b) => {
-      if (a.regionSlug === b.regionSlug) return a.country.localeCompare(b.country);
+      if (a.regionSlug === b.regionSlug)
+        return a.country.localeCompare(b.country);
       return a.regionSlug.localeCompare(b.regionSlug);
     });
 }
