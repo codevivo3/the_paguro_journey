@@ -42,7 +42,9 @@
 
   /* Buttons */
   --paguro-btn-text: #ffffff; /* Bright white for primary buttons / links */
+  --geo-btn: #7fb6c7;
 
+  /* Icons */
   --paguro-icon-bg: rgba(91, 194, 217, 0.12);
   --paguro-icon-fg: var(--paguro-ocean);
 }
@@ -79,9 +81,9 @@
 
   /* Buttons */
   --paguro-btn-text: #ffffff;
-
+  --geo-btn: #515c59;
   
-
+  /* Icons */
   --paguro-icon-bg: rgba(91, 194, 217, 0.22);
   --paguro-icon-fg: #9BD9E8;
 }
@@ -121,18 +123,29 @@ body {
   */
 
   /* Page header */
+  .t-page-title-intro {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    color: var(--paguro-text);
+    font-size: clamp(2.6rem, 3.4vw, 3.8rem);
+    line-height: 1.1;
+    text-align: center;
+  }
+  
   .t-page-title {
     font-family: var(--font-ui);
     font-weight: 600;
-    color: var(--paguro-text-muted);
-    font-size: clamp(1.9rem, 2.2vw, 2.6rem);
+    color: var(--paguro-text);
+    font-size: clamp(2.4rem, 3vw, 3.4rem);
     line-height: 1.1;
+    text-align: center;
   }
 
   .t-page-subtitle {
     color: var(--paguro-text-muted);
     font-size: clamp(1rem, 1.1vw, 1.2rem);
     line-height: 1.6;
+    text-align: center;
   }
 
   /* Section header */
@@ -149,14 +162,14 @@ body {
     font-family: var(--font-ui);
     font-weight: 600;
     color: var(--paguro-text);
-    font-size: clamp(1.15rem, 1.35vw, 1.35rem);
+    font-size: clamp(1rem, 1.15vw, 1.25rem);
     line-height: 1.25;
   }
 
   /* Card / tile body text (slightly smaller than default body to keep hierarchy) */
   .t-card-body {
     color: var(--paguro-text-muted);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     line-height: 1.65;
   }
 

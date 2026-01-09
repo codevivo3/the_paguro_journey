@@ -1,12 +1,12 @@
 'use client';
 import { usePathname } from 'next/navigation';
 
-import SearchModal from './SearchModal';
+import SearchModal from '../ui/SearchModal';
 
 import Link from 'next/link';
 import Image from 'next/image';
 
-import SwitchTheme from './SwitchTheme';
+import SwitchTheme from '../features/theme/ThemeToggle';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -15,9 +15,9 @@ export default function Navbar() {
     pathname === href || pathname.startsWith(`${href}/`);
 
   const ACTIVE_CLASS =
-    'inline-flex items-center px-3 py-1 rounded-3xl transition-colors duration-500 bg-white/20 border border-white/20  hover:text-[color:var(--paguro-text-light)] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 font-semibold';
+    'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-500 bg-white/20 border border-white/20 hover:text-[color:var(--paguro-text-light)] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 font-semibold shadow-sm';
   const NORMAL_CLASS =
-    'inline-flex items-center px-3 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50';
+    'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:shadow-sm hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50';
 
   return (
     <>
@@ -40,7 +40,7 @@ export default function Navbar() {
           </Link>
 
           {/* Navigation */}
-          <ul className='flex items-center gap-6 text-white text-[clamp(1rem,1.4vw,1.3rem)]'>
+          <ul className='flex items-center gap-6 text-white text-[clamp(0.8rem,1.2vw,1.3rem)]'>
             <li>
               <Link
                 href={'/blog'}
@@ -57,6 +57,14 @@ export default function Navbar() {
                 }
               >
                 Destinazioni
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={'/gallery'}
+                className={isActive('/gallery') ? ACTIVE_CLASS : NORMAL_CLASS}
+              >
+                Galleria
               </Link>
             </li>
             <li>

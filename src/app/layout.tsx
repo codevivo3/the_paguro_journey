@@ -3,11 +3,15 @@ import type { Metadata } from 'next';
 // Global root layout shared across all routes (App Router)
 import './globals.css';
 // Configure global Google Fonts (exposed as CSS variables)
-import { Merriweather, Libre_Baskerville, Plus_Jakarta_Sans } from 'next/font/google';
+import {
+  Merriweather,
+  Libre_Baskerville,
+  Plus_Jakarta_Sans,
+} from 'next/font/google';
 
-import Navbar from '@/components/Navbar';
+import Navbar from '@/components/sections/NavbarSection';
 import { UIProvider } from '@/context/ui-context';
-import Footer from '@/components/Footer';
+import Footer from '@/components/sections/FooterSection';
 
 const merriweather = Merriweather({
   subsets: ['latin'],

@@ -3,7 +3,7 @@ export default function IntroSection() {
     <section className="relative my-1 bg-[url('/divider-deep.svg')] bg-repeat-x bg-top bg-[length:auto_24px]">
       <div className='relative z-10 mx-auto max-w-5xl space-y-4 px-6 py-16'>
         {/* Section title (uses global typography preset) */}
-        <h2 className='t-section-title text-5xl text-center'>Racconti di Viaggio</h2>
+        <h2 className='t-page-title-intro text-6xl text-center py-6'>Racconti di Viaggio</h2>
 
         {/* Intro copy (uses global typography preset) */}
         <p className='t-body'>

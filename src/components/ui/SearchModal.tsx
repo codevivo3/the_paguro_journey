@@ -54,9 +54,9 @@ export default function SearchModal() {
         type='button'
         onClick={openSearch}
         aria-label='Search'
-        className='inline-flex items-center justify-center h-10 w-10 rounded-full transition-colors duration-300 hover:bg-white/20 hover:border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 p-0.5'
+        className='inline-flex items-center h-9.5 w-9.5 px-2 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:shadow-sm hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
       >
-        <Image src='/search-white.svg' alt='Search' width={22} height={22} />
+        <Image src='/search-white.svg' alt='Search' width={18} height={18} />
       </button>
       {canUseDOM && isSearchOpen
         ? createPortal(

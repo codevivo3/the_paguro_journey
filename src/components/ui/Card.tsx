@@ -43,7 +43,9 @@ export function Card({
   const cardClasses = cx(
     // Shared “Paguro card” styling
     'group relative overflow-hidden rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg',
-    href ? 'cursor-pointer focus-within:ring-2 focus-within:ring-[color:var(--paguro-ocean)] focus-within:ring-offset-2 focus-within:ring-offset-[color:var(--paguro-bg)]' : undefined,
+    href
+      ? 'cursor-pointer focus-within:ring-2 focus-within:ring-[color:var(--paguro-ocean)] focus-within:ring-offset-2 focus-within:ring-offset-[color:var(--paguro-bg)]'
+      : undefined,
     className
   );
 
@@ -53,20 +55,20 @@ export function Card({
         external ? (
           <a
             href={href}
-            target="_blank"
-            rel="noreferrer"
+            target='_blank'
+            rel='noreferrer'
             aria-label={ariaLabel ?? 'Apri'}
-            className="absolute inset-0 z-30"
+            className='absolute inset-0 z-30'
           >
-            <span className="sr-only">{ariaLabel ?? 'Apri'}</span>
+            <span className='sr-only'>{ariaLabel ?? 'Apri'}</span>
           </a>
         ) : (
           <Link
             href={href}
             aria-label={ariaLabel ?? 'Apri'}
-            className="absolute inset-0 z-30"
+            className='absolute inset-0 z-30'
           >
-            <span className="sr-only">{ariaLabel ?? 'Apri'}</span>
+            <span className='sr-only'>{ariaLabel ?? 'Apri'}</span>
           </Link>
         )
       ) : null}
@@ -75,7 +77,7 @@ export function Card({
         Keep the real content above the overlay link.
         This preserves text selection + allows you to add non-link controls later.
       */}
-      <div className="relative z-10">{children}</div>
+      <div className='relative z-10'>{children}</div>
     </article>
   );
 }
@@ -166,14 +168,15 @@ export function CardPill({
   className?: string;
 }) {
   return (
-    <Button
+    <Link
+      href={''}
       className={cx(
         'rounded-full border-2 border-[color:var(--paguro-border)] bg-white/50 px-3 py-1 text-xs text-black/80 h-10 w-auto',
         className
       )}
     >
       {children}
-    </Button>
+    </Link>
   );
 }
 
@@ -255,7 +258,12 @@ export function ContactCard({
   // External URLs open in a new tab
   if (external) {
     return (
-      <a href={href} target='_blank' rel='noopener noreferrer' className='block h-full'>
+      <a
+        href={href}
+        target='_blank'
+        rel='noopener noreferrer'
+        className='block h-full'
+      >
         {content}
       </a>
     );

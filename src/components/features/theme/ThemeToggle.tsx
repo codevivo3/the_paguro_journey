@@ -44,20 +44,20 @@ export default function SwitchTheme() {
       role='switch'
       aria-checked={isDark}
       aria-label='Cambia tema'
-      className='inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/20 px-3 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm transition hover:shadow-md'
+      className='inline-flex items-center gap-2 h-9.5 rounded-full border border-white/20 bg-white/20 px-3 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm transition'
     >
       <span className='sr-only'>Tema</span>
 
       {/* track */}
       <span
-        className='relative inline-flex h-3.5 w-8 items-center rounded-full border border-[color:var(--paguro-border)] bg-black/10'
+        className='relative inline-flex h-3.5 w-8 items-center rounded-full border border-white/30 bg-black/10 shadow-inner'
         aria-hidden='true'
       >
         {/* thumb */}
         <span
           className={[
             'absolute left-0.5 h-2.5 w-4 rounded-full bg-[color:var(--paguro-sunset)] transition-transform',
-            isDark ? 'translate-x-4' : 'translate-x-0',
+            isDark ? 'translate-x-2.5' : 'translate-x-0',
           ].join(' ')}
         />
       </span>

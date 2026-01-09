@@ -1,13 +1,13 @@
 import Link from 'next/link';
 
-import TikTokIcon from './icons/TikTokIcon';
-import InstagramIcon from './icons/InstagramIcon';
-import YouTubeIcon from './icons/YouTubeIcon';
-import MailIcon from './icons/MailIcon';
+import TikTokIcon from '../icons/TikTokIcon';
+import InstagramIcon from '../icons/InstagramIcon';
+import YouTubeIcon from '../icons/YouTubeIcon';
+import MailIcon from '../icons/MailIcon';
 
 export default function Footer() {
   return (
-    <footer className='mt-32 border-t border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] py-16 text-[color:var(--paguro-text)]'>
+    <footer className='mt-32 border-t border-[color:var(--paguro-border)] bg-[#E6E9D5] py-16 text-[color:var(--paguro-text)]'>
       <div className='mx-auto max-w-5xl px-6 grid gap-10 md:grid-cols-3'>
         {/* Identity */}
         <div className='space-y-2'>

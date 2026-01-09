@@ -1,16 +1,17 @@
 import { getDestinationsFromPosts, facts } from '@/lib/posts';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import {
   Card,
   CardMedia,
   CardBody,
   CardTitle,
-  CardPill,
   CardMetaRow,
 } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 
+// This page uses a masonry-style layout mixing destination cards and fact cards for visual variety.
 const destinations = getDestinationsFromPosts();
 
 export default function DestinationsPage() {
@@ -28,6 +29,7 @@ export default function DestinationsPage() {
         </header>
 
         {/* Filters (placeholder) */}
+        {/* These filter links are placeholders and will later become real interactive filters */}
         <section
           aria-label='Filters'
           className='flex flex-wrap items-center justify-center gap-3'
@@ -35,15 +37,24 @@ export default function DestinationsPage() {
           <span className='text-sm text-[color:var(--paguro-text)]/60'>
             Filtri (in arrivo):
           </span>
-          <Button className='rounded-full border-2 border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm'>
+          <Link
+            href={''}
+            className='inline-flex items-center justify-center h-10 rounded-3xl border border-white/40 bg-[color:var(--geo-btn)] px-3 [font-family:var(--font-ui)] text-white text-sm shadow-sm hover:bg-[color:var(--paguro-coral)]'
+          >
             Continente
-          </Button>
-          <Button className='rounded-full border-2 border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm'>
+          </Link>
+          <Link
+            href={''}
+            className='inline-flex items-center justify-center h-10 rounded-3xl border border-white/40 bg-[color:var(--geo-btn)] px-3 [font-family:var(--font-ui)]  text-white text-sm shadow-sm hover:bg-[color:var(--paguro-coral)]'
+          >
             Paese
-          </Button>
-          <Button className='rounded-full border-2 border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm'>
+          </Link>
+          <Link
+            href={''}
+            className='inline-flex items-center justify-center h-10 rounded-3xl border border-white/40 bg-[color:var(--geo-btn)] px-3 [font-family:var(--font-ui)] text-white text-sm shadow-sm hover:bg-[color:var(--paguro-coral)]'
+          >
             Stile di viaggio
-          </Button>
+          </Link>
         </section>
 
         {/* Destinations grid */}
@@ -53,8 +64,10 @@ export default function DestinationsPage() {
             <span className='t-meta'>{destinations.length} destinazioni</span>
           </div>
 
+          {/* This container uses CSS columns to create a masonry-like layout */}
           <div className='columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3'>
             {(() => {
+              // Stream-mixing logic: interleave destination cards with fact cards to create a varied layout.
               const items: Array<
                 | {
                     type: 'destination';
@@ -64,7 +77,7 @@ export default function DestinationsPage() {
                 | { type: 'fact'; f: (typeof facts)[number]; index: number }
               > = [];
 
-              // Insert a fact card every 3 destination cards (tweak to taste)
+              // Controls how often fact cards are injected among destination cards.
               const INSERT_EVERY = 3;
               let factCursor = 0;
 
@@ -101,12 +114,30 @@ export default function DestinationsPage() {
                       >
                         <div className='flex flex-col p-6'>
                           <div className='mb-2 flex items-start justify-between gap-4'>
-                            <h3 className='t-card-title whitespace-pre-line'>
-                              {item.f.title}
+                            <h3 className='t-card-title min-w-0'>
+                              {(() => {
+                                // Titles are split into two lines to allow an intentional 2-line title (e.g. "Curiosità\nCentro America"),
+                                // and the second line uses 'whitespace-nowrap' to prevent wrapping into multiple words.
+                                const parts = String(item.f.title).split('\n');
+                                const first = parts[0] ?? '';
+                                const second = parts.slice(1).join(' ').trim();
+
+                                return (
+                                  <>
+                                    <span className='block'>{first}</span>
+                                    {second ? (
+                                      <span className='block whitespace-nowrap'>
+                                        {second}
+                                      </span>
+                                    ) : null}
+                                  </>
+                                );
+                              })()}
                             </h3>
-                            <Button className='rounded-full border-2 border-[color:var(--paguro-border)] bg-white/50 px-3 py-1 text-xs text-black/80 h- w-auto inline-flex items-center justify-center whitespace-nowrap leading-none'>
+
+                            <span className='inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-3xl border border-white/65 bg-[color:var(--geo-btn)] px-3 [font-family:var(--font-ui)] text-xs font-semibold text-white shadow-sm hover:bg-[color:var(--paguro-coral)]'>
                               {item.f.pill}
-                            </Button>
+                            </span>
                           </div>
 
                           <p className='t-card-body whitespace-pre-line'>
@@ -122,9 +153,13 @@ export default function DestinationsPage() {
                   );
                 }
 
-                // Destination card (same as before)
+                // Destination card (updated)
                 const { d, index } = item;
 
+                // Link separation strategy:
+                // - The image links to the destination page
+                // - The CTA "Scopri di più" links to the destination page
+                // - The region pill links to a filtered destinations page by region
                 const mediaAspect =
                   index % 5 === 0
                     ? 'aspect-[4/5]'
@@ -134,31 +169,52 @@ export default function DestinationsPage() {
 
                 return (
                   <div key={d.countrySlug} className='break-inside-avoid'>
-                    <Card
-                      href={`/destinations/${d.countrySlug}`}
-                      ariaLabel={`Apri destinazione: ${d.country}`}
-                    >
-                      <CardMedia className={mediaAspect}>
-                        <Image
-                          src={d.coverImage ?? '/world-placeholder.png'}
-                          alt={d.country}
-                          fill
-                          sizes='(max-width: 1024px) 100vw, 33vw'
-                          className='object-cover'
-                        />
-                      </CardMedia>
+                    <Card>
+                      {/* Clickable media only */}
+                      <Link
+                        href={`/destinations/${d.countrySlug}`}
+                        aria-label={`Apri destinazione: ${d.country}`}
+                        className='block'
+                      >
+                        <CardMedia className={mediaAspect}>
+                          <Image
+                            src={d.coverImage ?? '/world-placeholder.png'}
+                            alt={d.country}
+                            fill
+                            sizes='(max-width: 1024px) 100vw, 33vw'
+                            className='object-cover'
+                          />
+                        </CardMedia>
+                      </Link>
 
                       <CardBody>
                         <CardMetaRow className='mb-2'>
                           <CardTitle>{d.country}</CardTitle>
-                          <CardPill>{d.region}</CardPill>
+
+                          {/* Region pill as a LINK (no nested button) */}
+                          <Link
+                            href={`/destinations?region=${encodeURIComponent(
+                              d.region
+                            )}`}
+                            aria-label={`Filtra per regione: ${d.region}`}
+                            className='shrink-0'
+                          >
+                            <span className='inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-3xl border border-white/50 bg-[color:var(--geo-btn)] px-3 [font-family:var(--font-ui)] text-xs font-semibold text-white shadow-sm hover:bg-[color:var(--paguro-coral)]'>
+                              {d.region}
+                            </span>
+                          </Link>
                         </CardMetaRow>
 
                         <p className='t-meta'>Blog {d.count}</p>
 
-                        <div className='mt-auto pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 group-hover:text-[color:var(--paguro-link-hover)]'>
+                        {/* Clickable CTA */}
+                        <Link
+                          href={`/destinations/${d.countrySlug}`}
+                          aria-label={`Scopri di più su ${d.country}`}
+                          className='mt-auto inline-flex items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 hover:text-[color:var(--paguro-link-hover)]'
+                        >
                           Scopri di più <span aria-hidden>➜</span>
-                        </div>
+                        </Link>
                       </CardBody>
                     </Card>
                   </div>

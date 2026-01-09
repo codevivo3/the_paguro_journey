@@ -5,12 +5,12 @@
 // import HeroVideo from '@/components/HeroVideo';
 // import Navbar from '@/components/Navbar';
 
-import CollabsSection from '@/components/CollabsSection';
-import LatestVidsSection from '@/components/LatestVidsSection';
-import IntroSection from '@/components/IntroSection';
-import HeroSlideShow from '@/components/HeroSlideShow';
-import NewsletterForm from '@/components/NewsletterForm';
-import CallToAction from '@/components/CallToAction';
+import CollabsSection from '@/components/sections/CollabsSection';
+import LatestVidsSection from '@/components/sections/LatestVideosSection';
+import IntroSection from '@/components/sections/IntroSection';
+import HeroSlideShow from '@/components/sections/hero/HeroSection';
+import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
+import CallToAction from '@/components/sections/CTASection';
 
 // SEO metadata for the homepage
 export const metadata = {

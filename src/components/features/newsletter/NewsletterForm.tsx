@@ -1,4 +1,4 @@
-import Button from './ui/Button';
+import Button from '../../ui/Button';
 
 export default function NewsletterForm() {
   return (
@@ -10,7 +10,7 @@ export default function NewsletterForm() {
         <h2 className='[font-family:var(--font-ui)] text-2xl font-semibold text-[color:var(--paguro-text-dark)]'>
           Newsletter
         </h2>
-        <p className='mt-2 text-[color:var(--paguro-text-dark)]/75'>
+        <p className='mt-2 t-body'>
           Iscriviti alla newsletter per ricevere nuovi racconti di viaggio,
           video e aggiornamenti — senza spam.
         </p>

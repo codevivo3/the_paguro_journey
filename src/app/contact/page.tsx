@@ -1,11 +1,11 @@
-import { ContactCard } from "@/components/ui/Card";
+import { ContactCard } from '@/components/ui/Card';
 
 import MailIcon from '@/components/icons/MailIcon';
 import YouTubeIcon from '@/components/icons/YouTubeIcon';
 import InstagramIcon from '@/components/icons/InstagramIcon';
 import TikTokIcon from '@/components/icons/TikTokIcon';
 
-import NewsletterForm from '@/components/NewsletterForm';
+import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 
 export default function ContactPage() {
   return (

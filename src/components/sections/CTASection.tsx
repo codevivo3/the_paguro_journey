@@ -1,4 +1,4 @@
-import Button from './ui/Button';
+import Button from '../ui/Button';
 
 // Temporary homepage CTA placeholder component
 export default function CallToAction() {
@@ -21,7 +21,7 @@ export default function CallToAction() {
 
         <div>
           {/* Placeholder action link to be wired later */}
-          <Button href="/blog">
+          <Button href='/blog'>
             Placeholder CTA <span aria-hidden>➜</span>
           </Button>
         </div>
