@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import HermitCrabLottie from '@/components/lottie/HermitCrabLottie';
+
+import Button from '@/components/ui/Button';
 
 // Custom App Router 404 page
 // This page follows the global typography + theme tokens for light/dark consistency
@@ -28,12 +29,12 @@ export default function NotFound() {
 
         {/* Primary recovery action: return home */}
         <div className='flex items-center justify-center gap-3'>
-          <Link
+          <Button
             href='/'
             className='rounded-full bg-[color:var(--paguro-ocean)] px-5 py-2 text-[color:var(--paguro-text-light)] transition-colors hover:bg-[color:var(--paguro-coral)]'
           >
             Home Page
-          </Link>
+          </Button>
         </div>
       </div>
     </main>

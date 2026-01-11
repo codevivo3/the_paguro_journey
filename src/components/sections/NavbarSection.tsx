@@ -15,7 +15,7 @@ export default function Navbar() {
     pathname === href || pathname.startsWith(`${href}/`);
 
   const ACTIVE_CLASS =
-    'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-500 bg-white/20 border border-white/20 hover:text-[color:var(--paguro-text-light)] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 font-semibold shadow-sm';
+    'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-500 bg-white/20 border border-white/20 hover:text-[color:var(--paguro-text-light)] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 shadow-sm';
   const NORMAL_CLASS =
     'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:shadow-sm hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50';
 

@@ -47,6 +47,9 @@
   /* Icons */
   --paguro-icon-bg: rgba(91, 194, 217, 0.12);
   --paguro-icon-fg: var(--paguro-ocean);
+
+  /* Footer */
+  --paguro-footer: #E6E9D5;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -86,6 +89,9 @@
   /* Icons */
   --paguro-icon-bg: rgba(91, 194, 217, 0.22);
   --paguro-icon-fg: #9BD9E8;
+
+  /* Footer */
+  --paguro-footer: #2A3A35;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -185,6 +191,13 @@ body {
     font-size: 0.95rem;
     line-height: 1.4;
   }
+
+  .clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
   /* ------------------------------------------------------------------------ */
   /* Long-form content: use ONLY inside an element with class="prose"          */

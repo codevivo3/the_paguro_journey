@@ -182,7 +182,7 @@ export default function DestinationsPage() {
                             alt={d.country}
                             fill
                             sizes='(max-width: 1024px) 100vw, 33vw'
-                            className='object-cover'
+                            className='object-cover transition-transform duration-300 hover:scale-[1.02]'
                           />
                         </CardMedia>
                       </Link>

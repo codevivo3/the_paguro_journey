@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { posts } from '@/lib/posts';
 
@@ -31,33 +32,50 @@ export default function BlogPage() {
             <span className='t-meta'>{posts.length} articoli</span>
           </div>
 
-          <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
-            {posts.map((post) => (
-              <Card
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                ariaLabel={`Apri articolo: ${post.title}`}
-              >
-                <CardMedia className='aspect-video'>
-                  <Image
-                    src={post.coverImage || '/world-placeholder.png'}
-                    alt={post.title}
-                    fill
-                    sizes='(max-width: 1024px) 100vw, 33vw'
-                    className='object-cover'
-                  />
-                </CardMedia>
+          <div className='columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3'>
+            {posts.map((post, index) => {
+              // Give the masonry grid some rhythm by varying the media aspect ratio.
+              // This is purely visual: you can tweak the modulo numbers anytime.
+              const mediaAspect =
+                index % 5 === 0
+                  ? 'aspect-[4/5]'
+                  : index % 3 === 0
+                    ? 'aspect-[3/4]'
+                    : 'aspect-video';
 
-                <CardBody>
-                  <CardTitle>{post.title}</CardTitle>
-                  <CardText>{post.excerpt}</CardText>
-
-                  <div className='mt-auto pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 group-hover:text-[color:var(--paguro-link-hover)]'>
-                    Leggi l&apos;articolo <span aria-hidden>➜</span>
-                  </div>
-                </CardBody>
-              </Card>
-            ))}
+              return (
+                <div className='break-inside-avoid' key={post.slug}>
+                  <Card>
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      aria-label={`Apri articolo: ${post.title}`}
+                      className='block'
+                    >
+                      <CardMedia className={mediaAspect}>
+                        <Image
+                          src={post.coverImage || '/world-placeholder.png'}
+                          alt={post.title}
+                          fill
+                          sizes='(max-width: 1024px) 100vw, 33vw'
+                          className='object-cover transition-transform duration-300 hover:scale-[1.02]'
+                        />
+                      </CardMedia>
+                    </Link>
+                    <CardBody>
+                      <CardTitle>{post.title}</CardTitle>
+                      <CardText>{post.excerpt}</CardText>
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        aria-label={`Leggi l'articolo: ${post.title}`}
+                        className='mt-auto inline-flex items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 hover:text-[color:var(--paguro-link-hover)]'
+                      >
+                        Leggi l&apos;articolo <span aria-hidden>➜</span>
+                      </Link>
+                    </CardBody>
+                  </Card>
+                </div>
+              );
+            })}
           </div>
         </section>
       </div>

@@ -56,7 +56,20 @@ export default function SearchModal() {
         aria-label='Search'
         className='inline-flex items-center h-9.5 w-9.5 px-2 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:shadow-sm hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
       >
-        <Image src='/search-white.svg' alt='Search' width={18} height={18} />
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
+          strokeWidth='1.5'
+          stroke='currentColor'
+          className='size-5.5'
+        >
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            d='m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z'
+          />
+        </svg>
       </button>
       {canUseDOM && isSearchOpen
         ? createPortal(
@@ -81,12 +94,20 @@ export default function SearchModal() {
                     onClick={closeAndRestoreFocus}
                     className='text-black text-xl [font-family:var(--font-ui)]'
                   >
-                    <Image
-                      src='/cancel-black.svg'
-                      alt='Close'
-                      width={24}
-                      height={24}
-                    />
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      strokeWidth='1.5'
+                      stroke='currentColor'
+                      className='size-6'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        d='m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+                      />
+                    </svg>
                   </button>
                 </div>
 

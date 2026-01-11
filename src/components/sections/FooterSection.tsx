@@ -7,13 +7,13 @@ import MailIcon from '../icons/MailIcon';
 
 export default function Footer() {
   return (
-    <footer className='mt-32 border-t border-[color:var(--paguro-border)] bg-[#E6E9D5] py-16 text-[color:var(--paguro-text)]'>
+    <footer className='mt-32 border-t border-[color:var(--paguro-border)] bg-[color:var(--paguro-footer)] py-16 text-[color:var(--paguro-text)]'>
       <div className='mx-auto max-w-5xl px-6 grid gap-10 md:grid-cols-3'>
         {/* Identity */}
         <div className='space-y-2'>
           <Link
             href={'/'}
-            className='text-xl [font-family:var(--font-ui)] font-semibold text-[color:var(--paguro-text)] transition-colors hover:text-[color:var(--paguro-coral)]'
+            className='text-xl [font-family:var(--font-ui)] font-semibold transition-colors hover:text-[color:var(--paguro-coral)]'
           >
             The Paguro Journey
           </Link>
@@ -23,7 +23,7 @@ export default function Footer() {
         </div>
 
         {/* Navigation */}
-        <nav className='flex flex-col items-center gap-2 text-sm text-[color:var(--paguro-text)]'>
+        <nav className='flex flex-col items-center gap-2 text-sm'>
           <Link
             href='/blog'
             className='transition-colors hover:text-[color:var(--paguro-coral)]'
@@ -57,7 +57,7 @@ export default function Footer() {
         </nav>
 
         {/* Social */}
-        <div className='flex flex-col items-center md:justify-self-end text-[color:var(--paguro-text)]'>
+        <div className='flex flex-col items-center md:justify-self-end'>
           <div className='flex items-center gap-5'>
             <a
               href='mailto:thepagurojourney@gmail.com'

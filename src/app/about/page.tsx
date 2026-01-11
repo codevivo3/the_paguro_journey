@@ -46,8 +46,10 @@ export default function AboutPage() {
 
         {/* Call to action */}
         <section className='mt-16 rounded-sm bg-[color:var(--paguro-surface)] p-8 text-center'>
-          <h2 className='t-section-title'>Continua il viaggio</h2>
-          <p className='mt-3 t-body'>
+          <h2 className='[font-family:var(--font-ui)] text-2xl font-semibold text-[color:var(--paguro-text-dark)]'>
+            Continua il viaggio
+          </h2>
+          <p className='mt-2 t-body'>
             Scopri i racconti, i video e le destinazioni che hanno dato forma a
             questo progetto.
           </p>
