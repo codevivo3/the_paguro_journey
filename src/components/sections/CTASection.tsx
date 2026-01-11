@@ -21,7 +21,7 @@ export default function CallToAction() {
 
         <div>
           {/* Placeholder action link to be wired later */}
-          <Button href='/blog'>
+          <Button href='/blog' className='text-white'>
             Placeholder CTA <span aria-hidden>➜</span>
           </Button>
         </div>

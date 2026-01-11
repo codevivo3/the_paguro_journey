@@ -1,5 +1,7 @@
-import { posts } from '@/lib/posts';
 import { notFound } from 'next/navigation';
+
+import { posts } from '@/lib/posts';
+import { resolvePostCover, resolvePostGallery } from '@/lib/posts-media';
 
 import {
   ArticleHeader,
@@ -28,16 +30,16 @@ export default async function BlogPostPage({ params }: PageProps) {
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
+  // Resolve media from a single source of truth (covers + gallery).
+  // `resolvePostGallery` can fall back to destination images when `post.gallery` is missing.
+  const gallery = resolvePostGallery(post, 6);
+
   return (
     <PageShell className='pb-16 pt-24'>
       <article className='space-y-10'>
         <ArticleHeader title={post.title} date={post.date} />
 
-        <CoverMedia
-          src={post.coverImage || '/world-placeholder.png'}
-          alt={post.title}
-          priority
-        />
+        <CoverMedia src={resolvePostCover(post)} alt={post.title} priority />
 
         <Prose className='mt-8'>
           <p className='lead'>
@@ -74,7 +76,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         </Prose>
 
         <div className='mx-auto max-w-3xl'>
-          <GalleryImage src={post.gallery?.[0]} alt={post.title} />
+          <GalleryImage src={gallery[0]} alt={post.title} />
         </div>
 
         <Prose className='mt-8'>
@@ -89,7 +91,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         </Prose>
 
         <div className='mx-auto max-w-3xl'>
-          <GalleryImage src={post.gallery?.[1]} alt={post.title} />
+          <GalleryImage src={gallery[1]} alt={post.title} />
         </div>
 
         <Prose className='mt-8'>

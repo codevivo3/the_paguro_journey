@@ -26,7 +26,7 @@ export default function NewsletterForm() {
             placeholder='you@example.com'
             className='h-11 w-full flex-1 rounded-full border border-black/10 bg-white px-4 text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
           />
-          <Button className='h-11'>Iscriviti</Button>
+          <Button className='h-11 text-white'>Iscriviti</Button>
         </form>
         <p className='mt-3 text-xs text-[color:var(--paguro-text-dark)]/60'>
           Note: this form is UI-only for now. Later we’ll connect it to Kit /

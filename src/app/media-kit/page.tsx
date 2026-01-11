@@ -28,13 +28,13 @@ export default function MediaKitPage() {
             </p>
 
             <div className='pt-2 flex flex-wrap gap-3'>
-              <Button href='/media-kit/paguro-media-kit.pdf'>
+              <Button href='/media-kit/paguro-media-kit.pdf' className='text-white'>
                 Scarica PDF ➜
               </Button>
 
               <Button
                 href='/contact'
-                className='bg-[color:var(--paguro-sand)] text-[color:var(--paguro-text)]'
+                className='bg-[color:var(--paguro-sand)] text-black'
               >
                 Contattaci ➜
               </Button>

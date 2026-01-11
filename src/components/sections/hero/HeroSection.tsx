@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
 import { useUI } from '@/context/ui-context';
+import { HERO_SLIDES } from '@/lib/gallery';
 import HeroSlideControls from './HeroSlideControls';
 
 type HeroSlideShowProps = {
@@ -27,18 +28,10 @@ export default function HeroSlideShow({
   overlay = false,
   className = '',
 }: HeroSlideShowProps) {
-  // Default images (replace with your real paths in /public)
+  // Default images: derived from the gallery source-of-truth.
+  // This prevents duplicating hero assets in a separate folder.
   const slides = useMemo(
-    () =>
-      images && images.length
-        ? images
-        : [
-            '/hero_slide_show/copertina-the-paguro-journey-1.jpg',
-            '/hero_slide_show/copertina-the-paguro-journey-2.jpg',
-            '/hero_slide_show/copertina-the-paguro-journey-3.jpg',
-            '/hero_slide_show/copertina-the-paguro-journey-4.jpg',
-            '/hero_slide_show/copertina-the-paguro-journey-5.jpg',
-          ],
+    () => (images && images.length ? images : HERO_SLIDES.map((s) => s.src)),
     [images]
   );
 

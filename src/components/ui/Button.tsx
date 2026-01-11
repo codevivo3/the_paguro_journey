@@ -29,7 +29,7 @@ export default function Button({
   external = false,
 }: ButtonProps) {
   const baseClass =
-    'inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-ocean)] px-6 py-3 text-lg text-white transition-colors hover:bg-[color:var(--paguro-link-hover)] font-extrabold [font-family:var(--font-ui)]';
+    'inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-ocean)] px-6 py-3 text-lg transition-colors hover:bg-[color:var(--paguro-link-hover)] font-extrabold [font-family:var(--font-ui)]';
 
   // Button element (action)
   if (!href) {

@@ -40,7 +40,7 @@ export default function Navbar() {
           </Link>
 
           {/* Navigation */}
-          <ul className='flex items-center gap-6 text-white text-[clamp(0.8rem,1.2vw,1.3rem)]'>
+          <ul className='flex items-center gap-6 text-white text-[clamp(0.8rem,1.2vw,1rem)]'>
             <li>
               <Link
                 href={'/blog'}

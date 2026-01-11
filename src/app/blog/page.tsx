@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { posts } from '@/lib/posts';
+import { resolvePostCover } from '@/lib/posts-media';
 import { Masonry, MasonryItem } from '@/components/ui/Masonry';
 
 import {
@@ -52,7 +53,7 @@ export default function BlogPage() {
                     >
                       <CardMedia className={mediaAspect}>
                         <Image
-                          src={post.coverImage || '/world-placeholder.png'}
+                          src={resolvePostCover(post)}
                           alt={post.title}
                           fill
                           sizes='(max-width: 1024px) 100vw, 33vw'

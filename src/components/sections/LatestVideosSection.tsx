@@ -12,7 +12,7 @@ import { getLatestVideos } from '@/lib/youtube';
 import { cleanYouTubeDescription } from '../../lib/cleanYouTubeDescription';
 
 // Placeholder data — will be replaced by YouTube API results
-const latestVideos = await getLatestVideos(9);
+const latestVideos = await getLatestVideos(15);
 
 export default function LatestVidsSection() {
   return (
