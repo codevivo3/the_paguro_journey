@@ -8,7 +8,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import Button from './Button';
 
 // Utility function to conditionally join class names, filtering out falsy values
 type ClassValue = string | undefined | null | false;
@@ -21,6 +20,13 @@ function cx(...classes: ClassValue[]) {
 /* Base Card Component                */
 /* ---------------------------------- */
 
+/**
+ * Card
+ *
+ * The base container component for card UI elements.
+ * Supports optional full-card linking via href and external props.
+ * Provides consistent styling, hover effects, and accessibility features.
+ */
 export function Card({
   children,
   className,
@@ -86,6 +92,12 @@ export function Card({
 /* Layout Blocks                     */
 /* ---------------------------------- */
 
+/**
+ * CardMedia
+ *
+ * Container for media content inside a card (images, videos, etc.).
+ * Provides background styling and sizing.
+ */
 export function CardMedia({
   children,
   className,
@@ -100,6 +112,12 @@ export function CardMedia({
   );
 }
 
+/**
+ * CardBody
+ *
+ * Container for the main textual/content area of a card.
+ * Uses flex column layout to allow stacking content and pushing elements to the bottom.
+ */
 export function CardBody({
   children,
   className,
@@ -120,6 +138,11 @@ export function CardBody({
 /* Typography Helpers                */
 /* ---------------------------------- */
 
+/**
+ * CardTitle
+ *
+ * Styled heading element for card titles.
+ */
 export function CardTitle({
   children,
   className,
@@ -130,6 +153,11 @@ export function CardTitle({
   return <h3 className={cx('t-card-title', className)}>{children}</h3>;
 }
 
+/**
+ * CardText
+ *
+ * Styled paragraph element for card body text.
+ */
 export function CardText({
   children,
   className,
@@ -144,6 +172,68 @@ export function CardText({
 /* Meta and Call-to-Action Helpers  */
 /* ---------------------------------- */
 
+/**
+ * FactCard
+ *
+ * Specialized card component designed for displaying fact-based content with a title, pill label, and text.
+ * Intended for use in masonry or mixed-content grids where consistent sizing and styling are important.
+ * Lives in Card.tsx because it composes the base Card component and shares styling conventions.
+ */
+export function FactCard({
+  title,
+  pill,
+  pillHref,
+  pillAriaLabel,
+  text,
+  minHeightClass,
+  footer,
+  className,
+}: {
+  title: string;
+  pill: string;
+  pillHref: string;
+  pillAriaLabel: string;
+  text: string;
+  minHeightClass?: string;
+  footer?: React.ReactNode;
+  className?: string;
+}) {
+  // Split the title by newline to allow multi-line display with special styling on second line
+  const titleLines = title.split('\n');
+  return (
+    <Card className={cx('p-0', minHeightClass, className)}>
+      <div className='flex flex-col p-6 h-full'>
+        <div className='flex items-center justify-between gap-3'>
+          <h3 className='t-card-title'>
+            {titleLines[0]}
+            {titleLines[1] ? (
+              // Use whitespace-nowrap to prevent wrapping of the second line for better visual consistency
+              <span className='block whitespace-nowrap'>{titleLines[1]}</span>
+            ) : null}
+          </h3>
+          <Link
+            href={pillHref}
+            aria-label={pillAriaLabel}
+            className='inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-3xl border border-white/50 bg-[color:var(--geo-btn)] px-3 [font-family:var(--font-ui)] text-xs font-semibold text-white shadow-sm hover:bg-[color:var(--paguro-coral)] shrink-0'
+          >
+            {pill}
+          </Link>
+        </div>
+        <p className='t-card-body whitespace-pre-line mt-4'>{text}</p>
+        {/* <div className='mt-auto pt-4'>
+          - Render footer if provided, otherwise show fallback placeholder -
+          {footer !== undefined ? footer : '(mock) ✦'}
+        </div> */}
+      </div>
+    </Card>
+  );
+}
+
+/**
+ * CardMetaRow
+ *
+ * Layout helper to arrange metadata or controls in a horizontal row with spacing.
+ */
 export function CardMetaRow({
   children,
   className,
@@ -160,6 +250,12 @@ export function CardMetaRow({
   );
 }
 
+/**
+ * CardPill
+ *
+ * Visual pill-shaped link primitive for UI decoration and navigation.
+ * Should not contain business logic or complex behavior.
+ */
 export function CardPill({
   children,
   className,
@@ -180,6 +276,12 @@ export function CardPill({
   );
 }
 
+/**
+ * CardLink
+ *
+ * Inline link component for use inside cards.
+ * Use this when only part of the card should be clickable, as opposed to making the whole Card clickable via the href prop.
+ */
 export function CardLink({
   href,
   children,
@@ -215,6 +317,13 @@ export function CardLink({
   );
 }
 
+/**
+ * ContactCard
+ *
+ * Square tile card specialized for contact methods.
+ * Displays an icon, title, and subtitle with hover effects.
+ * Supports internal, external, and mailto: links.
+ */
 export function ContactCard({
   href,
   title,

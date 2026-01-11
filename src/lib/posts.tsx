@@ -1,7 +1,7 @@
 // src/lib/posts.tsx
 // Temporary local content store (later this will come from Sanity).
-
-// One content source → multiple “views” (Blog, Destinations, Videos).
+// One content source → multiple “views” (Blog, Destinations, Videos) + small “fact chips”.
+// This file also centralizes UI labels (REGION_META / STYLE_META) to avoid string duplication.
 
 // Default cover used when a destination (and its related posts) have no image yet.
 // File must exist in `/public`.
@@ -27,6 +27,39 @@ export type TravelStyle =
   | 'budget'
   | 'food'
   | 'adventure';
+
+// Human-readable labels for UI (single source of truth).
+// Later: these can be replaced by Sanity documents or i18n strings.
+export const REGION_META: Record<Region, { label: string }> = {
+  asia: { label: 'Asia' },
+  europe: { label: 'Europa' },
+  'north-america': { label: 'Nord America' },
+  'central-america': { label: 'Centro America' },
+  'south-america': { label: 'Sud America' },
+  africa: { label: 'Africa' },
+  oceania: { label: 'Oceania' },
+  'middle-east': { label: 'Medio Oriente' },
+  other: { label: 'Altro' },
+};
+
+export const STYLE_META: Record<TravelStyle, { label: string }> = {
+  slow: { label: 'Slow' },
+  mindful: { label: 'Mindful' },
+  offtrack: { label: 'Off-track' },
+  nature: { label: 'Natura' },
+  culture: { label: 'Cultura' },
+  budget: { label: 'Budget' },
+  food: { label: 'Food' },
+  adventure: { label: 'Avventura' },
+};
+
+function getRegionLabel(region: Region) {
+  return REGION_META[region].label;
+}
+
+function getStyleLabel(style: TravelStyle) {
+  return STYLE_META[style].label;
+}
 
 export type MediaKind = 'youtube-video' | 'youtube-playlist' | 'external';
 
@@ -135,74 +168,128 @@ export const destinations: Destination[] = [
   },
 ];
 
+// Facts are small “content chips” you can inject into grids (masonry / mixed lists).
+// IMPORTANT: the goal here is to avoid duplicating labels everywhere.
+// We store *machine tags* (regionSlug / style) and derive UI labels from REGION_META / STYLE_META.
+export type FactScope = 'region' | 'style' | 'global';
+
 export type Facts = {
   title: string;
-  pill: string;
   text: string;
+  scope: FactScope;
+
+  // Targeting tags (optional, depending on scope)
+  regionSlug?: Region;
+  style?: TravelStyle;
+
+  // Optional UI override when the pill is NOT a region/style (e.g. “Attenzione”)
+  pillLabel?: string;
+
+  // --- Backwards-compatibility ------------------------------------------------
+  // These fields are derived at runtime so older UI code keeps working.
+  // Prefer using: `scope`, `regionSlug`, `style`, and `pillLabel`.
+  /** @deprecated Derive from scope/regionSlug/style. */
+  pill?: string;
+  /** @deprecated Use `regionSlug` for the tag. */
+  region?: Region;
 };
 
-export const facts: Facts[] = [
+// Raw facts: minimal data only (no duplicated region labels).
+const RAW_FACTS: Omit<Facts, 'pill' | 'region'>[] = [
   {
+    scope: 'region',
+    regionSlug: 'asia',
     title: 'Curiosità \n\n Asia',
-    pill: 'Asia',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn dettaglio interessante sulla regione per spezzare la griglia.',
   },
   {
+    scope: 'region',
+    regionSlug: 'central-america',
     title: 'Curiosità \n\n Centro America',
-    pill: 'Centro America',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Un dettaglio geografico che aiuta a capire il contesto. Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn dettaglio geografico che aiuta a capire il contesto. Piccola nota di contesto o tip di viaggio.',
   },
   {
+    scope: 'region',
+    regionSlug: 'europe',
     title: 'Curiosità \n\n Europa',
-    pill: 'Europa',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn fatto storico o culturale raccontato in breve.',
   },
+
+  // Travel-style facts (good for future filters / tags)
   {
+    scope: 'style',
+    style: 'mindful',
     title: 'Tip di viaggio',
-    pill: 'Mindful',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn suggerimento pratico per viaggiare con più consapevolezza.',
   },
   {
+    scope: 'style',
+    style: 'culture',
     title: 'Lo sapevi?',
-    pill: 'Cultura',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUna curiosità locale che difficilmente trovi nelle guide.',
   },
   {
+    scope: 'style',
+    style: 'adventure',
     title: 'Consiglio pratico',
-    pill: 'On the road',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn piccolo trucco che ti semplifica il viaggio.',
   },
   {
+    scope: 'style',
+    style: 'offtrack',
     title: 'Nota dal campo',
-    pill: 'Esperienza',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn appunto nato direttamente sul posto.',
   },
   {
+    scope: 'style',
+    style: 'slow',
     title: 'Viaggiare lento',
-    pill: 'Slow travel',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nPerché fermarsi più a lungo cambia il modo di vedere un luogo.',
   },
+
+  // Global facts (not tied to a specific tag)
   {
+    scope: 'global',
+    pillLabel: 'Territorio',
     title: 'Geografia rapida',
-    pill: 'Territorio',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Un dettaglio geografico che aiuta a capire il contesto. Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn dettaglio geografico che aiuta a capire il contesto.',
   },
   {
+    scope: 'global',
+    pillLabel: 'Storie',
     title: 'Piccola storia',
-    pill: 'Storie',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUn frammento narrativo che dà carattere al luogo.',
   },
   {
+    scope: 'global',
+    pillLabel: 'Attenzione',
     title: 'Errore comune',
-    pill: 'Attenzione',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUna cosa da evitare quando si visita questa zona.',
   },
   {
+    scope: 'global',
+    pillLabel: 'Diario',
     title: 'Osservazione',
-    pill: 'Diario',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n\nUna riflessione personale nata viaggiando.',
   },
 ];
+
+function deriveFactPill(f: Omit<Facts, 'pill' | 'region'>): { pill: string; region?: Region } {
+  if (f.scope === 'region' && f.regionSlug) {
+    return { pill: getRegionLabel(f.regionSlug), region: f.regionSlug };
+  }
+  if (f.scope === 'style' && f.style) {
+    return { pill: getStyleLabel(f.style) };
+  }
+  // global
+  return { pill: f.pillLabel ?? 'Info' };
+}
+
+// Exported facts: enriched with derived fields for UI convenience.
+export const facts: Facts[] = RAW_FACTS.map((f) => {
+  const derived = deriveFactPill(f);
+  return { ...f, ...derived };
+});
 
 // --- Local data -------------------------------------------------------------
 

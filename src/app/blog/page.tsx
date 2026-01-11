@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { posts } from '@/lib/posts';
+import { Masonry, MasonryItem } from '@/components/ui/Masonry';
 
 import {
   Card,
@@ -32,19 +33,17 @@ export default function BlogPage() {
             <span className='t-meta'>{posts.length} articoli</span>
           </div>
 
-          <div className='columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3'>
+          <Masonry>
             {posts.map((post, index) => {
-              // Give the masonry grid some rhythm by varying the media aspect ratio.
-              // This is purely visual: you can tweak the modulo numbers anytime.
               const mediaAspect =
                 index % 5 === 0
                   ? 'aspect-[4/5]'
                   : index % 3 === 0
-                    ? 'aspect-[3/4]'
-                    : 'aspect-video';
+                  ? 'aspect-[3/4]'
+                  : 'aspect-video';
 
               return (
-                <div className='break-inside-avoid' key={post.slug}>
+                <MasonryItem key={post.slug}>
                   <Card>
                     <Link
                       href={`/blog/${post.slug}`}
@@ -61,6 +60,7 @@ export default function BlogPage() {
                         />
                       </CardMedia>
                     </Link>
+
                     <CardBody>
                       <CardTitle>{post.title}</CardTitle>
                       <CardText>{post.excerpt}</CardText>
@@ -73,10 +73,10 @@ export default function BlogPage() {
                       </Link>
                     </CardBody>
                   </Card>
-                </div>
+                </MasonryItem>
               );
             })}
-          </div>
+          </Masonry>
         </section>
       </div>
     </main>

@@ -92,7 +92,7 @@ export default function SearchModal() {
                     type='button'
                     aria-label='Close search modal'
                     onClick={closeAndRestoreFocus}
-                    className='text-black text-xl [font-family:var(--font-ui)]'
+                    className='text-black text-xl [font-family:var(--font-ui)] transition-transform duration-300 hover:scale-[1.25]'
                   >
                     <svg
                       xmlns='http://www.w3.org/2000/svg'

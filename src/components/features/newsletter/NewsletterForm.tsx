@@ -2,7 +2,7 @@ import Button from '../../ui/Button';
 
 export default function NewsletterForm() {
   return (
-    <div className='mx-auto my-10 pb-10 max-w-3xl'>
+    <div className='mx-auto my-10 max-w-3xl'>
       <section
         aria-label='Newsletter'
         className='rounded-sm border border-black/10 bg-[color:var(--paguro-surface)] p-6'

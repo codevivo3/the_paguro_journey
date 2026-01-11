@@ -1,6 +1,8 @@
 # The Paguro Journey 🌍
 
 A slow-travel storytelling platform combining long-form articles, destinations, and video content.
+  
+**Live Demo:** https://the-paguro-journey.vercel.app/
 
 This project explores how travel stories can be presented with clarity, calm design, and long-term scalability in mind — avoiding clutter, hype, and short-form noise.
 
