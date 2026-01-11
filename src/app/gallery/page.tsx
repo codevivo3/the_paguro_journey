@@ -3,11 +3,9 @@ import { Suspense } from 'react';
 import GalleryGrid from '@/components/gallery/GalleryGrid';
 import { getGalleryImages } from '@/lib/gallery';
 
-function GalleryGridShell() {
-  return <GalleryGrid items={getGalleryImages()} />;
-}
-
 export default function GalleryPage() {
+  const items = getGalleryImages();
+
   return (
     <main className='px-6 pb-24 pt-24'>
       <div className='mx-auto max-w-5xl space-y-10'>
@@ -26,7 +24,7 @@ export default function GalleryPage() {
               </div>
             }
           >
-            <GalleryGridShell />
+            <GalleryGrid items={items} />
           </Suspense>
         </section>
       </div>
