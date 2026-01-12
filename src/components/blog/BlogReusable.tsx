@@ -1,6 +1,8 @@
 // src/components/blog/BlogReusable.tsx
 import Image from 'next/image';
 
+import { formatDate } from '@/lib/date';
+
 type ClassValue = string | undefined | null | false;
 
 /** Small helper to join classNames safely */
@@ -63,20 +65,14 @@ export function ArticleHeader({
 }) {
   return (
     <header className={cx('mx-auto max-w-3xl space-y-3', className)}>
-      {eyebrow && (
-        <p className='t-meta uppercase tracking-wide'>
-          {eyebrow}
-        </p>
-      )}
+      {eyebrow && <p className='t-meta uppercase tracking-wide'>{eyebrow}</p>}
 
-      <h1 className='t-page-title'>
-        {title}
-      </h1>
-
+      <h1 className='t-page-title'>{title}</h1>
+      
       {date && (
-        <p className='t-meta'>
-          {date}
-        </p>
+        <time dateTime={date} className='t-meta block mb-2'>
+          {formatDate(date)}
+        </time>
       )}
     </header>
   );

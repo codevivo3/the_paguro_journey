@@ -1,4 +1,4 @@
-// src/lib/posts.tsx
+import { getDefaultCoverForCountry } from '@/lib/gallery';
 // Temporary local content store (later this will come from Sanity).
 // One content source → multiple “views” (Blog, Destinations, Videos) + small “fact chips”.
 // This file also centralizes UI labels (REGION_META / STYLE_META) to avoid string duplication.
@@ -80,8 +80,12 @@ export type Post = {
   };
 
   // Images
-  coverImage?: string; // used for cards/hero on blog list
-  gallery?: string[]; // optional additional images
+  // Source of truth lives in `src/lib/gallery.ts`.
+  // Keep these only as optional overrides / legacy data.
+  /** @deprecated Prefer gallery.ts helpers (default cover + gallery by countrySlug). */
+  coverImage?: string;
+  /** @deprecated Prefer gallery.ts helpers (default cover + gallery by countrySlug). */
+  gallery?: string[];
 
   // Taxonomy (Destinations are NOT a separate content type — just metadata)
   destination?: {
@@ -303,11 +307,6 @@ export const posts: Post[] = [
       kind: 'youtube-playlist',
       url: 'https://www.youtube.com/watch?v=V5M__hG4dV8&list=PLstiwxBQHBusIpFOMNlsJf4Ekoin0XJTy',
     },
-    coverImage: '/destinations/china/cina-ponte-guangxi.jpg',
-    gallery: [
-      '/destinations/china/mattia-tiger-leaping-gorge.jpg',
-      '/destinations/china/campi-terrazzati-yuan-yang.jpg',
-    ],
     destination: { countrySlug: 'china' },
     styles: ['mindful', 'offtrack', 'culture'],
   },
@@ -319,11 +318,6 @@ export const posts: Post[] = [
       kind: 'youtube-playlist',
       url: 'https://www.youtube.com/playlist?list=PLstiwxBQHBuslSuTlFVBrn6ln_PFQihyO',
     },
-    coverImage: '/destinations/guatemala/guatemala-mattia-cammina-chichi.jpg',
-    gallery: [
-      '/destinations/guatemala/guatemala-vale-datch-angle.jpg',
-      '/destinations/antigua/antigua-volti-di-antigua.jpg',
-    ],
     destination: { countrySlug: 'guatemala' },
     styles: ['offtrack', 'culture', 'adventure'],
   },
@@ -335,11 +329,6 @@ export const posts: Post[] = [
       kind: 'youtube-playlist',
       url: 'https://www.youtube.com/playlist?list=PLstiwxBQHButvJMlFXsP6sd4gkC3wFuEL',
     },
-    coverImage: '/destinations/mongolia/vale-duna-gobi.jpg',
-    gallery: [
-      '/destinations/mongolia/vale-mattia-in-tenda.jpg',
-      '/destinations/mongolia/valentina-on-the-road.jpg',
-    ],
     destination: { countrySlug: 'mongolia' },
     styles: ['nature', 'adventure', 'offtrack'],
   },
@@ -458,8 +447,6 @@ export function getDestinationCards(): DestinationCard[] {
   return destinations
     .map((d) => {
       const related = getPostsByCountrySlug(d.countrySlug);
-      const coverFromPost = related[0]?.coverImage;
-
       return {
         country: d.country,
         countrySlug: d.countrySlug,
@@ -467,7 +454,9 @@ export function getDestinationCards(): DestinationCard[] {
         regionSlug: d.regionSlug,
         count: related.length,
         coverImage:
-          coverFromPost ?? d.coverImage ?? DESTINATION_PLACEHOLDER_COVER,
+          d.coverImage ??
+          getDefaultCoverForCountry(d.countrySlug) ??
+          DESTINATION_PLACEHOLDER_COVER,
       };
     })
     .sort((a, b) => {

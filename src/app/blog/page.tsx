@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { posts } from '@/lib/posts';
-import { resolvePostCover } from '@/lib/posts-media';
+import { resolvePostCoverImage } from '@/lib/posts-media';
 import { Masonry, MasonryItem } from '@/components/ui/Masonry';
 
 import {
@@ -14,8 +14,6 @@ import {
   CardText,
 } from '@/components/ui/Card';
 
-// Blog index page (/blog)
-// SEO: page-level metadata lives here; global defaults live in `app/layout.tsx`.
 export const metadata: Metadata = {
   title: 'Blog',
   description:
@@ -47,12 +45,10 @@ export const metadata: Metadata = {
   },
 };
 
-// Blog index page → /blog
 export default function BlogPage() {
   return (
     <main className='px-6 pb-16 pt-24'>
       <div className='mx-auto max-w-5xl space-y-10'>
-        {/* Header: title + short intro */}
         <header className='space-y-3'>
           <h1 className='t-page-title'>Blog</h1>
           <p className='t-page-subtitle'>
@@ -61,7 +57,6 @@ export default function BlogPage() {
           </p>
         </header>
 
-        {/* Masonry list of posts */}
         <section aria-label='Latest Articles' className='space-y-5'>
           <div className='flex items-baseline justify-between'>
             <h2 className='t-section-title'>Pubblicazioni Recenti</h2>
@@ -70,12 +65,21 @@ export default function BlogPage() {
 
           <Masonry>
             {posts.map((post, index) => {
+              const cover = resolvePostCoverImage(post);
+
+              // Orientation first, fallback to your “rhythm” layout
               const mediaAspect =
-                index % 5 === 0
+                cover.orientation === 'portrait'
+                  ? 'aspect-[3/4]'
+                  : cover.orientation === 'landscape'
+                  ? 'aspect-video'
+                  : index % 5 === 0
                   ? 'aspect-[4/5]'
                   : index % 3 === 0
                   ? 'aspect-[3/4]'
                   : 'aspect-video';
+
+              const alt = cover.alt ?? post.title;
 
               return (
                 <MasonryItem key={post.slug}>
@@ -87,8 +91,8 @@ export default function BlogPage() {
                     >
                       <CardMedia className={mediaAspect}>
                         <Image
-                          src={resolvePostCover(post)}
-                          alt={post.title}
+                          src={cover.src}
+                          alt={alt}
                           fill
                           sizes='(max-width: 1024px) 100vw, 33vw'
                           className='object-cover transition-transform duration-300 hover:scale-[1.02]'

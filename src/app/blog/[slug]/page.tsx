@@ -20,9 +20,9 @@ type PageProps = {
   }>;
 };
 
-export async function generateMetadata(
-  { params }: PageProps
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = posts.find((p) => p.slug === slug);
 
@@ -90,7 +90,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <PageShell className='pb-16 pt-24'>
-      <article className='space-y-10'>
+      <article>
         <ArticleHeader title={post.title} date={post.date} />
 
         <CoverMedia src={resolvePostCover(post)} alt={post.title} priority />

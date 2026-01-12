@@ -5,6 +5,13 @@ export type GalleryImage = {
   orientation?: 'portrait' | 'landscape';
 };
 
+export type CoverMeta = {
+  src: string;
+  countrySlug: string;
+  alt?: string;
+  orientation?: 'portrait' | 'landscape';
+};
+
 type GalleryCountry = {
   countrySlug: string;
   basePath: string;
@@ -143,12 +150,29 @@ export function getGalleryImagesByCountry(countrySlug: string): GalleryImage[] {
 }
 
 // First image of the destination → best default cover
+export function getDefaultCoverMetaForCountry(
+  countrySlug?: string
+): CoverMeta | undefined {
+  if (!countrySlug) return undefined;
+
+  const imgs = getGalleryImagesByCountry(countrySlug);
+  const first = imgs[0];
+  if (!first) return undefined;
+
+  // Preserve optional props without forcing `undefined` assignments.
+  return {
+    src: first.src,
+    countrySlug: first.countrySlug,
+    alt: first.alt,
+    orientation: first.orientation,
+  };
+}
+
+// Backwards-compatible helper (string-only cover)
 export function getDefaultCoverForCountry(
   countrySlug?: string
 ): string | undefined {
-  if (!countrySlug) return undefined;
-  const imgs = getGalleryImagesByCountry(countrySlug);
-  return imgs[0]?.src;
+  return getDefaultCoverMetaForCountry(countrySlug)?.src;
 }
 
 // Next images → good default gallery (skip cover)

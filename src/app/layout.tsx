@@ -102,8 +102,7 @@ export const metadata: Metadata = {
 
   // Favicon & app icons (ensure these exist in `/public`).
   icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    icon: '/icon.svg',
   },
 };
 
