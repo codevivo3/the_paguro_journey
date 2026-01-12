@@ -34,7 +34,7 @@ const GALLERY_COUNTRIES: GalleryCountry[] = [
     images: [
       { filename: 'antigua-drone-10.jpg' },
       { filename: 'antigua-drone-20.jpg' },
-      { filename: 'antigua-volti-di-antigua.jpg' },
+      { filename: 'antigua-volti-di-antigua.jpg', orientation: 'landscape' },
     ],
   },
   {
@@ -52,7 +52,7 @@ const GALLERY_COUNTRIES: GalleryCountry[] = [
     images: [
       { filename: 'costarica-drone-010.jpg' },
       { filename: 'costarica-drone-020.jpg' },
-      { filename: 'costarica-drone-030.jpg' },
+      { filename: 'costarica-drone-030.jpg', orientation: 'landscape' },
     ],
   },
   {
@@ -77,7 +77,7 @@ const GALLERY_COUNTRIES: GalleryCountry[] = [
     countrySlug: 'mongolia',
     basePath: '/destinations/mongolia',
     images: [
-      { filename: 'vale-duna-gobi.jpg' },
+      { filename: 'vale-duna-gobi.jpg', orientation: 'landscape' },
       { filename: 'vale-mattia-in-tenda.jpg' },
       { filename: 'valentina-on-the-road.jpg' },
     ],

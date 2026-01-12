@@ -1,17 +1,7 @@
-import dynamic from 'next/dynamic';
+import * as React from 'react';
 
 import { getGalleryImages } from '@/lib/gallery';
-
-const GalleryGrid = dynamic(() => import('@/components/gallery/GalleryGrid'), {
-  // GalleryGrid uses `useSearchParams()` which triggers a CSR bailout unless wrapped in
-  // a Suspense boundary during prerender. Disabling SSR is the most conservative fix.
-  ssr: false,
-  loading: () => (
-    <div className='rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-6 text-sm text-[color:var(--paguro-text)]/70'>
-      Caricamento galleria…
-    </div>
-  ),
-});
+import GalleryGridClient from '@/components/gallery/GalleryGridClient';
 
 export default function GalleryPage() {
   const items = getGalleryImages();
@@ -27,7 +17,15 @@ export default function GalleryPage() {
         </header>
 
         <section aria-label='Gallery' className='space-y-5'>
-          <GalleryGrid items={items} />
+          <React.Suspense
+            fallback={
+              <div className='rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-6 text-sm text-[color:var(--paguro-text)]/70'>
+                Caricamento galleria…
+              </div>
+            }
+          >
+            <GalleryGridClient items={items} />
+          </React.Suspense>
         </section>
       </div>
     </main>
