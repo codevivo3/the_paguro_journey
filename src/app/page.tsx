@@ -1,43 +1,62 @@
-// Homepage layout composed of reusable sections
+// Homepage – landing editoriale di The Paguro Journey
+// Composta da sezioni riutilizzabili pensate per storytelling, scoperta e chiarezza SEO
 
-// Previous hero experiments kept for reference:
+// Esperimenti precedenti sul sistema Hero (mantenuti solo come riferimento)
 // import Hero from '@/components/Hero';
 // import HeroVideo from '@/components/HeroVideo';
 // import Navbar from '@/components/Navbar';
 
-import CollabsSection from '@/components/sections/CollabsSection';
 import LatestVidsSection from '@/components/sections/LatestVideosSection';
 import IntroSection from '@/components/sections/IntroSection';
 import HeroSlideShow from '@/components/sections/hero/HeroSection';
 import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 import CallToAction from '@/components/sections/CTASection';
 
-// SEO metadata for the homepage
+// Metadata SEO per la homepage
+// Definisce identità del progetto, posizionamento del brand e intento di ricerca
 export const metadata = {
   title: {
-    default: 'The Paguro Journey',
+    default: 'The Paguro Journey – Racconti di viaggio, destinazioni e slow travel',
     template: '%s | The Paguro Journey',
+  },
+  description:
+    'The Paguro Journey è un progetto di viaggio dedicato allo slow travel, alle destinazioni autentiche e allo storytelling visivo, per chi viaggia con consapevolezza.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'The Paguro Journey',
+    description:
+      'Racconti di viaggio, destinazioni e percorsi visivi ispirati allo slow travel e all’esplorazione autentica.',
+    type: 'website',
+    url: '/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Paguro Journey',
+    description:
+      'Slow travel, destinazioni autentiche e storytelling visivo dal mondo.',
   },
 };
 
 export default function Home() {
   return (
     <>
-      {/* Main content area for the homepage */}
+      {/* Area principale dei contenuti editoriali */}
       <main>
-        {/* Visually hidden h1 for SEO and accessibility */}
+        {/* H1 principale (visivamente nascosto) per semantica SEO e accessibilità */}
         <h1 className='sr-only'>The Paguro Journey</h1>
-        {/* Primary visual hero section */}
+        {/* Sezione Hero: ingresso visivo e posizionamento del brand */}
         <HeroSlideShow />
-        {/* Introductory content explaining the project */}
+        {/* Sezione introduttiva: spiega filosofia e visione del progetto */}
         <IntroSection />
-        {/* Primary call-to-action (temporary placeholder) */}
+        {/* Call to action: accompagna l’utente nel percorso */}
         <CallToAction />
         {/* Partner and collaboration highlights */}
         {/* <CollabsSection /> */}
-        {/* Latest video content preview */}
+        {/* Anteprima degli ultimi video per valorizzare lo storytelling multimediale */}
         <LatestVidsSection />
-        {/* Newsletter signup to capture early interest */}
+        {/* Iscrizione newsletter: costruzione del pubblico nel lungo periodo */}
         <NewsletterForm />
       </main>
     </>

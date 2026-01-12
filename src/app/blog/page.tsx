@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -13,12 +14,45 @@ import {
   CardText,
 } from '@/components/ui/Card';
 
+// Blog index page (/blog)
+// SEO: page-level metadata lives here; global defaults live in `app/layout.tsx`.
+export const metadata: Metadata = {
+  title: 'Blog',
+  description:
+    'Racconti di viaggio, riflessioni e guide pratiche per un viaggio consapevole e lontano dai percorsi più battuti.',
+  alternates: {
+    canonical: '/blog',
+  },
+  openGraph: {
+    title: 'Blog | The Paguro Journey',
+    description:
+      'Racconti di viaggio, riflessioni e guide pratiche per un viaggio consapevole e lontano dai percorsi più battuti.',
+    url: '/blog',
+    type: 'website',
+    images: [
+      {
+        url: '/og-default.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'The Paguro Journey — Blog',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Blog | The Paguro Journey',
+    description:
+      'Racconti di viaggio, riflessioni e guide pratiche per un viaggio consapevole e lontano dai percorsi più battuti.',
+    images: ['/og-default.jpg'],
+  },
+};
+
 // Blog index page → /blog
 export default function BlogPage() {
   return (
     <main className='px-6 pb-16 pt-24'>
       <div className='mx-auto max-w-5xl space-y-10'>
-        {/* Page intro */}
+        {/* Header: title + short intro */}
         <header className='space-y-3'>
           <h1 className='t-page-title'>Blog</h1>
           <p className='t-page-subtitle'>
@@ -27,7 +61,7 @@ export default function BlogPage() {
           </p>
         </header>
 
-        {/* Posts grid */}
+        {/* Masonry list of posts */}
         <section aria-label='Latest Articles' className='space-y-5'>
           <div className='flex items-baseline justify-between'>
             <h2 className='t-section-title'>Pubblicazioni Recenti</h2>

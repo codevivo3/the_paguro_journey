@@ -1,5 +1,39 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Destinazioni | The Paguro Journey',
+  description:
+    'Esplora tutte le destinazioni di The Paguro Journey: paesi, regioni e racconti di viaggio tra blog, video e appunti pratici.',
+  alternates: {
+    canonical: '/destinations',
+  },
+  openGraph: {
+    title: 'Destinazioni | The Paguro Journey',
+    description:
+      'Una mappa dei luoghi che abbiamo esplorato: destinazioni, regioni e articoli collegati.',
+    url: '/destinations',
+    siteName: 'The Paguro Journey',
+    type: 'website',
+    locale: 'it_IT',
+    images: [
+      {
+        url: '/destinations/images/cover/copertina-the-paguro-journey-1.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'The Paguro Journey — Destinazioni',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Destinazioni | The Paguro Journey',
+    description:
+      'Esplora destinazioni, regioni e racconti di viaggio di The Paguro Journey.',
+    images: ['/destinations/images/cover/copertina-the-paguro-journey-1.jpg'],
+  },
+};
 
 import { getDestinationsFromPosts, facts } from '@/lib/posts';
 import { Masonry, MasonryItem } from '@/components/ui/Masonry';
@@ -14,7 +48,8 @@ import {
 } from '@/components/ui/Card';
 import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 
-// This page uses a masonry-style layout mixing destination cards and fact cards for visual variety.
+// SEO/UX: This index page aggregates destinations derived from posts.
+// Layout: Masonry grid mixes destination cards with small “fact” cards to keep scanning engaging.
 const destinations = getDestinationsFromPosts();
 
 export default function DestinationsPage() {
@@ -30,8 +65,9 @@ export default function DestinationsPage() {
           </p>
         </header>
 
-        {/* Filters (placeholder) */}
-        {/* These filter links are placeholders and will later become real interactive filters */}
+        {/* Filters (coming soon)
+            SEO/UX: These are placeholders for future client-side filtering (region, country, travel style).
+            Keep as real links later to create crawlable filter states if desired. */}
         <section
           aria-label='Filters'
           className='flex flex-wrap items-center justify-center gap-3'
@@ -59,17 +95,20 @@ export default function DestinationsPage() {
           </Link>
         </section>
 
-        {/* Destinations grid */}
+        {/* Destinations grid
+            SEO/UX: Internal links to destination pages help discovery and pass relevance across the site. */}
         <section aria-label='Destinations' className='space-y-5 pb-16'>
           <div className='flex items-baseline justify-between'>
             <h2 className='t-section-title'>Esplora</h2>
             <span className='t-meta'>{destinations.length} destinazioni</span>
           </div>
 
-          {/* Masonry grid (shared component) */}
+          {/* Masonry grid (shared component)
+              UI: Uses CSS columns to simulate masonry while keeping markup simple. */}
           <Masonry className='columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3'>
             {(() => {
-              // Stream-mixing logic: interleave destination cards with fact cards to create a varied layout.
+              // Stream-mixing: interleave destinations with “facts” to avoid a monotonous grid.
+              // Facts can later become filter entry points (region/style) to improve navigation.
               const items: Array<
                 | {
                     type: 'destination';
@@ -79,7 +118,7 @@ export default function DestinationsPage() {
                 | { type: 'fact'; f: (typeof facts)[number]; index: number }
               > = [];
 
-              // Controls how often fact cards are injected among destination cards.
+              // Controls how often fact cards appear. Tune for density vs. readability.
               const INSERT_EVERY = 2;
               let factCursor = 0;
 
@@ -97,7 +136,7 @@ export default function DestinationsPage() {
 
               return items.map((item, streamIndex) => {
                 if (item.type === 'fact') {
-                  // Give facts their own "rhythm": sometimes taller
+                  // Visual rhythm: some fact cards are taller to break the column flow.
                   const factClass =
                     streamIndex % 7 === 0 ? 'min-h-[18rem]' : 'min-h-[14rem]';
 
@@ -141,7 +180,7 @@ export default function DestinationsPage() {
                 // Destination card
                 const { d, index } = item;
 
-                // Give the masonry grid some rhythm by varying the media aspect ratio.
+                // Visual rhythm: vary aspect ratios so the masonry scan feels less repetitive.
                 const mediaAspect =
                   index % 5 === 0
                     ? 'aspect-[4/5]'
@@ -211,3 +250,4 @@ export default function DestinationsPage() {
     </main>
   );
 }
+

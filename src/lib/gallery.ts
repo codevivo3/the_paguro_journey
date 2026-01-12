@@ -23,14 +23,27 @@ export type HeroSlide = { src: string; alt?: string };
 const GALLERY_COUNTRIES: GalleryCountry[] = [
   {
     countrySlug: 'cover',
-    basePath: '/destinations/cover',
+    basePath: '/destinations/images/cover',
     images: [
-      { filename: 'copertina-the-paguro-journey-1.jpg', orientation: 'landscape' },
+      {
+        filename: 'copertina-the-paguro-journey-1.jpg',
+        orientation: 'landscape',
+      },
+    ],
+  },
+  {
+    countrySlug: 'about',
+    basePath: '/destinations/images/about',
+    images: [
+      {
+        filename: 'about-pic.jpg',
+        orientation: 'landscape',
+      },
     ],
   },
   {
     countrySlug: 'antigua',
-    basePath: '/destinations/antigua',
+    basePath: '/destinations/images/antigua',
     images: [
       { filename: 'antigua-drone-10.jpg' },
       { filename: 'antigua-drone-20.jpg' },
@@ -39,7 +52,7 @@ const GALLERY_COUNTRIES: GalleryCountry[] = [
   },
   {
     countrySlug: 'china',
-    basePath: '/destinations/china',
+    basePath: '/destinations/images/china',
     images: [
       { filename: 'mattia-tiger-leaping-gorge.jpg', orientation: 'landscape' },
       { filename: 'campi-terrazzati-yuan-yang.jpg' },
@@ -48,7 +61,7 @@ const GALLERY_COUNTRIES: GalleryCountry[] = [
   },
   {
     countrySlug: 'costa-rica',
-    basePath: '/destinations/costa-rica',
+    basePath: '/destinations/images/costa-rica',
     images: [
       { filename: 'costarica-drone-010.jpg' },
       { filename: 'costarica-drone-020.jpg' },
@@ -57,7 +70,7 @@ const GALLERY_COUNTRIES: GalleryCountry[] = [
   },
   {
     countrySlug: 'guatemala',
-    basePath: '/destinations/guatemala',
+    basePath: '/destinations/images/guatemala',
     images: [
       { filename: 'guatemala-chichi-10.jpg' },
       { filename: 'guatemala-chichi.jpg' },
@@ -75,7 +88,7 @@ const GALLERY_COUNTRIES: GalleryCountry[] = [
   },
   {
     countrySlug: 'mongolia',
-    basePath: '/destinations/mongolia',
+    basePath: '/destinations/images/mongolia',
     images: [
       { filename: 'vale-duna-gobi.jpg', orientation: 'landscape' },
       { filename: 'vale-mattia-in-tenda.jpg' },
@@ -84,7 +97,9 @@ const GALLERY_COUNTRIES: GalleryCountry[] = [
   },
 ];
 
-export const HERO_SLIDES: HeroSlide[] = GALLERY_COUNTRIES
+export const HERO_SLIDES: HeroSlide[] = GALLERY_COUNTRIES.filter(
+  (country) => country.countrySlug !== 'about'
+)
   .map((country) => {
     const firstImage = country.images[0];
     if (!firstImage) return null;
@@ -100,7 +115,10 @@ export const HERO_SLIDES: HeroSlide[] = GALLERY_COUNTRIES
   .filter((slide): slide is HeroSlide => slide !== null);
 
 export function getGalleryImages(): GalleryImage[] {
-  return GALLERY_COUNTRIES.filter((country) => country.countrySlug !== 'cover') // exclude hero-only assets
+  return GALLERY_COUNTRIES.filter(
+    (country) =>
+      country.countrySlug !== 'cover' && country.countrySlug !== 'about'
+  ) // exclude non-gallery assets
     .flatMap((country) =>
       country.images.map((img) => ({
         src: `${country.basePath}/${img.filename}`,
@@ -125,7 +143,9 @@ export function getGalleryImagesByCountry(countrySlug: string): GalleryImage[] {
 }
 
 // First image of the destination → best default cover
-export function getDefaultCoverForCountry(countrySlug?: string): string | undefined {
+export function getDefaultCoverForCountry(
+  countrySlug?: string
+): string | undefined {
   if (!countrySlug) return undefined;
   const imgs = getGalleryImagesByCountry(countrySlug);
   return imgs[0]?.src;
@@ -163,7 +183,10 @@ export type PostLikeForGallery = {
  *  2) gallery for post.destination.countrySlug (auto)
  *  3) empty array
  */
-export function resolvePostGallery(post: PostLikeForGallery, limit = 6): string[] {
+export function resolvePostGallery(
+  post: PostLikeForGallery,
+  limit = 6
+): string[] {
   // 1) Explicit gallery defined on the post → highest priority
   if (post.gallery?.length) return post.gallery.slice(0, limit);
 
@@ -186,6 +209,9 @@ export function getHeroImage(gallery: string[]): string | undefined {
 }
 
 /** Get any inline image from the resolved gallery (safe). */
-export function getInlineImage(gallery: string[], index: number): string | undefined {
+export function getInlineImage(
+  gallery: string[],
+  index: number
+): string | undefined {
   return gallery.at(index);
 }

@@ -1,9 +1,14 @@
+import Divider from '@/components/ui/Divider';
+
 export default function IntroSection() {
   return (
-    <section className="relative my-1 bg-[url('/divider-deep.svg')] bg-repeat-x bg-top bg-[length:auto_24px]">
-      <div className='relative z-10 mx-auto max-w-5xl space-y-4 px-6 py-16'>
+    <section className=''>
+      <div className='h-20 bg-gradient-to-b from-[color:var(--paguro-deep)]/30 to-transparent' />
+      <div className='relative z-10 mx-auto max-w-5xl space-y-4 px-6 py-6'>
         {/* Section title (uses global typography preset) */}
-        <h2 className='t-page-title-intro text-6xl text-center py-6'>Racconti di Viaggio</h2>
+        <h2 className='t-page-title-intro text-6xl text-center py-2'>
+          Racconti di Viaggio
+        </h2>
 
         {/* Intro copy (uses global typography preset) */}
         <p className='t-body'>

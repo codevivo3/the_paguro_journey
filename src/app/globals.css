@@ -7,7 +7,10 @@
 
 :root {
   /* Font families (wired from next/font in layout.tsx) */
-  --font-editorial: var(--font-libre-baskerville, serif); /* Headlines, titles */
+  --font-editorial: var(
+    --font-libre-baskerville,
+    serif
+  ); /* Headlines, titles */
   --font-body: var(--font-merriweather, serif); /* Long-form reading */
   --font-ui: var(--font-plus-jakarta, sans-serif); /* Navigation, UI */
 
@@ -26,7 +29,7 @@
 
   /* Surfaces */
   --paguro-bg: var(--paguro-sand);
-  --paguro-surface: #EDF0E1; /* card / surface background */
+  --paguro-surface: #edf0e1; /* card / surface background */
 
   /* Text */
   --paguro-text: #1d1d1f; /* soft black */
@@ -43,13 +46,14 @@
   /* Buttons */
   --paguro-btn-text: #ffffff; /* Bright white for primary buttons / links */
   --geo-btn: #7fb6c7;
+  --geo-btn-alt: #7fb6c7;
 
   /* Icons */
   --paguro-icon-bg: rgba(91, 194, 217, 0.12);
   --paguro-icon-fg: var(--paguro-ocean);
 
   /* Footer */
-  --paguro-footer: #E6E9D5;
+  --paguro-footer: #e6e9d5;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -85,13 +89,13 @@
   /* Buttons */
   --paguro-btn-text: #ffffff;
   --geo-btn: #515c59;
-  
+
   /* Icons */
   --paguro-icon-bg: rgba(91, 194, 217, 0.22);
-  --paguro-icon-fg: #9BD9E8;
+  --paguro-icon-fg: #9bd9e8;
 
   /* Footer */
-  --paguro-footer: #2A3A35;
+  --paguro-footer: #2a3a35;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -137,7 +141,7 @@ body {
     line-height: 1.1;
     text-align: center;
   }
-  
+
   .t-page-title {
     font-family: var(--font-ui);
     font-weight: 600;
@@ -152,6 +156,14 @@ body {
     font-size: clamp(1rem, 1.1vw, 1.2rem);
     line-height: 1.6;
     text-align: center;
+  }
+
+  .mask-fade {
+    mask-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0) 100%
+    );
   }
 
   /* Section header */
@@ -193,11 +205,11 @@ body {
   }
 
   .clamp-4 {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Long-form content: use ONLY inside an element with class="prose"          */

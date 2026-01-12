@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { posts } from '@/lib/posts';
 import { resolvePostCover, resolvePostGallery } from '@/lib/posts-media';
 
+import type { Metadata } from 'next';
+
 import {
   ArticleHeader,
   CalloutBox,
@@ -18,6 +20,55 @@ type PageProps = {
   }>;
 };
 
+export async function generateMetadata(
+  { params }: PageProps
+): Promise<Metadata> {
+  const { slug } = await params;
+  const post = posts.find((p) => p.slug === slug);
+
+  if (!post) {
+    return {
+      title: 'Articolo non trovato | The Paguro Journey',
+    };
+  }
+
+  const description =
+    post.excerpt ??
+    'Racconti di viaggio, riflessioni lente e guide consapevoli firmate The Paguro Journey.';
+
+  const cover = resolvePostCover(post);
+
+  return {
+    title: `${post.title} | The Paguro Journey`,
+    description,
+    alternates: {
+      canonical: `/blog/${post.slug}`,
+    },
+    openGraph: {
+      title: post.title,
+      description,
+      type: 'article',
+      url: `/blog/${post.slug}`,
+      images: cover
+        ? [
+            {
+              url: cover,
+              width: 1200,
+              height: 630,
+              alt: post.title,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: cover ? 'summary_large_image' : 'summary',
+      title: post.title,
+      description,
+      images: cover ? [cover] : undefined,
+    },
+  };
+}
+
 export function generateStaticParams() {
   return posts.map((post) => ({
     slug: post.slug,
@@ -30,8 +81,11 @@ export default async function BlogPostPage({ params }: PageProps) {
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
-  // Resolve media from a single source of truth (covers + gallery).
-  // `resolvePostGallery` can fall back to destination images when `post.gallery` is missing.
+  // Resolve media from a single source of truth (gallery + covers).
+  // Fallback logic:
+  // 1) Explicit post.gallery
+  // 2) Destination-based gallery
+  // This guarantees visual consistency across blog, destinations and gallery pages.
   const gallery = resolvePostGallery(post, 6);
 
   return (
