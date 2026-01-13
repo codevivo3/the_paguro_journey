@@ -73,7 +73,10 @@ function isShortLike(v: Pick<YouTubeVideo, 'title' | 'description'>): boolean {
   return (
     /#shorts/i.test(v.title) ||
     /#shorts/i.test(v.description) ||
-    /\bshorts\b/i.test(v.title)
+    /\bshorts\b/i.test(v.title) ||
+    /\bshort\b/i.test(v.title) ||
+    /#short/i.test(v.title) ||
+    /#short/i.test(v.description)
   );
 }
 

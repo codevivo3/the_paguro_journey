@@ -95,6 +95,8 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+
+
   return (
     <div className='-mx-6 px-6'>
       <div className='relative bg-[color:var(--paguro-bg)]'>

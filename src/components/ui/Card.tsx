@@ -72,7 +72,7 @@ export function Card({
       ) : null}
 
       {/* Content is above background, below overlay. */}
-      <div className='relative z-10'>{children}</div>
+      <div className='relative z-10 flex h-full flex-col'>{children}</div>
     </article>
   );
 }
@@ -103,7 +103,7 @@ export function CardBody({
   className?: string;
 }) {
   return (
-    <div className={cx('flex min-h-[10.5rem] flex-col p-6', className)}>
+    <div className={cx('flex flex-col p-6 min-h-[10.5rem]', className)}>
       {children}
     </div>
   );
