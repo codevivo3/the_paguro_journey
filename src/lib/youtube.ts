@@ -1,50 +1,33 @@
 /**
  * YouTube Data API helpers (server-side)
- *
- * Purpose:
- * - Centralize YouTube fetching + response normalization
- * - Keep UI components clean: they consume `YouTubeVideo[]`
- *
- * Notes:
- * - This module should remain `.ts` (no JSX here).
- * - Uses Next.js fetch caching via `revalidate`.
  */
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 
 if (!API_KEY) {
-  throw new Error(
-    'Missing env var YOUTUBE_API_KEY. Add it to .env.local (and restart dev server).'
-  );
+  throw new Error('Missing env var YOUTUBE_API_KEY');
 }
 
 if (!CHANNEL_ID) {
-  throw new Error(
-    'Missing env var YOUTUBE_CHANNEL_ID. Add it to .env.local (and restart dev server).'
-  );
+  throw new Error('Missing env var YOUTUBE_CHANNEL_ID');
 }
 
-// From here, TS knows they are strings *if you create narrowed aliases*:
 const YT_API_KEY: string = API_KEY;
 const YT_CHANNEL_ID: string = CHANNEL_ID;
 
-/** Normalized shape consumed by the UI */
+/* -------------------------------------------------------------------------- */
+/* Types                                                                      */
+/* -------------------------------------------------------------------------- */
+
 export type YouTubeVideo = {
   id: string;
   title: string;
   description: string;
-  /** Canonical watch URL */
   href: string;
-  /** Best available thumbnail */
   thumbnail: string;
-  /** ISO date string */
   publishedAt: string;
 };
-
-// -----------------------------
-// Internal API response types
-// -----------------------------
 
 type ChannelsResponse = {
   items?: Array<{
@@ -56,110 +39,129 @@ type ChannelsResponse = {
   }>;
 };
 
-type PlaylistItemsResponse = {
-  items?: Array<{
-    snippet?: {
-      title?: string;
-      description?: string;
-      publishedAt?: string;
-      thumbnails?: {
-        high?: { url?: string };
-        medium?: { url?: string };
-        default?: { url?: string };
-      };
-    };
-    contentDetails?: {
-      videoId?: string;
-    };
-  }>;
+type PlaylistItem = {
+  snippet?: {
+    title?: string;
+    description?: string;
+    publishedAt?: string;
+  };
+  contentDetails?: {
+    videoId?: string;
+  };
 };
 
-/**
- * Small wrapper around fetch + JSON parsing.
- * - Caches results for 30 minutes on the server.
- * - Throws a readable error when the API fails.
- */
+type PlaylistItemsResponse = {
+  items?: PlaylistItem[];
+  nextPageToken?: string;
+};
+
+/* -------------------------------------------------------------------------- */
+/* Utils                                                                      */
+/* -------------------------------------------------------------------------- */
+
 async function yt<T>(url: string): Promise<T> {
-  const res = await fetch(url, { next: { revalidate: 60 * 30 } }); // cache 30 min
+  const res = await fetch(url, { next: { revalidate: 60 * 30 } });
 
   if (!res.ok) {
-    // Try to include the JSON error from Google for easier debugging.
-    let details = '';
-    try {
-      const body = await res.json();
-      details = `\n${JSON.stringify(body, null, 2)}`;
-    } catch {
-      // ignore
-    }
-
-    throw new Error(`YouTube API error: ${res.status} ${res.statusText}${details}`);
+    throw new Error(`YouTube API error: ${res.status}`);
   }
 
   return (await res.json()) as T;
 }
 
-/**
- * Fetches the channel's uploads playlist id.
- * YouTube stores all uploads in a special playlist.
- */
+function isShortLike(v: Pick<YouTubeVideo, 'title' | 'description'>): boolean {
+  return (
+    /#shorts/i.test(v.title) ||
+    /#shorts/i.test(v.description) ||
+    /\bshorts\b/i.test(v.title)
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* API                                                                        */
+/* -------------------------------------------------------------------------- */
+
 export async function getUploadsPlaylistId(): Promise<string> {
-  const url =
+  const url: string =
     `https://www.googleapis.com/youtube/v3/channels` +
     `?part=contentDetails` +
     `&id=${encodeURIComponent(YT_CHANNEL_ID)}` +
     `&key=${encodeURIComponent(YT_API_KEY)}`;
 
-  const data = await yt<ChannelsResponse>(url);
+  const data: ChannelsResponse = await yt(url);
 
   const uploads = data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
-
-  if (!uploads) {
-    throw new Error(
-      'Could not resolve uploads playlist id. Check YOUTUBE_CHANNEL_ID and API permissions.'
-    );
-  }
+  if (!uploads) throw new Error('Uploads playlist not found');
 
   return uploads;
 }
 
-/**
- * Returns the latest `limit` videos from the channel uploads playlist.
- *
- * Tip:
- * - This is public data, so API key is enough (no OAuth needed).
- */
-export async function getLatestVideos(limit: number): Promise<YouTubeVideo[]> {
+type GetLatestVideosOptions = {
+  excludeShorts?: boolean;
+  pageSize?: number;
+  maxPages?: number;
+};
+
+export async function getLatestVideos(
+  limit: number,
+  options: GetLatestVideosOptions = {}
+): Promise<YouTubeVideo[]> {
   const uploadsId = await getUploadsPlaylistId();
 
-  // YouTube API maxResults is 1..50
-  const maxResults = Math.max(1, Math.min(50, limit));
+  const safeLimit = Math.max(1, limit);
+  const excludeShorts = options.excludeShorts ?? false;
+  const pageSize = Math.min(50, options.pageSize ?? safeLimit * 3);
+  const maxPages = options.maxPages ?? 5;
 
-  const url =
-    `https://www.googleapis.com/youtube/v3/playlistItems` +
-    `?part=snippet,contentDetails` +
-    `&playlistId=${encodeURIComponent(uploadsId)}` +
-    `&maxResults=${maxResults}` +
-    `&key=${encodeURIComponent(YT_API_KEY)}`;
+  let pageToken: string | undefined;
+  const collected: YouTubeVideo[] = [];
 
-  const data = await yt<PlaylistItemsResponse>(url);
+  for (let page = 0; page < maxPages; page++) {
+    const url: string =
+      `https://www.googleapis.com/youtube/v3/playlistItems` +
+      `?part=snippet,contentDetails` +
+      `&playlistId=${encodeURIComponent(uploadsId)}` +
+      `&maxResults=${pageSize}` +
+      (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '') +
+      `&key=${encodeURIComponent(YT_API_KEY)}`;
 
-  return (data.items ?? [])
-    .map((item): YouTubeVideo | null => {
-      const videoId = item.contentDetails?.videoId;
-      if (!videoId) return null;
+    const data: PlaylistItemsResponse = await yt(url);
 
-      const snippet = item.snippet;
+    const items = data.items ?? [];
 
-      const thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+    const normalized: YouTubeVideo[] = items
+      .map((item): YouTubeVideo | null => {
+        const videoId = item.contentDetails?.videoId;
+        if (!videoId) return null;
 
-      return {
-        id: videoId,
-        title: snippet?.title ?? 'Untitled',
-        description: snippet?.description ?? '',
-        thumbnail,
-        publishedAt: snippet?.publishedAt ?? '',
-        href: `https://www.youtube.com/watch?v=${videoId}`,
-      };
-    })
-    .filter((v): v is YouTubeVideo => Boolean(v));
+        return {
+          id: videoId,
+          title: item.snippet?.title ?? 'Untitled',
+          description: item.snippet?.description ?? '',
+          publishedAt: item.snippet?.publishedAt ?? '',
+          thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+          href: `https://www.youtube.com/watch?v=${videoId}`,
+        };
+      })
+      .filter((v): v is YouTubeVideo => Boolean(v));
+
+    const filtered = excludeShorts
+      ? normalized.filter((v) => !isShortLike(v))
+      : normalized;
+
+    collected.push(...filtered);
+
+    if (collected.length >= safeLimit) {
+      return collected.slice(0, safeLimit);
+    }
+
+    pageToken = data.nextPageToken;
+    if (!pageToken) break;
+  }
+
+  return collected.slice(0, safeLimit);
+}
+
+export async function getLatestRegularVideos(limit: number) {
+  return getLatestVideos(limit, { excludeShorts: true });
 }

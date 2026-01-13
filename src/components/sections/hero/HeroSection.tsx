@@ -21,7 +21,7 @@ type HeroSlideShowProps = {
   className?: string;
 };
 
-export default function HeroSlideShow({
+export default function HeroSection({
   images,
   intervalMs = 5500,
   transitionMs = 1000,

@@ -265,3 +265,15 @@ body {
   width: 10rem; /* size of the crab */
   animation: crab-walk 35s linear infinite;
 }
+
+
+
+/* Hide scrollbar but keep scrolling */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}

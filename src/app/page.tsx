@@ -8,7 +8,7 @@
 
 import LatestVidsSection from '@/components/sections/LatestVideosSection';
 import IntroSection from '@/components/sections/IntroSection';
-import HeroSlideShow from '@/components/sections/hero/HeroSection';
+import HeroSection from '@/components/sections/hero/HeroSection';
 import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 import CallToAction from '@/components/sections/CTASection';
 
@@ -47,7 +47,7 @@ export default function Home() {
         {/* H1 principale (visivamente nascosto) per semantica SEO e accessibilità */}
         <h1 className='sr-only'>The Paguro Journey</h1>
         {/* Sezione Hero: ingresso visivo e posizionamento del brand */}
-        <HeroSlideShow />
+        <HeroSection />
         {/* Sezione introduttiva: spiega filosofia e visione del progetto */}
         <IntroSection />
         {/* Call to action: accompagna l’utente nel percorso */}
