@@ -10,9 +10,14 @@
   },
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.17.12",
+    "@sanity/image-url": "^1.2.0",
+    "@sanity/vision": "^4.22.0",
     "next": "^16.0.10",
+    "next-sanity": "^11.6.12",
     "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react-dom": "19.2.1",
+    "sanity": "^4.22.0",
+    "styled-components": "^6.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
