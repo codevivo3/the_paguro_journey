@@ -140,12 +140,8 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning className='antialiased'>
         <UIProvider>
-          {/* Global navigation */}
-          <Navbar />
           {/* Route content */}
           {children}
-          {/* Global footer */}
-          <Footer />
         </UIProvider>
       </body>
     </html>

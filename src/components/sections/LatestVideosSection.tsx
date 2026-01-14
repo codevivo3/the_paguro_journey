@@ -16,7 +16,7 @@ export default async function LatestVidsSection() {
               aria-label='YouTube'
             >
               <svg
-                className='block h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 transition-transform duration-300 hover:scale-[1.1'
+                className='block h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 transition-transform duration-300 hover:scale-[1.1]'
                 viewBox='0 0 640 640'
                 preserveAspectRatio='xMidYMid meet'
                 focusable='false'
