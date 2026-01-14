@@ -8,10 +8,29 @@ export default async function LatestVidsSection() {
     <section className='px-6 py-16'>
       <div className='mx-auto max-w-5xl space-y-8'>
         <header className='space-y-3'>
-          <h3 className='t-page-title'>Ultimi Video</h3>
+          <div className='flex items-center justify-center gap-3 sm:gap-4'>
+            <h3 className='t-page-title leading-none'>Ultimi Video</h3>
+            <a
+              href='https://www.youtube.com/@thepagurojourney'
+              className='inline-flex items-center'
+              aria-label='YouTube'
+            >
+              <svg
+                className='block h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 transition-transform duration-300 hover:scale-[1.1]'
+                viewBox='0 0 640 640'
+                preserveAspectRatio='xMidYMid meet'
+                focusable='false'
+                aria-hidden='true'
+              >
+                <path
+                  fill='#ff0233'
+                  d='M581.7 188.1C575.5 164.4 556.9 145.8 533.4 139.5C490.9 128 320.1 128 320.1 128C320.1 128 149.3 128 106.7 139.5C83.2 145.8 64.7 164.4 58.4 188.1C47 231 47 320.4 47 320.4C47 320.4 47 409.8 58.4 452.7C64.7 476.3 83.2 494.2 106.7 500.5C149.3 512 320.1 512 320.1 512C320.1 512 490.9 512 533.5 500.5C557 494.2 575.5 476.3 581.8 452.7C593.2 409.8 593.2 320.4 593.2 320.4C593.2 320.4 593.2 231 581.8 188.1zM264.2 401.6L264.2 239.2L406.9 320.4L264.2 401.6z'
+                />
+              </svg>
+            </a>
+          </div>
           <p className='t-page-subtitle'>
-            Uno sguardo alle nostre avventure più recenti. (Placeholder — sarà
-            alimentato dalla YouTube API.)
+            Uno sguardo alle nostre avventure più recenti.{' '}
           </p>
         </header>
 
