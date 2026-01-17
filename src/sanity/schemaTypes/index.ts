@@ -1,6 +1,8 @@
 // src/sanity/schemaTypes/index.ts
 import { type SchemaTypeDefinition } from 'sanity';
 
+import worldRegion from './taxonomy/worldRegion';
+
 import mediaItem from './documents/mediaItem';
 import siteSettings from './documents/siteSettings';
 import post from './documents/post';
@@ -24,6 +26,7 @@ export const schema = {
     page,
     author,
     destination,
+    worldRegion,
     country,
     region,
     travelStyle,
