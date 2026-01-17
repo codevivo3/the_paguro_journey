@@ -7,12 +7,17 @@ export default defineType({
   type: 'document',
 
   /**
-   * This is seeded from the World Bank dataset.
-   * We keep it “locked” so editors don’t create random regions.
+   * Seeded data.
+   * Goal: editors should NOT create/delete/mess with these.
+   * Updates happen via scripts.
    */
 
-  // @ts-expect-error Sanity Studio supports __experimental_actions, but typings don't expose it.
-  __experimental_actions: ['update', 'publish'], // disables create/delete in Studio
+  // Locks the whole document editing UI in Studio
+  readOnly: true,
+
+  // Disable create/delete in Desk (typings don't expose it)
+  // @ts-expect-error Sanity supports this at runtime.
+  __experimental_actions: ['update', 'publish'],
 
   fields: [
     defineField({
@@ -33,29 +38,45 @@ export default defineType({
     }),
 
     defineField({
-      name: 'wbCode',
-      title: 'World Bank Code',
-      type: 'string',
-      readOnly: true,
-      description: 'Optional internal code if your dataset provides one',
-    }),
-
-    defineField({
       name: 'order',
       title: 'Order',
       type: 'number',
       readOnly: true,
-      description: 'Optional ordering for UI pills (lower comes first)',
-      validation: (r) => r.min(0).integer(),
+      description: 'Controls pill order (lower comes first).',
+      validation: (r) => r.integer().min(0),
+    }),
+
+    // ✅ This is the “final polish” field
+    defineField({
+      name: 'mapImage',
+      title: 'Map image (highlight)',
+      type: 'image',
+      readOnly: true,
+      options: { hotspot: false },
+      description:
+        'Seeded image used in UI (e.g. the highlighted world map for this region).',
+    }),
+
+    // Optional: useful for UI labels, not required
+    defineField({
+      name: 'notes',
+      title: 'Notes',
+      type: 'string',
+      readOnly: true,
+      description: 'Optional internal notes (seeded).',
     }),
   ],
 
   preview: {
-    select: { title: 'title' },
-    prepare({ title }) {
+    select: {
+      title: 'title',
+      media: 'mapImage',
+    },
+    prepare({ title, media }) {
       return {
         title: title || 'World Region',
         subtitle: 'World Bank',
+        media,
       };
     },
   },

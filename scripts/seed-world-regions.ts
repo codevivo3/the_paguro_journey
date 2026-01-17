@@ -84,6 +84,97 @@ function worldRegionIdFromTitle(title: string) {
   return `worldRegion-${slugify(title)}`;
 }
 
+// -----------------------------------------------------------------------------
+// Optional: attach a canonical map image to each WorldRegion (seeded assets)
+// Put the PNGs in: scripts/data/world-region-maps/
+// Filenames must match the MAPS mapping below.
+// -----------------------------------------------------------------------------
+
+const MAPS: Record<string, string> = {
+  'latin-america-and-caribbean': 'latin-america-and-caribbean.png',
+  'middle-east-north-africa-afghanistan-and-pakistan':
+    'middle-east-north-africa-afghanistan-and-pakistan.png',
+  'north-america': 'north-america.png',
+  'south-asia': 'south-asia.png',
+  'sub-saharan-africa': 'sub-saharan-africa.png',
+  'east-asia-and-pacific': 'east-asia-and-pacific.png',
+  'europe-and-central-asia': 'europe-and-central-asia.png',
+};
+
+type WorldRegionDoc = {
+  _id: string;
+  _type: 'worldRegion';
+  title?: string;
+  slug?: { current?: string };
+  mapImage?: unknown;
+};
+
+function mapsDirPath() {
+  return path.join(process.cwd(), 'scripts', 'data', 'world-region-maps');
+}
+
+async function attachMapImagesToWorldRegions() {
+  const baseDir = mapsDirPath();
+
+  console.log('Attaching map images to worldRegion docs (if missing)...');
+  console.log(`Maps directory: ${baseDir}`);
+
+  let updated = 0;
+  let skippedHasImage = 0;
+  let skippedMissingFile = 0;
+  let skippedMissingDoc = 0;
+
+  for (const [slug, filename] of Object.entries(MAPS)) {
+    const filePath = path.join(baseDir, filename);
+
+    if (!fs.existsSync(filePath)) {
+      skippedMissingFile += 1;
+      console.warn(`⚠️  Map file not found: ${filePath}`);
+      continue;
+    }
+
+    const worldRegionId = `worldRegion-${slug}`;
+
+    const doc = (await client.getDocument(worldRegionId)) as WorldRegionDoc | null;
+    if (!doc) {
+      skippedMissingDoc += 1;
+      console.warn(`⚠️  worldRegion doc not found: ${worldRegionId}`);
+      continue;
+    }
+
+    // If already set, do nothing.
+    if (doc.mapImage) {
+      skippedHasImage += 1;
+      continue;
+    }
+
+    const stream = fs.createReadStream(filePath);
+
+    // Upload asset to Sanity
+    const asset = await client.assets.upload('image', stream, {
+      filename,
+      contentType: 'image/png',
+    });
+
+    // Patch doc with the uploaded asset reference
+    await client
+      .patch(worldRegionId)
+      .set({
+        mapImage: {
+          _type: 'image',
+          asset: { _type: 'reference', _ref: asset._id },
+        },
+      })
+      .commit({ autoGenerateArrayKeys: true });
+
+    updated += 1;
+  }
+
+  console.log(
+    `✅ Map attach done. Updated: ${updated}. Skipped (already had image): ${skippedHasImage}. Skipped (missing file): ${skippedMissingFile}. Skipped (missing doc): ${skippedMissingDoc}.`,
+  );
+}
+
 async function seedWorldRegions(rows: Row[]) {
   const unique = new Map<string, string>(); // title -> _id
 
@@ -208,6 +299,14 @@ async function main() {
   }
 
   await seedWorldRegions(rows);
+
+  const attachMaps = process.argv.includes('--maps');
+
+  if (attachMaps) {
+    await attachMapImagesToWorldRegions();
+  } else {
+    console.log('Skipped map images. Re-run with --maps to attach worldRegion map images.');
+  }
 
   if (attach) {
     await attachWorldRegionsToCountries(rows);

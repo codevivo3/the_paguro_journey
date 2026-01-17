@@ -1,7 +1,6 @@
 // src/sanity/schemaTypes/index.ts
 import { type SchemaTypeDefinition } from 'sanity';
 
-import worldRegion from './taxonomy/worldRegion';
 
 import mediaItem from './documents/mediaItem';
 import siteSettings from './documents/siteSettings';
@@ -9,6 +8,7 @@ import post from './documents/post';
 import page from './documents/page';
 import author from './documents/author';
 import destination from './documents/destination';
+import worldRegion from './taxonomy/worldRegion';
 import country from './taxonomy/country';
 import region from './taxonomy/region';
 import travelStyle from './taxonomy/travelStyle';
