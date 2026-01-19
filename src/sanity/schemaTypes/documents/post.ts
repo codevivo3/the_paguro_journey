@@ -1,6 +1,28 @@
 // src/sanity/schemaTypes/documents/post.ts
 import { defineType, defineField } from 'sanity';
 
+/**
+ * We keep helper typing extremely lightweight because Sanity `document`
+ * is typed as `unknown` inside callbacks (filter/hidden/readOnly).
+ */
+type UnknownRecord = Record<string, unknown>;
+
+/** Extracts `_ref` from a Sanity reference-like value. */
+function getRefId(value: unknown): string | undefined {
+  const v = value as UnknownRecord | null;
+  return (v?._ref as string | undefined) ?? undefined;
+}
+
+/** Extracts a list of `_ref` from an array of reference-like values. */
+function getRefIds(value: unknown): string[] {
+  const arr = value as unknown[] | null;
+  if (!Array.isArray(arr)) return [];
+
+  return arr
+    .map((item) => getRefId(item))
+    .filter((id): id is string => Boolean(id));
+}
+
 export default defineType({
   name: 'post',
   title: 'Post',
@@ -8,38 +30,43 @@ export default defineType({
 
   fields: [
     /* ---------------------------------------------------------------------- */
-    /* Core                                                                    */
+    /* Core                                                                   */
     /* ---------------------------------------------------------------------- */
 
     defineField({
       name: 'title',
       title: 'Title',
       type: 'string',
+      description:
+        'Clear, human title. Avoid clickbait. You can refine this later.',
       validation: (r) => r.required(),
     }),
 
     defineField({
       name: 'slug',
-      title: 'Slug',
+      title: 'Slug (URL)',
       type: 'slug',
       options: {
         source: 'title',
         maxLength: 96,
       },
+      description:
+        'Auto-generated from title. Keep it short and readable (used in the page URL).',
       validation: (r) => r.required(),
     }),
 
     defineField({
       name: 'excerpt',
-      title: 'Excerpt',
+      title: 'Excerpt (short summary)',
       type: 'text',
       rows: 3,
-      description: 'Short summary used in listings and previews',
+      description:
+        'One or two sentences. Used in previews, cards, and social sharing.',
       validation: (r) => r.max(200),
     }),
 
     /* ---------------------------------------------------------------------- */
-    /* Content                                                                 */
+    /* Content                                                                */
     /* ---------------------------------------------------------------------- */
 
     defineField({
@@ -55,17 +82,21 @@ export default defineType({
           to: [{ type: 'mediaItem' }],
         },
       ],
+      description:
+        'Main article body. You can add text blocks and reusable media items.',
       validation: (r) => r.required(),
     }),
 
     /* ---------------------------------------------------------------------- */
-    /* Meta                                                                    */
+    /* Meta                                                                   */
     /* ---------------------------------------------------------------------- */
 
     defineField({
       name: 'publishedAt',
       title: 'Published at',
       type: 'datetime',
+      description:
+        'Optional. If empty, the website can fall back to “last updated”.',
     }),
 
     defineField({
@@ -80,11 +111,13 @@ export default defineType({
         ],
         layout: 'radio',
       },
+      description:
+        'Draft = not live. Published = visible on the website (depending on your frontend logic).',
       validation: (r) => r.required(),
     }),
 
     /* ---------------------------------------------------------------------- */
-    /* Relations (optional, future-proof)                                      */
+    /* Relations (used for filtering, discovery, and grouping)                */
     /* ---------------------------------------------------------------------- */
 
     defineField({
@@ -92,13 +125,88 @@ export default defineType({
       title: 'Countries',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'country' }] }],
+      description:
+        'Select one or more countries this post relates to. (Choose first — it unlocks Regions.)',
+      validation: (r) => r.unique(),
+    }),
+
+    defineField({
+      name: 'regions',
+      title: 'Regions (sub-areas)',
+      type: 'array',
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'region' }],
+
+          /**
+           * `weak: true` allows publishing the Post even if a referenced Region
+           * is still a draft/unpublished doc. Useful for “create now, refine later”.
+           */
+          weak: true,
+
+          options: {
+            /**
+             * Filter regions to only those that belong to the selected countries.
+             * Prevents messy cross-country regions appearing in the picker.
+             */
+            filter: ({ document }) => {
+              const countryRefs = getRefIds(
+                (document as UnknownRecord | null)?.countries,
+              );
+
+              // When no countries are selected, show nothing (avoids confusion).
+              if (!countryRefs.length) return { filter: 'false' };
+
+              return {
+                filter: 'country._ref in $countryRefs',
+                params: { countryRefs },
+              };
+            },
+
+            /**
+             * Keep this false so editors can create regions on the fly
+             * (e.g. "Northern Italy") and reuse them later.
+             */
+            disableNew: false,
+          },
+        },
+      ],
+      description:
+        'Select one or more regions inside the chosen countries (e.g. Northern Italy, Tuscany, Cyclades). ' +
+        'If a region does not exist yet, you can create it directly from here.\n' +
+        'Naming convention: Title Case, singular, clear geographic names (avoid abbreviations or repeating the country name).',
+      hidden: ({ document }) =>
+        getRefIds((document as UnknownRecord | null)?.countries).length === 0,
+      validation: (r) => r.unique(),
     }),
 
     defineField({
       name: 'travelStyles',
       title: 'Travel Styles',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'travelStyle' }] }],
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'travelStyle' }],
+
+          /**
+           * Same logic as Regions:
+           * allow draft/unpublished styles while still publishing the post.
+           */
+          weak: true,
+
+          options: {
+            // Let editors create styles from inside the Post editor
+            disableNew: false,
+          },
+        },
+      ],
+      description:
+        'Select one or more travel styles that describe this post (e.g. Slow Travel, Digital Nomad, Sailing). ' +
+        'If a travel style does not exist yet, you can create it directly from here.\n' +
+        'Naming convention: Title Case, singular, descriptive terms (avoid abbreviations or overly generic labels).',
+      validation: (r) => r.unique(),
     }),
   ],
 
@@ -113,7 +221,9 @@ export default defineType({
         title,
         subtitle:
           status === 'published'
-            ? `Published · ${publishedAt ? new Date(publishedAt).toLocaleDateString() : ''}`
+            ? `Published · ${
+                publishedAt ? new Date(publishedAt).toLocaleDateString() : ''
+              }`
             : 'Draft',
       };
     },

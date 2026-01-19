@@ -95,8 +95,6 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
-
   return (
     <div className='-mx-6 px-6'>
       <div className='relative bg-[color:var(--paguro-bg)]'>
@@ -104,7 +102,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         <button
           type='button'
           aria-label='Scorri a sinistra'
-          className='absolute left-2 top-1/2 z-50 -translate-y-1/2 rounded-full border-black/30 bg-[color:var(--paguro-ocean)]/30 px-2 py-2 text-white backdrop-blur transition hover:bg-[color:var(--paguro-ocean)]/50 shadow-xl'
+          className='absolute left-2 top-1/2 z-50 -translate-y-1/2 rounded-full bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/10 via-[color:var(--paguro-ocean)]/40 to-[color:var(--paguro-ocean)]/70 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/20 hover:via-[color:var(--paguro-ocean)]/50 hover:to-[color:var(--paguro-ocean)]/80 hover:to-90% transition-transform duration-300 hover:scale-[1.07] active:scale-[0.96]'
           onPointerDown={(e) => {
             e.preventDefault();
             e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -135,7 +133,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         <button
           type='button'
           aria-label='Scorri a destra'
-          className='absolute right-2 top-1/2 z-50 -translate-y-1/2 rounded-full  border-black/30 bg-[color:var(--paguro-ocean)]/30 px-2 py-2 text-white backdrop-blur transition hover:bg-[color:var(--paguro-ocean)]/50 shadow-xl'
+          className='absolute right-2 top-1/2 z-50 -translate-y-1/2 rounded-full  bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/10 via-[color:var(--paguro-ocean)]/40 to-[color:var(--paguro-ocean)]/70 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/20 hover:via-[color:var(--paguro-ocean)]/50 hover:to-[color:var(--paguro-ocean)]/80 hover:to-90% transition-transform duration-300 hover:scale-[1.07] active:scale-[0.96]'
           onPointerDown={(e) => {
             e.preventDefault();
             e.currentTarget.setPointerCapture?.(e.pointerId);

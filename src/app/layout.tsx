@@ -9,9 +9,8 @@ import {
   Plus_Jakarta_Sans,
 } from 'next/font/google';
 
-import Navbar from '@/components/sections/NavbarSection';
 import { UIProvider } from '@/context/ui-context';
-import Footer from '@/components/sections/FooterSection';
+
 
 const merriweather = Merriweather({
   subsets: ['latin'],

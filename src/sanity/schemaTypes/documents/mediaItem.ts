@@ -2,11 +2,32 @@
 import { defineField, defineType } from 'sanity';
 
 type MediaType = 'image' | 'video';
+type UnknownRecord = Record<string, unknown>;
+
+/**
+ * Extract `_ref` from a Sanity reference-like value.
+ * We keep helpers tiny + safe because Studio callbacks are typed as `unknown`.
+ */
+function getRefId(value: unknown): string | undefined {
+  const v = value as UnknownRecord | null;
+  return (v?._ref as string | undefined) ?? undefined;
+}
+
+/** Extract `_ref`s from an array of references. */
+function getRefIds(value: unknown): string[] {
+  const arr = value as unknown[] | null;
+  if (!Array.isArray(arr)) return [];
+
+  return arr
+    .map((item) => getRefId(item))
+    .filter((id): id is string => Boolean(id));
+}
 
 export default defineType({
   name: 'mediaItem',
   title: 'Media Item',
   type: 'document',
+
   fields: [
     // -----------------------------------------------------------------------
     // Core switch: image vs video
@@ -15,6 +36,8 @@ export default defineType({
       name: 'type',
       title: 'Type',
       type: 'string',
+      description:
+        'Choose what this item is. This will show only the relevant fields below.',
       options: {
         list: [
           { title: 'Image', value: 'image' },
@@ -25,11 +48,16 @@ export default defineType({
       validation: (r) => r.required(),
     }),
 
-    // Optional internal title (helps editors search)
+    /**
+     * Optional internal title:
+     * Useful for you/editors to search the library quickly (not necessarily shown on site).
+     */
     defineField({
       name: 'title',
       title: 'Title (internal)',
       type: 'string',
+      description:
+        'Optional. Internal label to help search (e.g. “Bangkok street food night market”).',
     }),
 
     // -----------------------------------------------------------------------
@@ -41,6 +69,8 @@ export default defineType({
       type: 'image',
       options: { hotspot: true },
       hidden: ({ document }) => (document?.type as MediaType) !== 'image',
+      description:
+        'Upload the image file. Use high quality. Prefer original photos when possible.',
       validation: (r) =>
         r.custom((val, ctx) => {
           const docType = (ctx.document?.type as MediaType) ?? 'image';
@@ -53,7 +83,8 @@ export default defineType({
       name: 'alt',
       title: 'Alt text',
       type: 'string',
-      description: 'Required for images (accessibility + SEO).',
+      description:
+        'Required for images (accessibility + SEO). Describe what’s in the photo, not “image of…”.',
       hidden: ({ document }) => (document?.type as MediaType) !== 'image',
       validation: (r) =>
         r.custom((val, ctx) => {
@@ -67,6 +98,8 @@ export default defineType({
       name: 'orientation',
       title: 'Orientation',
       type: 'string',
+      description:
+        'Helps layout choices on the website (cards, hero, galleries). Pick the closest match.',
       options: {
         list: [
           { title: 'Landscape', value: 'landscape' },
@@ -85,11 +118,12 @@ export default defineType({
         }),
     }),
 
-    // Optional copy
     defineField({
       name: 'caption',
       title: 'Caption (optional)',
       type: 'string',
+      description:
+        'Optional. Short caption shown near the media (if used). Keep it short (1 line).',
     }),
 
     // -----------------------------------------------------------------------
@@ -99,7 +133,8 @@ export default defineType({
       name: 'videoUrl',
       title: 'Video URL',
       type: 'url',
-      description: 'YouTube / Vimeo / custom URL',
+      description:
+        'Paste a full URL (YouTube/Vimeo/etc). Example: https://www.youtube.com/watch?v=...',
       hidden: ({ document }) => (document?.type as MediaType) !== 'video',
       validation: (r) =>
         r.uri({ scheme: ['http', 'https'] }).custom((val, ctx) => {
@@ -113,25 +148,81 @@ export default defineType({
     // Tags (references)
     // NOTE: These require schemas: country, region, travelStyle
     // -----------------------------------------------------------------------
+
     defineField({
       name: 'countries',
       title: 'Countries',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'country' }] }],
+      of: [{ type: 'reference', to: [{ type: 'country' }], weak: true }],
+      description:
+        'Tag the country/countries this media belongs to. ' +
+        'Pick at least one if you want Regions to be selectable below.',
+      validation: (r) => r.unique(),
     }),
 
+    /**
+     * Regions are “sub-areas” inside the selected countries.
+     * Filter ensures you don’t accidentally tag “Tuscany” on a Thailand photo.
+     */
     defineField({
       name: 'regions',
-      title: 'Regions',
+      title: 'Regions (sub-areas)',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'region' }] }],
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'region' }],
+          weak: true,
+          options: {
+            filter: ({ document }) => {
+              const countryRefs = getRefIds(
+                (document as UnknownRecord | null)?.countries,
+              );
+
+              // No countries selected → show nothing.
+              if (!countryRefs.length) return { filter: 'false' };
+
+              return {
+                filter: 'country._ref in $countryRefs',
+                params: { countryRefs },
+              };
+            },
+            disableNew: false, // allow creating a missing region directly from here
+          },
+        },
+      ],
+      description:
+        'Select one or more sub-areas inside the selected countries (e.g. Northern Italy, Tuscany, Cyclades). ' +
+        'If a region does not exist yet, you can create it directly from here.\n' +
+        'Naming convention: Title Case, singular, clear geographic names (avoid abbreviations or repeating the country name).',
+      hidden: ({ document }) =>
+        getRefIds((document as UnknownRecord | null)?.countries).length === 0,
+      validation: (r) => r.unique(),
     }),
 
+    /**
+     * Travel styles are editorial tags (not geography).
+     * Editors can create new ones and reuse later.
+     */
     defineField({
       name: 'travelStyles',
       title: 'Travel Styles',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'travelStyle' }] }],
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'travelStyle' }],
+          weak: true,
+          options: {
+            disableNew: false, // allow creating from the picker
+          },
+        },
+      ],
+      description:
+        'Select travel styles that match this media (e.g. Slow Travel, Digital Nomad, Sailing). ' +
+        'If a travel style does not exist yet, you can create it directly from here.\n' +
+        'Naming convention: Title Case, singular, descriptive terms (avoid abbreviations or overly generic labels).',
+      validation: (r) => r.unique(),
     }),
 
     // -----------------------------------------------------------------------
@@ -141,17 +232,21 @@ export default defineType({
       name: 'credit',
       title: 'Credit / Photographer',
       type: 'string',
+      description:
+        'Optional. Who shot this? (Name/brand). Leave empty for your own photos if not needed.',
     }),
 
     defineField({
       name: 'source',
       title: 'Source link',
       type: 'url',
+      description:
+        'Optional. Original source URL (only if relevant). Must be http/https.',
       validation: (r) => r.uri({ scheme: ['http', 'https'] }),
     }),
 
     // -----------------------------------------------------------------------
-    // Optional "hero" flags (useful later; harmless now)
+    // Optional "hero" flags (curation helpers)
     // -----------------------------------------------------------------------
     defineField({
       name: 'heroEnabled',
@@ -159,7 +254,7 @@ export default defineType({
       type: 'boolean',
       initialValue: false,
       description:
-        'Optional: mark this media item as eligible for hero usage (if you ever auto-select hero slides).',
+        'Optional. Mark this as eligible for hero usage (homepage/section headers).',
     }),
 
     defineField({
@@ -167,8 +262,9 @@ export default defineType({
       title: 'Hero Rank',
       type: 'number',
       description:
-        'Optional: ordering value for hero selection. Lower = higher priority.',
+        'Optional. Controls curated hero ordering. Lower number = higher priority.',
       hidden: ({ document }) => !document?.heroEnabled,
+      validation: (r) => r.integer().min(0),
     }),
   ],
 

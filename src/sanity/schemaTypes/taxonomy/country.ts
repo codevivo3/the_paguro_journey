@@ -5,19 +5,23 @@ import { defineType, defineField } from 'sanity';
  * Utility: Convert an ISO-2 country code (e.g. "IT", "TH")
  * into its corresponding flag emoji (🇮🇹, 🇹🇭).
  *
- * Used ONLY for Studio previews and visual clarity.
- * No business logic should rely on this.
+ * Usage notes:
+ * - Used ONLY for Studio previews and visual clarity.
+ * - Never rely on this for business logic or data processing.
+ * - Safe fallback (🏳️) is returned for invalid or missing codes.
  */
 function iso2ToFlagEmoji(iso2?: string) {
   if (!iso2) return '🏳️';
+
   const code = iso2.trim().toUpperCase();
   if (code.length !== 2) return '🏳️';
 
-  const A = 0x1f1e6; // Unicode offset for Regional Indicator Symbol "A"
+  // Unicode offset for Regional Indicator Symbol "A"
+  const A = 0x1f1e6;
   const first = code.charCodeAt(0) - 65 + A;
   const second = code.charCodeAt(1) - 65 + A;
 
-  // Guard against invalid characters
+  // Guard against invalid characters (non A–Z)
   if (
     code.charCodeAt(0) < 65 ||
     code.charCodeAt(0) > 90 ||
@@ -45,7 +49,8 @@ export default defineType({
       title: 'Country name',
       type: 'string',
       description:
-        'Human-readable country name used across the site (e.g. Italy, Thailand).',
+        'Human-readable country name used across the site (e.g. Italy, Thailand). ' +
+        'This is the primary editorial label shown to readers.',
       validation: (r) => r.required(),
     }),
 
@@ -54,7 +59,9 @@ export default defineType({
       title: 'ISO-2 Code',
       type: 'string',
       description:
-        'Official two-letter ISO-3166-1 alpha-2 code (e.g. IT, TH, JP). Used for flags, seeding, and stable references.',
+        'Official two-letter ISO-3166-1 alpha-2 code (e.g. IT, TH, JP). ' +
+        'Used for flags, deterministic IDs, seeding scripts, and stable references. ' +
+        'Must always be correct.',
       validation: (r) =>
         r
           .required()
@@ -74,7 +81,8 @@ export default defineType({
         maxLength: 96,
       },
       description:
-        'URL-safe identifier derived from the ISO-2 code. Keeps URLs stable and predictable.',
+        'URL-safe identifier derived from the ISO-2 code. ' +
+        'This keeps country URLs stable and predictable over time.',
       validation: (r) => r.required(),
     }),
 
@@ -85,7 +93,8 @@ export default defineType({
       to: [{ type: 'worldRegion' }],
       readOnly: true,
       description:
-        'Automatically attached via seeding script based on World Bank data. Used for high-level geographic filters and navigation.',
+        'Automatically attached via seeding script using World Bank data. ' +
+        'Not editable. Used for high-level geographic filters, navigation, and grouping.',
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -98,7 +107,8 @@ export default defineType({
       type: 'text',
       rows: 3,
       description:
-        'Optional editorial intro shown on destination pages, hero sections, or SEO snippets.',
+        'Optional editorial intro used in destination pages, hero sections, or SEO snippets. ' +
+        'Keep it concise and reader-friendly.',
     }),
   ],
 
@@ -110,6 +120,7 @@ export default defineType({
     },
     prepare({ title, iso, worldRegion }) {
       const flag = iso2ToFlagEmoji(iso);
+
       const parts = [
         iso ? `ISO: ${iso}` : null,
         worldRegion ? `WB: ${worldRegion}` : null,

@@ -1,9 +1,14 @@
 // src/sanity/schemaTypes/taxonomy/region.ts
 
 /**
- * Schema defining a Region as a sub-national area tied to a specific country.
- * This represents an editorial taxonomy used to organize content geographically
- * within a country, not to be confused with global or continental regions.
+ * Region taxonomy (sub-areas inside a country).
+ *
+ * Think: "Northern Italy", "Tuscany", "Cyclades", "Bangkok".
+ * This is NOT a global region system (that's handled by worldRegion).
+ *
+ * Editorial rule:
+ * - Regions are created by editors as needed from Post/Destination pickers.
+ * - Each Region must belong to exactly one Country.
  */
 
 import { defineType, defineField } from 'sanity';
@@ -11,8 +16,9 @@ import { defineType, defineField } from 'sanity';
 type UnknownRecord = Record<string, unknown>;
 
 /**
- * Defensive helper functions for Sanity Studio typing and safe access.
- * These ensure we safely extract nested properties without runtime errors.
+ * Defensive helpers:
+ * Sanity passes `document` as `unknown` in callbacks, so we safely read nested fields.
+ * These helpers prevent runtime crashes and keep TypeScript happy.
  */
 function getSlugCurrent(document: unknown): string | undefined {
   const doc = document as UnknownRecord | null;
@@ -33,12 +39,13 @@ function getCountryRef(document: unknown): string | undefined {
 
 /**
  * Convert ISO-2 country code (e.g. "IT") into a flag emoji (🇮🇹).
- * This is used only for Studio preview display purposes.
+ * Used ONLY for Studio previews (visual clarity), never for logic.
  */
 function iso2ToFlagEmoji(iso2?: string): string {
   if (!iso2) return '';
   const code = iso2.trim().toUpperCase();
   if (code.length !== 2) return '';
+
   const A = 0x41;
   const FLAG_OFFSET = 0x1f1e6;
 
@@ -50,7 +57,9 @@ function iso2ToFlagEmoji(iso2?: string): string {
 }
 
 /**
- * Used to progressively reveal fields in the editor once a country is selected.
+ * Editor UX:
+ * We hide some fields until the parent Country is chosen.
+ * This prevents creating "floating" regions with no country.
  */
 function hasCountry(document: unknown): boolean {
   return Boolean(getCountryRef(document));
@@ -73,6 +82,9 @@ export default defineType({
       name: 'title',
       title: 'Region / Area name',
       type: 'string',
+      description:
+        'Name of the sub-area (e.g. Northern Italy, Tuscany, Cyclades, Bangkok). ' +
+        'Naming convention: use Title Case, singular, and clear geographic names (avoid abbreviations).',
       validation: (r) => r.required(),
     }),
 
@@ -84,14 +96,16 @@ export default defineType({
         source: 'title',
         maxLength: 96,
       },
-      // Lock slug after first creation to ensure URL stability and avoid breaking links
+      // Keep URLs stable once created (avoid breaking references/links)
       readOnly: ({ document }) => Boolean(getSlugCurrent(document)),
       hidden: ({ document }) => !hasCountry(document),
+      description:
+        'Auto-generated from the Region name. Locked after first save to keep URLs stable.',
       validation: (r) => r.required(),
     }),
 
     /* ---------------------------------------------------------------------- */
-    /* Editorial disambiguation and classification (optional but helpful)    */
+    /* Classification (optional but useful)                                   */
     /* ---------------------------------------------------------------------- */
 
     defineField({
@@ -111,10 +125,13 @@ export default defineType({
       initialValue: 'region',
       readOnly: ({ document }) => Boolean(getKind(document)),
       hidden: ({ document }) => !hasCountry(document),
+      description:
+        'Helps disambiguate what this area represents (region vs island vs city). ' +
+        'Leave as "Region" unless you have a good reason to change it.',
     }),
 
     /* ---------------------------------------------------------------------- */
-    /* Parent relationship                                                    */
+    /* Parent relationship (required)                                         */
     /* ---------------------------------------------------------------------- */
 
     defineField({
@@ -122,15 +139,16 @@ export default defineType({
       title: 'Country (parent)',
       type: 'reference',
       to: [{ type: 'country' }],
-      // Lock country once set
+      // Prevent accidental "moving" of a region to another country
       readOnly: ({ document }) => Boolean(getCountryRef(document)),
       validation: (r) => r.required(),
       description:
-        'Parent country this region belongs to (e.g. Northern Italy → Italy). Selecting this unlocks the rest of the fields.',
+        'Parent country this region belongs to (e.g. Northern Italy → Italy). ' +
+        'Selecting a country unlocks the rest of the fields.',
     }),
 
     /* ---------------------------------------------------------------------- */
-    /* Optional metadata and ordering for editorial UX                        */
+    /* Optional metadata                                                      */
     /* ---------------------------------------------------------------------- */
 
     defineField({
@@ -139,6 +157,8 @@ export default defineType({
       type: 'text',
       rows: 3,
       hidden: ({ document }) => !hasCountry(document),
+      description:
+        'Optional short intro for this area (1–3 lines). Useful for listings or future region pages.',
     }),
 
     defineField({
@@ -147,7 +167,8 @@ export default defineType({
       type: 'number',
       hidden: ({ document }) => !hasCountry(document),
       validation: (r) => r.min(0).integer(),
-      description: 'Manual ordering index used in UI lists (lower values appear first).',
+      description:
+        'Optional manual ordering for curated lists. Lower values appear first.',
     }),
   ],
 
@@ -160,9 +181,10 @@ export default defineType({
     },
     prepare({ title, country, iso, kind }) {
       const flag = iso2ToFlagEmoji(iso);
+
       const parts = [
         country ? `${flag ? `${flag} ` : ''}${country}` : undefined,
-        kind ? `Kind: ${kind}` : undefined,
+        kind ? `Type: ${kind}` : undefined,
       ].filter(Boolean);
 
       return {

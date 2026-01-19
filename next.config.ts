@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: false, // good for Sanity dev
   images: {
     remotePatterns: [
       {
@@ -17,6 +17,6 @@ const nextConfig: NextConfig = {
     ],
   },
   reactCompiler: true,
-};
+}
 
-export default nextConfig;
+export default nextConfig
