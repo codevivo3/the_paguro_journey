@@ -1,21 +1,27 @@
 // src/sanity/schemaTypes/taxonomy/worldRegion.ts
 import { defineType, defineField } from 'sanity';
 
+/**
+ * World-level regions based on the World Bank classification.
+ *
+ * These documents are fully seeded via scripts and act as a
+ * stable, read-only taxonomy used for:
+ * - primary geographic filtering (UI pills)
+ * - grouping countries at a macro level
+ *
+ * Editors should never create, delete, or manually edit these.
+ * Any change must happen through controlled seed scripts.
+ */
+
 export default defineType({
   name: 'worldRegion',
   title: 'World Region (World Bank)',
   type: 'document',
 
-  /**
-   * Seeded data.
-   * Goal: editors should NOT create/delete/mess with these.
-   * Updates happen via scripts.
-   */
-
-  // Locks the whole document editing UI in Studio
+  // 🔒 Lock the entire document in Studio (read-only, script-managed)
   readOnly: true,
 
-  // Disable create/delete in Desk (typings don't expose it)
+  // Disable create/delete actions in Desk (runtime-supported, not typed)
   // @ts-expect-error Sanity supports this at runtime.
   __experimental_actions: ['update', 'publish'],
 
@@ -42,11 +48,11 @@ export default defineType({
       title: 'Order',
       type: 'number',
       readOnly: true,
-      description: 'Controls pill order (lower comes first).',
+      description: 'Controls visual ordering for region filters and navigation (lower comes first).',
       validation: (r) => r.integer().min(0),
     }),
 
-    // ✅ This is the “final polish” field
+    // Visual asset used across the site for this world region
     defineField({
       name: 'mapImage',
       title: 'Map image (highlight)',
@@ -54,16 +60,16 @@ export default defineType({
       readOnly: true,
       options: { hotspot: false },
       description:
-        'Seeded image used in UI (e.g. the highlighted world map for this region).',
+        'Seeded image representing this world region (used for hero maps, cards, and filters).',
     }),
 
-    // Optional: useful for UI labels, not required
+    // Optional internal metadata (non-public)
     defineField({
       name: 'notes',
       title: 'Notes',
       type: 'string',
       readOnly: true,
-      description: 'Optional internal notes (seeded).',
+      description: 'Internal notes or metadata added during seeding. Not intended for frontend use.',
     }),
   ],
 
@@ -75,7 +81,7 @@ export default defineType({
     prepare({ title, media }) {
       return {
         title: title || 'World Region',
-        subtitle: 'World Bank',
+        subtitle: 'World Bank classification',
         media,
       };
     },

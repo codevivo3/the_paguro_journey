@@ -1,8 +1,19 @@
 // src/sanity/schemaTypes/taxonomy/region.ts
+
+/**
+ * Schema defining a Region as a sub-national area tied to a specific country.
+ * This represents an editorial taxonomy used to organize content geographically
+ * within a country, not to be confused with global or continental regions.
+ */
+
 import { defineType, defineField } from 'sanity';
 
 type UnknownRecord = Record<string, unknown>;
 
+/**
+ * Defensive helper functions for Sanity Studio typing and safe access.
+ * These ensure we safely extract nested properties without runtime errors.
+ */
 function getSlugCurrent(document: unknown): string | undefined {
   const doc = document as UnknownRecord | null;
   const slug = (doc?.['slug'] as UnknownRecord | undefined) ?? undefined;
@@ -20,7 +31,10 @@ function getCountryRef(document: unknown): string | undefined {
   return country?.['_ref'] as string | undefined;
 }
 
-// Convert ISO-2 country code (e.g. "IT") into a flag emoji (🇮🇹)
+/**
+ * Convert ISO-2 country code (e.g. "IT") into a flag emoji (🇮🇹).
+ * This is used only for Studio preview display purposes.
+ */
 function iso2ToFlagEmoji(iso2?: string): string {
   if (!iso2) return '';
   const code = iso2.trim().toUpperCase();
@@ -33,6 +47,13 @@ function iso2ToFlagEmoji(iso2?: string): string {
   if (c1 < A || c1 > A + 25 || c2 < A || c2 > A + 25) return '';
 
   return String.fromCodePoint(FLAG_OFFSET + (c1 - A), FLAG_OFFSET + (c2 - A));
+}
+
+/**
+ * Used to progressively reveal fields in the editor once a country is selected.
+ */
+function hasCountry(document: unknown): boolean {
+  return Boolean(getCountryRef(document));
 }
 
 export default defineType({
@@ -63,21 +84,20 @@ export default defineType({
         source: 'title',
         maxLength: 96,
       },
-      // Lock slug once it exists (prevents URL / reference churn)
+      // Lock slug after first creation to ensure URL stability and avoid breaking links
       readOnly: ({ document }) => Boolean(getSlugCurrent(document)),
+      hidden: ({ document }) => !hasCountry(document),
       validation: (r) => r.required(),
     }),
 
     /* ---------------------------------------------------------------------- */
-    /* Classification (optional but helpful)                                  */
+    /* Editorial disambiguation and classification (optional but helpful)    */
     /* ---------------------------------------------------------------------- */
 
     defineField({
       name: 'kind',
       title: 'Type',
       type: 'string',
-      description:
-        'Optional: helps disambiguate what this “region” represents (region/province/island/city).',
       options: {
         list: [
           { title: 'Region', value: 'region' },
@@ -89,8 +109,8 @@ export default defineType({
         layout: 'radio',
       },
       initialValue: 'region',
-      // Lock kind once set
       readOnly: ({ document }) => Boolean(getKind(document)),
+      hidden: ({ document }) => !hasCountry(document),
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -106,11 +126,11 @@ export default defineType({
       readOnly: ({ document }) => Boolean(getCountryRef(document)),
       validation: (r) => r.required(),
       description:
-        'Country this region is inside (e.g. Northern Italy → Italy).',
+        'Parent country this region belongs to (e.g. Northern Italy → Italy). Selecting this unlocks the rest of the fields.',
     }),
 
     /* ---------------------------------------------------------------------- */
-    /* Optional metadata                                                      */
+    /* Optional metadata and ordering for editorial UX                        */
     /* ---------------------------------------------------------------------- */
 
     defineField({
@@ -118,16 +138,16 @@ export default defineType({
       title: 'Short description',
       type: 'text',
       rows: 3,
-      description: 'Optional intro text (travel guides, listings)',
+      hidden: ({ document }) => !hasCountry(document),
     }),
 
     defineField({
       name: 'order',
       title: 'Order',
       type: 'number',
-      description:
-        'Optional manual ordering for curated lists (lower comes first).',
+      hidden: ({ document }) => !hasCountry(document),
       validation: (r) => r.min(0).integer(),
+      description: 'Manual ordering index used in UI lists (lower values appear first).',
     }),
   ],
 

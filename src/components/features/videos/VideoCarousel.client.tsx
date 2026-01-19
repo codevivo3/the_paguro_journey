@@ -104,7 +104,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         <button
           type='button'
           aria-label='Scorri a sinistra'
-          className='absolute left-2 top-1/2 z-50 -translate-y-1/2 rounded-full border border-black/20 bg-white/10 px-2 py-2 text-white backdrop-blur transition hover:bg-white/30'
+          className='absolute left-2 top-1/2 z-50 -translate-y-1/2 rounded-full border-black/30 bg-[color:var(--paguro-ocean)]/30 px-2 py-2 text-white backdrop-blur transition hover:bg-[color:var(--paguro-ocean)]/50 shadow-xl'
           onPointerDown={(e) => {
             e.preventDefault();
             e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -135,7 +135,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         <button
           type='button'
           aria-label='Scorri a destra'
-          className='absolute right-2 top-1/2 z-50 -translate-y-1/2 rounded-full border border-black/20 bg-white/10 px-2 py-2 text-white backdrop-blur transition hover:bg-white/30'
+          className='absolute right-2 top-1/2 z-50 -translate-y-1/2 rounded-full  border-black/30 bg-[color:var(--paguro-ocean)]/30 px-2 py-2 text-white backdrop-blur transition hover:bg-[color:var(--paguro-ocean)]/50 shadow-xl'
           onPointerDown={(e) => {
             e.preventDefault();
             e.currentTarget.setPointerCapture?.(e.pointerId);

@@ -1,3 +1,29 @@
+/**
+ * scripts/seed-world-regions.ts
+ *
+ * Seeds "World Bank World Regions" into Sanity and can optionally:
+ *  - attach a map image to each region (seeded PNG assets)
+ *  - auto-attach the worldRegion reference onto each country doc
+ *
+ * Why this exists:
+ * - "worldRegion" is NOT editorial content.
+ * - It’s infrastructure used for your high-level filters (pills) and navigation.
+ * - Updates should happen via scripts, not by manually editing Studio docs.
+ *
+ * Usage (recommended via npm scripts):
+ *   npm run seed:worldRegions
+ *   npm run seed:worldRegions -- --maps
+ *   npm run seed:worldRegions:attach
+ *   npm run seed:worldRegions:attach -- --maps
+ *
+ * Direct usage (only if you know what you’re doing):
+ *   DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/seed-world-regions.ts ./path/to.csv --maps --attach
+ *
+ * Notes:
+ * - This script expects your env vars to be available via dotenv.
+ * - If you run it directly, make sure you pass DOTENV_CONFIG_PATH=.env.local (or use the npm scripts).
+ */
+
 import 'dotenv/config';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -5,11 +31,25 @@ import path from 'node:path';
 import { createClient } from '@sanity/client';
 import countries from 'i18n-iso-countries';
 
-// If you ever need localized names later, you can register locales here.
-// For ISO conversion only, it’s not strictly required.
+/**
+ * We register locales here only because we use i18n-iso-countries for
+ * ISO3 -> ISO2 conversions (alpha3ToAlpha2).
+ * The locale registration isn’t strictly required for that conversion,
+ * but keeping it registered is harmless and future-proof if you later
+ * need localized names.
+ */
 import en from 'i18n-iso-countries/langs/en.json' assert { type: 'json' };
 countries.registerLocale(en);
 
+/**
+ * Sanity connection: these must be present.
+ * - projectId + dataset: identify your Sanity project
+ * - token: needs WRITE permissions (create/patch assets and docs)
+ *
+ * IMPORTANT:
+ * If you see “Missing NEXT_PUBLIC_SANITY_PROJECT_ID”, you are NOT loading .env.local.
+ * Use: tsx -r dotenv/config with DOTENV_CONFIG_PATH=.env.local (or use npm scripts).
+ */
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET;
 const token = process.env.SANITY_API_WRITE_TOKEN;
@@ -28,12 +68,25 @@ const client = createClient({
   useCdn: false,
 });
 
+/**
+ * World Bank CSV row shape for this dataset:
+ * - entity: country name in the dataset (not used for matching)
+ * - iso3: ISO-3166-1 alpha-3 code (used to map to your country doc IDs)
+ * - region: World Bank region label (seeded as worldRegion.title)
+ */
 type Row = {
   entity: string;
   iso3: string;
   region: string;
 };
 
+/**
+ * Slugify for stable IDs and URL slugs.
+ * We keep it deterministic so:
+ * - worldRegion documents get stable _id values
+ * - we can safely createIfNotExists()
+ * - you can re-run seeds without duplicating docs
+ */
 function slugify(input: string) {
   return input
     .toLowerCase()
@@ -44,7 +97,13 @@ function slugify(input: string) {
     .trim();
 }
 
-// Minimal CSV parser that handles quotes/commas properly for this dataset
+/**
+ * Minimal CSV parser for THIS specific dataset.
+ *
+ * Dataset columns: Entity, Code (ISO3), Year, Region
+ * Region can contain commas and may be quoted, so we capture "rest of line" for it.
+ * This is intentionally simple, not a universal CSV parser.
+ */
 function parseCsv(text: string): Row[] {
   const lines = text.split(/\r?\n/).filter(Boolean);
   const header = lines.shift();
@@ -75,11 +134,19 @@ function parseCsv(text: string): Row[] {
   return out;
 }
 
+/**
+ * Normalizes region labels from the dataset:
+ * e.g. "Europe and Central Asia (WB)" -> "Europe and Central Asia"
+ * Keeps your "worldRegion.title" clean for UI.
+ */
 function normalizeRegionName(region: string) {
-  // dataset looks like: "Europe and Central Asia (WB)"
   return region.replace(/\s*\(WB\)\s*$/i, '').trim();
 }
 
+/**
+ * Deterministic Sanity doc id for worldRegion documents.
+ * This makes seeds repeatable and safe.
+ */
 function worldRegionIdFromTitle(title: string) {
   return `worldRegion-${slugify(title)}`;
 }
@@ -90,6 +157,11 @@ function worldRegionIdFromTitle(title: string) {
 // Filenames must match the MAPS mapping below.
 // -----------------------------------------------------------------------------
 
+/**
+ * Mapping: worldRegion slug -> filename.
+ * - Keys must match `slugify(title)` output for each world region.
+ * - Values are the PNG names located inside scripts/data/world-region-maps/
+ */
 const MAPS: Record<string, string> = {
   'latin-america-and-caribbean': 'latin-america-and-caribbean.png',
   'middle-east-north-africa-afghanistan-and-pakistan':
@@ -101,6 +173,10 @@ const MAPS: Record<string, string> = {
   'europe-and-central-asia': 'europe-and-central-asia.png',
 };
 
+/**
+ * Minimal type to represent worldRegion docs when we fetch them.
+ * We keep mapImage as unknown because the asset object shape is handled by Sanity.
+ */
 type WorldRegionDoc = {
   _id: string;
   _type: 'worldRegion';
@@ -109,10 +185,25 @@ type WorldRegionDoc = {
   mapImage?: unknown;
 };
 
+/**
+ * Where region PNGs live in your repo.
+ * Keeping it relative to project root makes it work from anywhere in the repo.
+ */
 function mapsDirPath() {
   return path.join(process.cwd(), 'scripts', 'data', 'world-region-maps');
 }
 
+/**
+ * Attach map images (PNG) to each worldRegion doc if missing.
+ *
+ * Behavior:
+ * - Skips if file missing
+ * - Skips if doc missing
+ * - Skips if mapImage already set (idempotent)
+ *
+ * IMPORTANT:
+ * This uploads assets to Sanity (requires write token permissions).
+ */
 async function attachMapImagesToWorldRegions() {
   const baseDir = mapsDirPath();
 
@@ -135,14 +226,16 @@ async function attachMapImagesToWorldRegions() {
 
     const worldRegionId = `worldRegion-${slug}`;
 
-    const doc = (await client.getDocument(worldRegionId)) as WorldRegionDoc | null;
+    const doc = (await client.getDocument(
+      worldRegionId,
+    )) as WorldRegionDoc | null;
     if (!doc) {
       skippedMissingDoc += 1;
       console.warn(`⚠️  worldRegion doc not found: ${worldRegionId}`);
       continue;
     }
 
-    // If already set, do nothing.
+    // Already has an image => idempotent skip
     if (doc.mapImage) {
       skippedHasImage += 1;
       continue;
@@ -156,7 +249,7 @@ async function attachMapImagesToWorldRegions() {
       contentType: 'image/png',
     });
 
-    // Patch doc with the uploaded asset reference
+    // Patch doc with uploaded asset reference
     await client
       .patch(worldRegionId)
       .set({
@@ -175,6 +268,16 @@ async function attachMapImagesToWorldRegions() {
   );
 }
 
+/**
+ * Seeds worldRegion documents from the CSV rows.
+ *
+ * Strategy:
+ * - Extract unique region titles
+ * - Use deterministic IDs => worldRegion-{slug}
+ * - Use createIfNotExists() so re-running is safe
+ *
+ * This does NOT attach map images or countries (those are separate flags).
+ */
 async function seedWorldRegions(rows: Row[]) {
   const unique = new Map<string, string>(); // title -> _id
 
@@ -188,7 +291,7 @@ async function seedWorldRegions(rows: Row[]) {
   const titles = [...unique.keys()];
   console.log(`Found ${titles.length} unique World Bank regions.`);
 
-  let created = 0;
+  let createdOrConfirmed = 0;
 
   for (const title of titles) {
     const _id = unique.get(title)!;
@@ -201,7 +304,7 @@ async function seedWorldRegions(rows: Row[]) {
     };
 
     const res = await client.createIfNotExists(doc);
-    if (res?._id) created += 1;
+    if (res?._id) createdOrConfirmed += 1;
   }
 
   console.log(
@@ -210,6 +313,17 @@ async function seedWorldRegions(rows: Row[]) {
   console.log(`(Created or confirmed existing.)`);
 }
 
+/**
+ * Auto-attaches worldRegion references onto country documents.
+ *
+ * How it matches countries:
+ * - CSV provides iso3
+ * - We convert iso3 -> iso2 using i18n-iso-countries
+ * - Your country docs have deterministic ids: country-{iso2Lower}
+ * - We patch country.worldRegion = reference(worldRegionId)
+ *
+ * This is safe to re-run: patch+set overwrites the same field deterministically.
+ */
 async function attachWorldRegionsToCountries(rows: Row[]) {
   // Build region title -> regionId map (same logic as seed)
   const regionIdByTitle = new Map<string, string>();
@@ -254,10 +368,10 @@ async function attachWorldRegionsToCountries(rows: Row[]) {
 
       patched += 1;
     } catch (err: unknown) {
-      // Usually means: country doc doesn't exist yet
+      // Usually means the country doc doesn't exist yet
       missingCountry += 1;
 
-      // If you ever want to debug, you can narrow the error safely:
+      // Debug tip (safe narrowing):
       // const msg = err instanceof Error ? err.message : String(err);
       // console.warn(`Missing country doc for ISO2 ${iso2} (${countryDocId}): ${msg}`);
     }
@@ -272,8 +386,13 @@ async function attachWorldRegionsToCountries(rows: Row[]) {
 }
 
 async function main() {
-  // Put your CSV in your repo, e.g. scripts/data/world-bank-regions.csv
-  // For now, point to wherever you saved it.
+  /**
+   * CLI contract:
+   * - First argument can be a CSV path (optional)
+   * - Flags:
+   *    --maps   => upload+attach map images to worldRegions
+   *    --attach => patch countries with worldRegion references
+   */
   const csvPath =
     process.argv[2] ||
     path.join(
@@ -305,7 +424,9 @@ async function main() {
   if (attachMaps) {
     await attachMapImagesToWorldRegions();
   } else {
-    console.log('Skipped map images. Re-run with --maps to attach worldRegion map images.');
+    console.log(
+      'Skipped map images. Re-run with --maps to attach worldRegion map images.',
+    );
   }
 
   if (attach) {

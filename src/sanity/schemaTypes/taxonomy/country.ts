@@ -1,16 +1,23 @@
 // src/sanity/schemaTypes/taxonomy/country.ts
 import { defineType, defineField } from 'sanity';
 
-// Convert ISO-2 country code to flag emoji (e.g. "TH" → 🇹🇭)
+/**
+ * Utility: Convert an ISO-2 country code (e.g. "IT", "TH")
+ * into its corresponding flag emoji (🇮🇹, 🇹🇭).
+ *
+ * Used ONLY for Studio previews and visual clarity.
+ * No business logic should rely on this.
+ */
 function iso2ToFlagEmoji(iso2?: string) {
   if (!iso2) return '🏳️';
   const code = iso2.trim().toUpperCase();
   if (code.length !== 2) return '🏳️';
 
-  const A = 0x1f1e6; // Regional Indicator Symbol Letter A
+  const A = 0x1f1e6; // Unicode offset for Regional Indicator Symbol "A"
   const first = code.charCodeAt(0) - 65 + A;
   const second = code.charCodeAt(1) - 65 + A;
 
+  // Guard against invalid characters
   if (
     code.charCodeAt(0) < 65 ||
     code.charCodeAt(0) > 90 ||
@@ -37,20 +44,23 @@ export default defineType({
       name: 'title',
       title: 'Country name',
       type: 'string',
+      description:
+        'Human-readable country name used across the site (e.g. Italy, Thailand).',
       validation: (r) => r.required(),
     }),
 
     defineField({
       name: 'isoCode',
-      title: 'ISO‑2 Code',
+      title: 'ISO-2 Code',
       type: 'string',
-      description: 'Two‑letter ISO code (e.g. IT, TH, JP)',
+      description:
+        'Official two-letter ISO-3166-1 alpha-2 code (e.g. IT, TH, JP). Used for flags, seeding, and stable references.',
       validation: (r) =>
         r
           .required()
           .length(2)
           .regex(/^[A-Za-z]{2}$/, {
-            name: 'ISO‑2',
+            name: 'ISO-2',
             invert: false,
           }),
     }),
@@ -63,6 +73,8 @@ export default defineType({
         source: 'isoCode',
         maxLength: 96,
       },
+      description:
+        'URL-safe identifier derived from the ISO-2 code. Keeps URLs stable and predictable.',
       validation: (r) => r.required(),
     }),
 
@@ -71,8 +83,9 @@ export default defineType({
       title: 'World Region (World Bank)',
       type: 'reference',
       to: [{ type: 'worldRegion' }],
+      readOnly: true,
       description:
-        'Seeded from World Bank regions. Used for the top-level pills.',
+        'Automatically attached via seeding script based on World Bank data. Used for high-level geographic filters and navigation.',
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -84,7 +97,8 @@ export default defineType({
       title: 'Short description',
       type: 'text',
       rows: 3,
-      description: 'Optional intro text (travel guides, hero sections)',
+      description:
+        'Optional editorial intro shown on destination pages, hero sections, or SEO snippets.',
     }),
   ],
 
