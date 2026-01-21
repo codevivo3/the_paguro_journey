@@ -2,6 +2,15 @@
 import { defineType, defineField } from 'sanity';
 
 /**
+ * Country schema represents a standardized set of country data used across the site.
+ * It primarily serves as a foundational taxonomy for Destinations cards,
+ * providing consistent country names, ISO codes, and regional metadata.
+ * 
+ * This schema enables editorial control over country-related content,
+ * including optional descriptive text and cover images for visual presentation.
+ */
+
+/**
  * Utility: Convert an ISO-2 country code (e.g. "IT", "TH")
  * into its corresponding flag emoji (🇮🇹, 🇹🇭).
  *
@@ -109,6 +118,20 @@ export default defineType({
       description:
         'Optional editorial intro used in destination pages, hero sections, or SEO snippets. ' +
         'Keep it concise and reader-friendly.',
+    }),
+
+    // Optional cover image for Destination cards.
+    // This field takes precedence over the auto-derived cover image
+    // (which is typically the latest related blog card image).
+    // Editors can override the default visual presentation by setting this explicitly.
+    defineField({
+      name: 'destinationCover',
+      title: 'Destination card cover',
+      type: 'reference',
+      to: [{ type: 'mediaItem' }],
+      options: { filter: 'type == "image"' },
+      description:
+        'Optional. Overrides the auto cover used on Destinations cards. If empty, the card uses the latest related blog card image.',
     }),
   ],
 

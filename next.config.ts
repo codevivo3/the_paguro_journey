@@ -1,22 +1,30 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false, // good for Sanity dev
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'i.ytimg.com',
-        pathname: '/vi/**',
       },
       {
         protocol: 'https',
         hostname: 'yt3.ggpht.com',
-        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+        pathname: '/files/**',
       },
     ],
   },
-  reactCompiler: true,
-}
 
-export default nextConfig
+  reactCompiler: true,
+};
+
+export default nextConfig;

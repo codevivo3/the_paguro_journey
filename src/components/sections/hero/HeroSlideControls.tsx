@@ -22,8 +22,8 @@ export default function HeroSlideControls({
       {/* Slide navigation arrows (previous / next) */}
       <button
         onClick={onPrev}
-        aria-label='Previous slide'
-        className='absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 backdrop-blur bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/3 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/6 hover:via-[color:var(--paguro-ocean)]/20 hover:to-[color:var(--paguro-ocean)]/30 hover:to-90% transition-transform duration-300 hover:scale-[1.05] active:scale-[0.95]'
+        aria-label='Immagine precedente'
+        className='absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 backdrop-blur transition-colors duration-300 bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/3 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/6 hover:via-[color:var(--paguro-ocean)]/20 hover:to-[color:var(--paguro-ocean)]/30 hover:to-90% transition-transform duration-300 hover:scale-[1.05] active:scale-[0.95]'
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'
@@ -44,8 +44,8 @@ export default function HeroSlideControls({
 
       <button
         onClick={onNext}
-        aria-label='Next slide'
-        className='absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 text-white backdrop-blur bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/3 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/6 hover:via-[color:var(--paguro-ocean)]/20 hover:to-[color:var(--paguro-ocean)]/30 hover:to-90% transition-transform duration-300 hover:scale-[1.05] active:scale-[0.95]'
+        aria-label='Immagine successiva'
+        className='absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 text-white backdrop-blur transition-colors duration-300 bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/3 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/6 hover:via-[color:var(--paguro-ocean)]/20 hover:to-[color:var(--paguro-ocean)]/30 hover:to-90% transition-transform duration-300 hover:scale-[1.05] active:scale-[0.95]'
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'

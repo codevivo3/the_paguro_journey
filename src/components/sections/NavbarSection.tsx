@@ -15,9 +15,9 @@ export default function Navbar() {
     pathname === href || pathname.startsWith(`${href}/`);
 
   const ACTIVE_CLASS =
-    'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-500 bg-white/20 border border-white/20 hover:text-[color:var(--paguro-text-light)] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 shadow-sm';
+    'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-300 bg-radial-[at_50%_75%] from-white/20 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90%  border border-white/20 hover:text-[color:var(--paguro-text-light)] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 shadow-sm';
   const NORMAL_CLASS =
-    'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:shadow-sm hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50';
+    'inline-flex items-center justify-center h-9.5 px-3 py-1 rounded-3xl transition-colors duration-500 hover:bg-radial-[at_50%_75%] hover:from-white/15 hover:via-[color:var(--paguro-ocean)]/20 hover:to-[color:var(--paguro-ocean)]/30 hover:to-90% hover:shadow-sm hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50';
 
   return (
     <>

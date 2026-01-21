@@ -39,11 +39,19 @@ export default defineType({
 
     defineField({
       name: 'title',
-      title: 'Region name',
+      title: 'Title (EN)',
       type: 'string',
       readOnly: true,
-      description:
-        'Official World Bank region name. Seeded automatically and kept immutable.',
+      description: 'Canonical World Bank region label (English).',
+      validation: (r) => r.required(),
+    }),
+
+    defineField({
+      name: 'titleIt',
+      title: 'Title (IT)',
+      type: 'string',
+      readOnly: true,
+      description: 'Long Italian label (used in headings / non-pill UI).',
       validation: (r) => r.required(),
     }),
 

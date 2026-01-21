@@ -174,6 +174,75 @@ const MAPS: Record<string, string> = {
 };
 
 /**
+ * Region labels (long + short) for EN/IT.
+ * Key MUST match slugify(title) output.
+ * This is the single source of truth for UI labels.
+ */
+
+/**
+ * Single source of truth for region labels.
+ * Key MUST match slugify(title) output.
+ */
+const REGION_LABELS: Record<
+  string,
+  {
+    // Long labels
+    titleIt: string;
+
+    // Short UI labels (pills/cards)
+    shortTitle: string;
+    shortTitleIt: string;
+  }
+> = {
+  'east-asia-and-pacific': {
+    titleIt: 'Asia Orientale e Pacifico',
+    shortTitle: 'East Asia & Pacific',
+    shortTitleIt: 'Asia Est & Pacifico',
+  },
+  'europe-and-central-asia': {
+    titleIt: 'Europa e Asia Centrale',
+    shortTitle: 'Europe & Central Asia',
+    shortTitleIt: 'Europa & Asia Centrale',
+  },
+  'latin-america-and-caribbean': {
+    titleIt: 'America Latina e Caraibi',
+    shortTitle: 'Latin America & Caribbean',
+    shortTitleIt: 'America Latina & Caraibi',
+  },
+  'middle-east-north-africa-afghanistan-and-pakistan': {
+    titleIt: 'Medio Oriente e Nord Africa (Afghanistan e Pakistan)',
+    shortTitle: 'Middle East & North Africa',
+    shortTitleIt: 'Medio Oriente & Nord Africa',
+  },
+  'north-america': {
+    titleIt: 'Nord America',
+    shortTitle: 'North America',
+    shortTitleIt: 'Nord America',
+  },
+  'south-asia': {
+    titleIt: 'Asia Meridionale',
+    shortTitle: 'South Asia',
+    shortTitleIt: 'Asia del Sud',
+  },
+  'sub-saharan-africa': {
+    titleIt: 'Africa Sub-sahariana',
+    shortTitle: 'Sub-Saharan Africa',
+    shortTitleIt: 'Africa Subsahariana',
+  },
+};
+
+function getRegionLabels(slug: string, titleEn: string) {
+  const mapped = REGION_LABELS[slug];
+
+  return {
+    title: titleEn,
+    titleIt: mapped?.titleIt ?? titleEn,
+    shortTitle: mapped?.shortTitle ?? titleEn,
+    shortTitleIt: mapped?.shortTitleIt ?? mapped?.titleIt ?? titleEn,
+  };
+}
+
+/**
  * Minimal type to represent worldRegion docs when we fetch them.
  * We keep mapImage as unknown because the asset object shape is handled by Sanity.
  */
@@ -181,6 +250,7 @@ type WorldRegionDoc = {
   _id: string;
   _type: 'worldRegion';
   title?: string;
+  titleIt?: string;
   slug?: { current?: string };
   mapImage?: unknown;
 };
@@ -291,20 +361,47 @@ async function seedWorldRegions(rows: Row[]) {
   const titles = [...unique.keys()];
   console.log(`Found ${titles.length} unique World Bank regions.`);
 
-  let createdOrConfirmed = 0;
-
   for (const title of titles) {
     const _id = unique.get(title)!;
+
+    // slug must match slugify(title) output and REGION_LABELS keys
+    const slug = slugify(title);
+
+    const labels = getRegionLabels(slug, title);
+
     const doc = {
       _id,
       _type: 'worldRegion',
-      title,
-      slug: { current: slugify(title) },
+
+      // Long labels
+      title: labels.title,
+      titleIt: labels.titleIt,
+
+      // Short UI labels (pills/cards)
+      shortTitle: labels.shortTitle,
+      shortTitleIt: labels.shortTitleIt,
+
+      slug: { current: slug },
       // order: optional (if you want a fixed order later)
     };
 
-    const res = await client.createIfNotExists(doc);
-    if (res?._id) createdOrConfirmed += 1;
+    await client.createIfNotExists({ _id, _type: 'worldRegion' });
+
+    // Always patch to ensure fields stay up to date
+    await client.createIfNotExists({ _id, _type: 'worldRegion' });
+
+    // Always patch to ensure fields stay up to date
+    await client
+      .patch(_id)
+      .set({
+        title: labels.title,
+        titleIt: labels.titleIt,
+        shortTitle: labels.shortTitle,
+        shortTitleIt: labels.shortTitleIt,
+        slug: { current: slug },
+        // order: ... (if you add it later)
+      })
+      .commit({ autoGenerateArrayKeys: true });
   }
 
   console.log(
@@ -403,6 +500,7 @@ async function main() {
     );
 
   const attach = process.argv.includes('--attach');
+  const attachMaps = process.argv.includes('--maps');
 
   if (!fs.existsSync(csvPath)) {
     throw new Error(
@@ -417,10 +515,10 @@ async function main() {
     throw new Error('No rows parsed from CSV (unexpected).');
   }
 
+  // ✅ 1) Seed/update region docs first (required for --maps and for consistency)
   await seedWorldRegions(rows);
 
-  const attachMaps = process.argv.includes('--maps');
-
+  // ✅ 2) Optional: attach map images (requires worldRegion docs to exist)
   if (attachMaps) {
     await attachMapImagesToWorldRegions();
   } else {
@@ -429,6 +527,7 @@ async function main() {
     );
   }
 
+  // ✅ 3) Optional: attach refs onto countries
   if (attach) {
     await attachWorldRegionsToCountries(rows);
   } else {

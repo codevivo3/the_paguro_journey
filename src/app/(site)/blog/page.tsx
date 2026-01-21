@@ -1,11 +1,9 @@
+// src/app/(site)/blog/page.tsx
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { posts } from '@/lib/posts';
-import { resolvePostCoverImage } from '@/lib/posts-media';
 import { Masonry, MasonryItem } from '@/components/ui/Masonry';
-
 import {
   Card,
   CardMedia,
@@ -14,13 +12,14 @@ import {
   CardText,
 } from '@/components/ui/Card';
 
+import { getBlogPostsForIndex } from '@/sanity/queries/blog';
+import { urlFor } from '@/sanity/lib/image'; // you likely already have this
+
 export const metadata: Metadata = {
   title: 'Blog',
   description:
     'Racconti di viaggio, riflessioni e guide pratiche per un viaggio consapevole e lontano dai percorsi più battuti.',
-  alternates: {
-    canonical: '/blog',
-  },
+  alternates: { canonical: '/blog' },
   openGraph: {
     title: 'Blog | The Paguro Journey',
     description:
@@ -45,7 +44,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage() {
+// Fallback if post has no cover in Sanity
+const BLOG_PLACEHOLDER_COVER = '/og-default.jpg';
+
+export default async function BlogPage() {
+  const posts = await getBlogPostsForIndex();
+
   return (
     <main className='px-6 pb-16 pt-24'>
       <div className='mx-auto max-w-5xl space-y-10'>
@@ -65,24 +69,28 @@ export default function BlogPage() {
 
           <Masonry>
             {posts.map((post, index) => {
-              const cover = resolvePostCoverImage(post);
+              // Resolve Sanity image to URL (if present)
+              const coverSrc = post.coverImage
+                ? urlFor(post.coverImage)
+                    .width(1200)
+                    .height(900)
+                    .fit('crop')
+                    .url()
+                : BLOG_PLACEHOLDER_COVER;
 
-              // Orientation first, fallback to your “rhythm” layout
+              // We can’t know orientation from Sanity without storing it,
+              // so keep your rhythm layout (same feel as before).
               const mediaAspect =
-                cover.orientation === 'portrait'
-                  ? 'aspect-[3/4]'
-                  : cover.orientation === 'landscape'
-                  ? 'aspect-video'
-                  : index % 5 === 0
+                index % 5 === 0
                   ? 'aspect-[4/5]'
                   : index % 3 === 0
-                  ? 'aspect-[3/4]'
-                  : 'aspect-video';
+                    ? 'aspect-[3/4]'
+                    : 'aspect-video';
 
-              const alt = cover.alt ?? post.title;
+              const alt = post.title;
 
               return (
-                <MasonryItem key={post.slug}>
+                <MasonryItem key={post._id}>
                   <Card>
                     <Link
                       href={`/blog/${post.slug}`}
@@ -91,7 +99,7 @@ export default function BlogPage() {
                     >
                       <CardMedia className={mediaAspect}>
                         <Image
-                          src={cover.src}
+                          src={coverSrc}
                           alt={alt}
                           fill
                           sizes='(max-width: 1024px) 100vw, 33vw'
@@ -102,7 +110,10 @@ export default function BlogPage() {
 
                     <CardBody>
                       <CardTitle>{post.title}</CardTitle>
-                      <CardText>{post.excerpt}</CardText>
+                      {post.excerpt ? (
+                        <CardText>{post.excerpt}</CardText>
+                      ) : null}
+
                       <Link
                         href={`/blog/${post.slug}`}
                         aria-label={`Leggi l'articolo: ${post.title}`}

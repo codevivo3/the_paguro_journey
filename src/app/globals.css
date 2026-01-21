@@ -32,9 +32,9 @@
   --paguro-surface: #edf0e1; /* cards / surfaces */
 
   /* Text */
-  --paguro-text: #1d1d1f;
-  --paguro-text-muted: color-mix(in srgb, var(--paguro-text) 75%, transparent);
-  --paguro-text-meta: color-mix(in srgb, var(--paguro-text) 60%, transparent);
+  --paguro-text: #2F3B31;
+  --paguro-text-muted: color-mix(in srgb, var(--paguro-text) 65%, transparent);
+  --paguro-text-meta: color-mix(in srgb, var(--paguro-text) 50%, transparent);
 
   /* Borders */
   --paguro-border: rgba(29, 29, 31, 0.1);

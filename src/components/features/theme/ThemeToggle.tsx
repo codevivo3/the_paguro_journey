@@ -44,13 +44,13 @@ export default function SwitchTheme() {
       role='switch'
       aria-checked={isDark}
       aria-label='Cambia tema'
-      className='inline-flex items-center gap-2 h-9.5 rounded-full border border-white/20 bg-white/20 px-3 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm transition'
+      className='inline-flex items-center gap-2 h-9.5 rounded-full border border-white/20 bg-radial-[at_50%_75%] from-white/20 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90%  px-3 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm transition'
     >
       <span className='sr-only'>Tema</span>
 
       {/* track */}
       <span
-        className='relative inline-flex h-3.5 w-8 items-center rounded-full border border-white/30 bg-black/10 shadow-inner'
+        className='relative inline-flex h-3.5 w-8 items-center rounded-full border border-white/30 bg-black/3 shadow-inner'
         aria-hidden='true'
       >
         {/* thumb */}

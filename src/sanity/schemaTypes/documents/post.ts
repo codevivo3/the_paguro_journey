@@ -25,7 +25,7 @@ function getRefIds(value: unknown): string[] {
 
 export default defineType({
   name: 'post',
-  title: 'Post',
+  title: 'Blog Post',
   type: 'document',
 
   fields: [
@@ -39,6 +39,19 @@ export default defineType({
       type: 'string',
       description:
         'Clear, human title. Avoid clickbait. You can refine this later.',
+      validation: (r) => r.required(),
+    }),
+
+    defineField({
+      name: 'coverImage',
+      title: 'Cover image',
+      type: 'reference',
+      to: [{ type: 'mediaItem' }],
+      description:
+        'Image shown on the Blog page cards (and can be reused for social previews).',
+      options: {
+        filter: 'type == "image"',
+      },
       validation: (r) => r.required(),
     }),
 
@@ -74,12 +87,56 @@ export default defineType({
       title: 'Content',
       type: 'array',
       of: [
-        { type: 'block' },
+        {
+          type: 'block',
+          // Keep Callout as a "style" in the same dropdown where H2/H3/Quote live
+          styles: [
+            { title: 'Normal', value: 'normal' },
+            { title: 'H1', value: 'h1' },
+            { title: 'H2', value: 'h2' },
+            { title: 'H3', value: 'h3' },
+            { title: 'H4', value: 'h4' },
+            { title: 'H5', value: 'h5' },
+            { title: 'H6', value: 'h6' },
+            { title: 'Quote', value: 'blockquote' },
+          ],
+        },
 
         // Media blocks (reuse Media bucket)
         {
           type: 'reference',
           to: [{ type: 'mediaItem' }],
+        },
+
+        // Callout blocks (styled boxes in the article)
+        {
+          name: 'callout',
+          title: 'Callout',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'title',
+              title: 'Title',
+              type: 'string',
+              description: 'Optional heading shown at the top of the callout box.',
+            }),
+            defineField({
+              name: 'body',
+              title: 'Body',
+              type: 'array',
+              of: [{ type: 'block' }],
+              validation: (r) => r.required(),
+            }),
+          ],
+          preview: {
+            select: { title: 'title', body: 'body' },
+            prepare({ title }) {
+              return {
+                title: title || 'Callout',
+                subtitle: 'Callout box',
+              };
+            },
+          },
         },
       ],
       description:

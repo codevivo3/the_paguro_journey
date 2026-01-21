@@ -156,16 +156,19 @@ export function CalloutBox({
   return (
     <aside
       className={cx(
-        'mx-auto my-3 max-w-3xl rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-5',
+        'mx-auto my-3 max-w-3xl rounded-sm bg-[color:var(--paguro-surface)] p-5',
         className
       )}
     >
       {title && (
-        <p className='t-section-title'>
-          {title}
-        </p>
+        <div className="mb-3">
+          <p className="t-section-title mb-2">
+            {title}
+          </p>
+          <div className="h-px w-full bg-[color:var(--paguro-border)] opacity-60" />
+        </div>
       )}
-      <div className='t-body'>
+      <div className="t-body">
         {children}
       </div>
     </aside>

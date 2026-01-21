@@ -1,16 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Image from 'next/image';
 
 import { useUI } from '@/context/ui-context';
-import { HERO_SLIDES } from '@/lib/gallery';
 import HeroSlideControls from './HeroSlideControls';
 
 type HeroSlideShowProps = {
-  /** Image paths under /public, e.g. "/hero/slide-1.jpg" */
-  images?: string[];
+  /** Hero slides (preferably fetched from Sanity). */
+  slides?: Array<{
+    src: string;
+    alt?: string;
+  }>;
   /** Milliseconds each slide stays visible */
   intervalMs?: number;
   /** Milliseconds for the fade transition */
@@ -22,24 +24,20 @@ type HeroSlideShowProps = {
 };
 
 export default function HeroSection({
-  images,
+  slides,
   intervalMs = 5500,
   transitionMs = 1000,
   overlay = false,
   className = '',
 }: HeroSlideShowProps) {
-  // Default images: derived from the gallery source-of-truth.
-  // This prevents duplicating hero assets in a separate folder.
-  const slides = useMemo(
-    () => (images && images.length ? images : HERO_SLIDES.map((s) => s.src)),
-    [images]
-  );
+  // Slides are provided by the parent (source-of-truth: Sanity).
+  // We only normalize/validate here to keep this component purely presentational.
+  const safeSlides =
+    (slides ?? []).filter((s) => typeof s?.src === 'string' && s.src.length > 0);
+  const hasSlides = safeSlides.length > 0;
 
   const { isSearchOpen } = useUI();
   const isPaused = isSearchOpen;
-
-  const safeSlides = slides.filter(Boolean);
-  const hasSlides = safeSlides.length > 0;
 
   const [index, setIndex] = useState(0);
 
@@ -86,11 +84,11 @@ export default function HeroSection({
     >
       {/* Slides (full-viewport cinematic hero) */}
       <div className='absolute inset-0 bg-black'>
-        {safeSlides.map((src, i) => {
+        {safeSlides.map((slide, i) => {
           const isActive = i === safeIndex;
           return (
             <div
-              key={`${src}-${i}`}
+              key={`${slide.src}-${i}`}
               className={
                 'absolute inset-0 transition-opacity ease-in-out ' +
                 (isActive ? 'opacity-100' : 'opacity-0')
@@ -99,8 +97,8 @@ export default function HeroSection({
               aria-hidden={!isActive}
             >
               <Image
-                src={src}
-                alt=''
+                src={slide.src}
+                alt={slide.alt ?? ''}
                 fill
                 priority={i === 0}
                 sizes='100vw'

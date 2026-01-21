@@ -1,9 +1,15 @@
 import { notFound } from 'next/navigation';
-
-import { posts } from '@/lib/posts';
-import { resolvePostCover, resolvePostGallery } from '@/lib/posts-media';
-
+import { draftMode } from 'next/headers';
 import type { Metadata } from 'next';
+import { PortableText } from '@portabletext/react';
+import type {
+  PortableTextComponents,
+  PortableTextBlock,
+} from '@portabletext/react';
+import Image from 'next/image';
+
+import { urlFor } from '@/sanity/lib/image';
+import { getPostBySlug } from '@/sanity/queries/postBySlug';
 
 import {
   ArticleHeader,
@@ -14,149 +20,254 @@ import {
   Prose,
 } from '@/components/blog/BlogReusable';
 
-type PageProps = {
-  params: Promise<{
-    slug: string;
-  }>;
+import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
+
+type MediaReference = {
+  _type: 'reference';
+  _ref: string;
 };
+
+type CalloutBlock = {
+  _type: 'callout';
+  title?: string;
+  // Portable Text blocks for the callout body
+  body?: PortableTextBlock[];
+};
+
+type SanityBlogPost = {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  publishedAt?: string;
+  coverImage?: SanityImageSource | null;
+  // `content` can include Portable Text blocks plus custom blocks.
+  content?: Array<PortableTextBlock | MediaItem | CalloutBlock | MediaReference>;
+};
+
+type MediaItem = {
+  _type: 'mediaItem';
+  type?: 'image' | 'video';
+  title?: string;
+  alt?: string;
+  caption?: string;
+  credit?: string;
+  image?: SanityImageSource | null;
+  videoUrl?: string;
+};
+
+const portableTextComponents: PortableTextComponents = {
+  types: {
+    // When you dereference `content[]` refs in GROQ, media blocks will arrive as full `mediaItem` objects.
+    mediaItem: ({ value }) => {
+      const item = value as MediaItem;
+
+      if (item?.type === 'video' && item.videoUrl) {
+        return (
+          <div className='my-8'>
+            <div className='aspect-video w-full overflow-hidden rounded-md'>
+              <iframe
+                src={item.videoUrl}
+                title={item.title ?? 'Video'}
+                className='h-full w-full'
+                allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+                allowFullScreen
+              />
+            </div>
+            {item.caption && (
+              <p className='mt-2 text-sm opacity-80'>{item.caption}</p>
+            )}
+          </div>
+        );
+      }
+
+      if (item?.type === 'image' && item.image) {
+        const src = urlFor(item.image).width(1600).height(900).fit('crop').url();
+        return (
+          <div className='my-8'>
+            <Image
+              src={src}
+              width={1600}
+              height={900}
+              alt={item.alt ?? item.title ?? ''}
+              className='w-full rounded-sm'
+              loading='lazy'
+            />
+            {(item.caption || item.credit) && (
+              <p className='mt-2 text-xs opacity-50 italic'>
+                {item.caption}
+                {item.caption && item.credit ? ' · ' : ''}
+                {item.credit}
+              </p>
+            )}
+          </div>
+        );
+      }
+
+      // Fallback: if a mediaItem is incomplete
+      return null;
+    },
+
+    // If your `content` array still contains raw references (no GROQ deref yet), this prevents a blank render.
+    reference: () => (
+      <CalloutBox title='Media block'>
+        Media reference (not expanded). Update the GROQ query to dereference{' '}
+        <code>content[]</code> refs.
+      </CalloutBox>
+    ),
+
+    callout: ({ value }) => {
+      const v = value as CalloutBlock;
+
+      return (
+        <div className="t-body text-sm italic leading-relaxed text-[color:var(--paguro-text-muted)]">
+          <CalloutBox title={v.title}>{
+            Array.isArray(v.body) ? (
+              <PortableText value={v.body as PortableTextBlock[]} />
+            ) : null
+          }</CalloutBox>
+        </div>
+      );
+    },
+  },
+
+  block: {
+    h2: ({ children }) => (
+      <h2 className='mt-10 text-3xl font-bold'>{children}</h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className='mt-8 text-2xl font-bold'>{children}</h3>
+    ),
+    h4: ({ children }) => (
+      <h4 className='mt-6 text-xl font-bold'>{children}</h4>
+    ),
+    normal: ({ children }) => <p className='my-5 leading-7'>{children}</p>,
+
+    blockquote: ({ children }) => (
+      <blockquote className='my-8 border-l-4 border-white/20 pl-4 italic opacity-90'>
+        {children}
+      </blockquote>
+    ),
+  },
+
+  marks: {
+    link: ({ children, value }) => {
+      const href = (value as { href?: string })?.href;
+      if (!href) return <>{children}</>;
+      const isExternal = href.startsWith('http');
+      return (
+        <a
+          href={href}
+          className='underline underline-offset-4'
+          target={isExternal ? '_blank' : undefined}
+          rel={isExternal ? 'noopener noreferrer' : undefined}
+        >
+          {children}
+        </a>
+      );
+    },
+  },
+
+  list: {
+    bullet: ({ children }) => (
+      <ul className='my-6 list-disc pl-6'>{children}</ul>
+    ),
+    number: ({ children }) => (
+      <ol className='my-6 list-decimal pl-6'>{children}</ol>
+    ),
+  },
+
+  listItem: {
+    bullet: ({ children }) => <li className='my-2'>{children}</li>,
+    number: ({ children }) => <li className='my-2'>{children}</li>,
+  },
+};
+
+function resolveSanityCover(post: SanityBlogPost) {
+  // Prefer a dedicated cover field if you add it later.
+  // For now, reuse coverImage as cover:
+  return post.coverImage
+    ? urlFor(post.coverImage).width(1600).height(900).fit('crop').url()
+    : null;
+}
+
+function resolveSanityGallery(post: SanityBlogPost, limit = 6): string[] {
+  // If later you add a `gallery` field, use it here.
+  // For now, just return an empty array (your UI can handle it)
+  return [];
+}
 
 export async function generateMetadata({
   params,
-}: PageProps): Promise<Metadata> {
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const post = posts.find((p) => p.slug === slug);
+  const { isEnabled } = await draftMode();
+  const post = await getPostBySlug(slug, { preview: isEnabled });
+  if (!post) return { title: 'Articolo non trovato | The Paguro Journey' };
 
-  if (!post) {
-    return {
-      title: 'Articolo non trovato | The Paguro Journey',
-    };
-  }
-
-  const description =
-    post.excerpt ??
-    'Racconti di viaggio, riflessioni lente e guide consapevoli firmate The Paguro Journey.';
-
-  const cover = resolvePostCover(post);
-
+  const cover = resolveSanityCover(post);
   return {
     title: `${post.title} | The Paguro Journey`,
-    description,
-    alternates: {
-      canonical: `/blog/${post.slug}`,
-    },
-    openGraph: {
-      title: post.title,
-      description,
-      type: 'article',
-      url: `/blog/${post.slug}`,
-      images: cover
-        ? [
-            {
-              url: cover,
-              width: 1200,
-              height: 630,
-              alt: post.title,
-            },
-          ]
-        : undefined,
-    },
-    twitter: {
-      card: cover ? 'summary_large_image' : 'summary',
-      title: post.title,
-      description,
-      images: cover ? [cover] : undefined,
-    },
+    description: post.excerpt,
+    alternates: { canonical: `/blog/${post.slug}` },
+    openGraph: cover
+      ? {
+          title: post.title,
+          description: post.excerpt,
+          type: 'article',
+          url: `/blog/${post.slug}`,
+          images: [{ url: cover, width: 1200, height: 630, alt: post.title }],
+        }
+      : {
+          title: post.title,
+          description: post.excerpt,
+          type: 'article',
+          url: `/blog/${post.slug}`,
+        },
   };
 }
 
-export function generateStaticParams() {
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
-}
-
-export default async function BlogPostPage({ params }: PageProps) {
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
-
-  const post = posts.find((p) => p.slug === slug);
+  const { isEnabled } = await draftMode();
+  const post = await getPostBySlug(slug, { preview: isEnabled });
   if (!post) notFound();
 
-  // Resolve media from a single source of truth (gallery + covers).
-  // Fallback logic:
-  // 1) Explicit post.gallery
-  // 2) Destination-based gallery
-  // This guarantees visual consistency across blog, destinations and gallery pages.
-  const gallery = resolvePostGallery(post, 6);
-
+  const cover = resolveSanityCover(post);
+  const gallery = resolveSanityGallery(post, 6);
   return (
     <PageShell className='pb-16 pt-24'>
       <article>
-        <ArticleHeader title={post.title} date={post.date} />
+        <ArticleHeader title={post.title} date={post.publishedAt} />
 
-        <CoverMedia src={resolvePostCover(post)} alt={post.title} priority />
+        <CoverMedia src={cover ?? undefined} alt={post.title} priority />
 
+        {/* keep your Prose blocks exactly as before for now */}
         <Prose className='mt-8'>
-          <p className='lead'>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer non
-            feugiat arcu. Suspendisse potenti.
-          </p>
-
-          <p>
-            Praesent euismod, nibh at porta egestas, sem est lacinia nulla, in
-            ullamcorper lorem tellus a justo.
-          </p>
-
-          <h2>Lorem ipsum heading</h2>
-
-          <p>
-            Donec posuere, metus sit amet pulvinar blandit, arcu libero
-            ullamcorper risus, a elementum elit lorem at metus.
-          </p>
-
-          <ul>
-            <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-            <li>
-              Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            </li>
-            <li>
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco
-              laboris.
-            </li>
-          </ul>
-
-          <blockquote>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-          </blockquote>
+          {Array.isArray(post.content) ? (
+            <PortableText
+              value={
+                post.content as Array<
+                  PortableTextBlock | MediaItem | CalloutBlock | MediaReference
+                >
+              }
+              components={portableTextComponents}
+            />
+          ) : null}
         </Prose>
 
-        <div className='mx-auto max-w-3xl'>
-          <GalleryImage src={gallery[0]} alt={post.title} />
-        </div>
+        {gallery[0] && (
+          <div className='mx-auto max-w-3xl'>
+            <GalleryImage src={gallery[0]} alt={post.title} />
+          </div>
+        )}
 
-        <Prose className='mt-8'>
-          <h2>Lorem ipsum: section two</h2>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-
-          <h3>A smaller subheading</h3>
-          <p>
-            Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
-            posuere cubilia curae.
-          </p>
-        </Prose>
-
-        <div className='mx-auto max-w-3xl'>
-          <GalleryImage src={gallery[1]} alt={post.title} />
-        </div>
-
-        <Prose className='mt-8'>
-          <h2>Lorem ipsum: section three</h2>
-
-          <CalloutBox title='Placeholder callout'>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-          </CalloutBox>
-
-          <p>Donec at eros vel lectus egestas imperdiet.</p>
-        </Prose>
+        {/* rest unchanged */}
       </article>
     </PageShell>
   );

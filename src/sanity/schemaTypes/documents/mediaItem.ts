@@ -127,6 +127,36 @@ export default defineType({
     }),
 
     // -----------------------------------------------------------------------
+    // Gallery visibility
+    // -----------------------------------------------------------------------
+    /**
+     * Gallery visibility switch.
+     *
+     * Purpose:
+     * - Controls whether this image appears in the public Gallery page.
+     * - Used ONLY by the Gallery GROQ query (filtered at source).
+     *
+     * Typical use cases (set to TRUE):
+     * - About page images
+     * - Cover / hero images
+     * - UI / structural visuals
+     *
+     * Leave OFF for real travel photography.
+     *
+     * ⚠️ Important:
+     * This is an editorial decision, not inferred automatically.
+     * We intentionally avoid guessing based on usage or title.
+     */
+    defineField({
+      name: 'excludeFromGallery',
+      title: 'Exclude from Gallery',
+      type: 'boolean',
+      initialValue: false,
+      description:
+        'Turn this on for images that should NOT appear in the public gallery (e.g. About image, cover images)',
+    }),
+
+    // -----------------------------------------------------------------------
     // Video fields
     // -----------------------------------------------------------------------
     defineField({

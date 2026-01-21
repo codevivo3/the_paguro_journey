@@ -41,18 +41,16 @@ export default defineType({
       name: 'homeHeroHeadline',
       title: 'Home Hero Headline',
       type: 'string',
-      description:
-        'Main headline shown on the homepage hero. Keep it short (ideally 4–8 words).',
-      validation: (r) => r.required(),
+      readOnly: true,
+      description: 'Owner-managed. Request changes to the developer.',
     }),
-
     defineField({
       name: 'homeHeroSubheadline',
       title: 'Home Hero Subheadline',
       type: 'text',
       rows: 2,
-      description:
-        'Optional supporting line under the headline. 1–2 short sentences max.',
+      readOnly: true,
+      description: 'Owner-managed. Request changes to the developer.',
     }),
 
     defineField({
@@ -79,6 +77,21 @@ export default defineType({
       ],
       validation: (r) =>
         r.min(1).warning('At least one hero slide is recommended.'),
+    }),
+
+    /* ---------------------------------------------------------------------- */
+    /* About                                                                  */
+    /* ---------------------------------------------------------------------- */
+
+    defineField({
+      name: 'aboutImage',
+      title: 'About page image',
+      type: 'reference',
+      to: [{ type: 'mediaItem' }],
+      description: 'Single curated image for the About page (Chi siamo).',
+      options: {
+        filter: 'type == "image"',
+      },
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -117,9 +130,12 @@ export default defineType({
   ],
 
   preview: {
-    prepare() {
+    select: {
+      title: 'siteTitle',
+    },
+    prepare({ title }) {
       return {
-        title: 'Site Settings',
+        title: title || 'Site Settings',
         subtitle: 'Global configuration',
       };
     },

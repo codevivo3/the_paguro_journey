@@ -38,7 +38,7 @@ export function Card({
   ariaLabel?: string;
 }) {
   const cardClasses = cx(
-    'group relative overflow-hidden rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg',
+    'group relative overflow-hidden rounded-md border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg',
     href
       ? 'cursor-pointer focus-within:ring-2 focus-within:ring-[color:var(--paguro-ocean)] focus-within:ring-offset-2 focus-within:ring-offset-[color:var(--paguro-bg)]'
       : undefined,

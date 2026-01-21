@@ -12,6 +12,9 @@ import HeroSection from '@/components/sections/hero/HeroSection';
 import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 import CallToAction from '@/components/sections/CTASection';
 
+import { getHomeHeroSlides } from '@/sanity/queries/homeHeroSlides';
+import { mapSanityHeroSlides } from '@/lib/hero-sanity';
+
 // Metadata SEO per la homepage
 // Definisce identità del progetto, posizionamento del brand e intento di ricerca
 export const metadata = {
@@ -38,8 +41,16 @@ export const metadata = {
       'Slow travel, destinazioni autentiche e storytelling visivo dal mondo.',
   },
 };
+  
+  export default async function Home() {
+  const sanitySlides = await getHomeHeroSlides();
+  const slides = mapSanityHeroSlides(sanitySlides);
 
-export default function Home() {
+  console.log('sanitySlides raw:', sanitySlides);
+  console.log('slides mapped:', slides);
+  console.log('HERO SLIDES', slides);
+
+
   return (
     <>
       {/* Area principale dei contenuti editoriali */}
@@ -47,7 +58,7 @@ export default function Home() {
         {/* H1 principale (visivamente nascosto) per semantica SEO e accessibilità */}
         <h1 className='sr-only'>The Paguro Journey</h1>
         {/* Sezione Hero: ingresso visivo e posizionamento del brand */}
-        <HeroSection />
+        <HeroSection slides={slides} overlay />
         {/* Sezione introduttiva: spiega filosofia e visione del progetto */}
         <IntroSection />
         {/* Call to action: accompagna l’utente nel percorso */}

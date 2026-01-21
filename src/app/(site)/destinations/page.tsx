@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { draftMode } from 'next/headers';
 
 import { Masonry, MasonryItem } from '@/components/ui/Masonry';
 import {
@@ -9,13 +10,14 @@ import {
   CardBody,
   CardTitle,
   CardMetaRow,
-  FactCard,
 } from '@/components/ui/Card';
 
 import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 
-import { getDestinationsFromPosts, facts } from '@/lib/posts';
+import { getCountriesForDestinations } from '@/sanity/queries/destinations';
+
 import { getGalleryImagesByCountry } from '@/lib/gallery';
+import { urlFor } from '@/sanity/lib/image';
 
 /* -------------------------------------------------------------------------- */
 /* SEO                                                                        */
@@ -56,9 +58,26 @@ export const metadata: Metadata = {
 /* Page                                                                       */
 /* -------------------------------------------------------------------------- */
 
-const destinations = getDestinationsFromPosts();
 
-export default function DestinationsPage() {
+export default async function DestinationsPage() {
+    const { isEnabled } = await draftMode();
+    const countries = await getCountriesForDestinations({ preview: isEnabled });
+
+    const destinations = countries.map((c) => ({
+      country: c.title,
+      countrySlug: c.slug,
+      region: c.worldRegion?.titleIt ?? 'Altro',
+      regionSlug: c.worldRegion?.slug ?? 'other',
+      count: c.postCount,
+      coverImage: c.coverImage,
+    }));
+
+    // Only show countries that actually have at least 1 related blog post.
+    // This prevents the UI from looking “broken” when most countries have 0 posts.
+    const visibleDestinations = destinations.filter((d) => (d.count ?? 0) > 0);
+
+    type DestinationCard = (typeof destinations)[number];
+    
   return (
     <main className='px-6 pt-24'>
       <div className='mx-auto max-w-5xl space-y-10'>
@@ -83,7 +102,7 @@ export default function DestinationsPage() {
             <Link
               key={label}
               href=''
-              className='inline-flex h-10 items-center justify-center rounded-3xl border border-white/40 bg-[color:var(--geo-btn)] px-3 [font-family:var(--font-ui)] text-sm text-white shadow-sm hover:bg-[color:var(--paguro-coral)]'
+              className='inline-flex h-10 items-center justify-center rounded-3xl border border-white/40 transition-colors duration-300 bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/50 via-[color:var(--paguro-ocean)]/60 to-[color:var(--paguro-ocean)]/90 px-3 [font-family:var(--font-ui)] text-sm text-white shadow-sm hover:bg-[color:var(--paguro-coral)]'
             >
               {label}
             </Link>
@@ -94,81 +113,31 @@ export default function DestinationsPage() {
         <section aria-label='Destinations' className='space-y-5 pb-16'>
           <div className='flex items-baseline justify-between'>
             <h2 className='t-section-title'>Esplora</h2>
-            <span className='t-meta'>{destinations.length} destinazioni</span>
+            <span className='t-meta'>{visibleDestinations.length} destinazioni</span>
           </div>
 
           <Masonry className='columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3'>
-            {(() => {
-              const items: Array<
-                | {
-                    type: 'destination';
-                    d: (typeof destinations)[number];
-                    i: number;
-                  }
-                | { type: 'fact'; f: (typeof facts)[number]; i: number }
-              > = [];
-
-              const INSERT_EVERY = 2;
-              let factCursor = 0;
-
-              destinations.forEach((d, i) => {
-                items.push({ type: 'destination', d, i });
-
-                if ((i + 1) % INSERT_EVERY === 0 && factCursor < facts.length) {
-                  items.push({ type: 'fact', f: facts[factCursor], i });
-                  factCursor++;
-                }
-              });
-
-              return items.map((item, streamIndex) => {
-                /* ---------------------------------- */
-                /* Fact cards                          */
-                /* ---------------------------------- */
-                if (item.type === 'fact') {
-                  const factClass =
-                    streamIndex % 7 === 0 ? 'min-h-[18rem]' : 'min-h-[14rem]';
-
-                  const pillHref =
-                    item.f.scope === 'region' && item.f.regionSlug
-                      ? `/destinations?region=${item.f.regionSlug}`
-                      : item.f.scope === 'style' && item.f.style
-                      ? `/destinations?style=${item.f.style}`
-                      : '';
-
-                  return (
-                    <MasonryItem key={`fact-${streamIndex}`}>
-                      <FactCard
-                        title={item.f.title}
-                        pill={item.f.pill ?? ''}
-                        pillHref={pillHref}
-                        pillAriaLabel={item.f.pill ?? ''}
-                        text={item.f.text}
-                        minHeightClass={factClass}
-                      />
-                    </MasonryItem>
-                  );
-                }
-
-                /* ---------------------------------- */
-                /* Destination cards                  */
-                /* ---------------------------------- */
-
-                const { d, i } = item;
-
+            {visibleDestinations.map((d, i) => {
                 const gallery = getGalleryImagesByCountry(d.countrySlug);
-                const coverImage = gallery[0];
-                const orientation = gallery[0]?.orientation;
+                const localCover = gallery[0];
+                const orientation = localCover?.orientation;
+
+                const sanityCoverUrl = d.coverImage
+                  ? urlFor(d.coverImage).width(1200).height(900).fit('crop').url()
+                  : null;
+
+                const coverSrc = sanityCoverUrl ?? localCover?.src ?? '/world-placeholder.png';
 
                 const mediaAspect =
                   orientation === 'portrait'
                     ? 'aspect-[3/4]'
                     : orientation === 'landscape'
-                    ? 'aspect-video'
-                    : i % 5 === 0
-                    ? 'aspect-[4/5]'
-                    : i % 3 === 0
-                    ? 'aspect-[3/4]'
-                    : 'aspect-video';
+                      ? 'aspect-video'
+                      : i % 5 === 0
+                        ? 'aspect-[4/5]'
+                        : i % 3 === 0
+                          ? 'aspect-[3/4]'
+                          : 'aspect-video';
 
                 return (
                   <MasonryItem key={d.countrySlug}>
@@ -180,7 +149,7 @@ export default function DestinationsPage() {
                       >
                         <CardMedia className={mediaAspect}>
                           <Image
-                            src={coverImage?.src ?? '/world-placeholder.png'}
+                            src={coverSrc}
                             alt={d.country}
                             fill
                             sizes='(max-width: 1024px) 100vw, 33vw'
@@ -197,7 +166,7 @@ export default function DestinationsPage() {
                             href={`/destinations?region=${d.regionSlug}`}
                             className='shrink-0'
                           >
-                            <span className='inline-flex h-10 items-center justify-center rounded-3xl border border-white/50 bg-[color:var(--geo-btn)] px-3 text-xs font-semibold [font-family:var(--font-ui)] text-white shadow-sm hover:bg-[color:var(--paguro-coral)]'>
+                            <span className='inline-flex h-10 items-center justify-center rounded-3xl border border-white/50 transition-colors duration-300 bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/50 via-[color:var(--paguro-ocean)]/60 to-[color:var(--paguro-ocean)]/90 to-90%  px-3 text-xs font-semibold [font-family:var(--font-ui)] text-white shadow-sm hover:bg-[color:var(--paguro-coral)]'>
                               {d.region}
                             </span>
                           </Link>
@@ -215,8 +184,7 @@ export default function DestinationsPage() {
                     </Card>
                   </MasonryItem>
                 );
-              });
-            })()}
+              })}
           </Masonry>
         </section>
 

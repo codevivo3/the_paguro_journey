@@ -1,17 +1,18 @@
+// src/app/(site)/gallery/page.tsx
 import * as React from 'react';
-
-import { getGalleryImages } from '@/lib/gallery';
-import GalleryGridClient from '@/components/gallery/GalleryGridClient';
-
 import type { Metadata } from 'next';
+
+import GalleryGridClient from '@/components/gallery/GalleryGridClient';
+import type { GalleryImage } from '@/components/gallery/GalleryGrid';
+
+import { getGalleryItems } from '@/sanity/queries/gallery';
+import { mapSanityToGalleryImages } from '@/lib/gallery-sanity';
 
 export const metadata: Metadata = {
   title: 'Gallery | The Paguro Journey',
   description:
     'Una raccolta visiva dei nostri viaggi: fotografie autentiche da destinazioni nel mondo. Clicca ogni immagine per vederla in alta risoluzione.',
-  alternates: {
-    canonical: '/gallery',
-  },
+  alternates: { canonical: '/gallery' },
   openGraph: {
     title: 'Gallery | The Paguro Journey',
     description:
@@ -32,18 +33,29 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Gallery | The Paguro Journey',
-    description:
-      'Fotografie di viaggio autentiche da The Paguro Journey.',
+    description: 'Fotografie di viaggio autentiche da The Paguro Journey.',
     images: ['/destinations/images/cover/copertina-the-paguro-journey-1.jpg'],
   },
 };
 
-// GalleryPage
-// Static page with SEO-friendly metadata.
-// The image grid itself is client-rendered for interactivity,
-// while the page shell remains server-rendered for performance and indexing.
-export default function GalleryPage() {
-  const items = getGalleryImages();
+export default async function GalleryPage() {
+  const sanityItems = await getGalleryItems();
+  // Map Sanity docs -> UI GalleryImage type
+  const items: GalleryImage[] = mapSanityToGalleryImages(sanityItems, (x) => ({
+    src: x.src,
+
+    // ✅ required by your UI type
+    countrySlug: x.countrySlug ?? 'unknown',
+
+    alt: x.alt ?? undefined,
+
+    // ✅ normalize to match GalleryImage orientation type
+    // UI allows only: 'portrait' | 'landscape' | undefined
+    orientation:
+      x.orientation === 'portrait' || x.orientation === 'landscape'
+        ? x.orientation
+        : undefined,
+  }));
 
   return (
     <main className='px-6 pb-24 pt-24'>
@@ -56,17 +68,7 @@ export default function GalleryPage() {
         </header>
 
         <section aria-label='Gallery' className='space-y-5'>
-          {/* GalleryGridClient relies on client-side state and routing. */}
-          {/* Suspense provides a graceful loading state without hurting SEO. */}
-          <React.Suspense
-            fallback={
-              <div className='rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-6 text-sm text-[color:var(--paguro-text)]/70'>
-                Caricamento galleria…
-              </div>
-            }
-          >
-            <GalleryGridClient items={items} />
-          </React.Suspense>
+          <GalleryGridClient items={items} />
         </section>
       </div>
     </main>

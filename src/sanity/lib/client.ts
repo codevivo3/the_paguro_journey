@@ -50,3 +50,20 @@ export const client = createClient({
   // Read published content only (stable + predictable)
   perspective: 'published',
 });
+
+// -----------------------------------------------------------------------------
+// Preview client (drafts + published)
+// Used ONLY when Next.js Draft Mode is enabled
+// -----------------------------------------------------------------------------
+
+export const previewClient = createClient({
+  projectId,
+  dataset,
+  apiVersion,
+
+  // Never use CDN for previews (must read fresh drafts)
+  useCdn: false,
+
+  // Include drafts + published documents
+  perspective: 'previewDrafts',
+});
