@@ -1,5 +1,16 @@
 // src/sanity/lib/client.ts
 import { createClient } from 'next-sanity';
+/**
+ * Environment-derived Sanity configuration.
+ *
+ * - projectId  → NEXT_PUBLIC_SANITY_PROJECT_ID
+ * - dataset    → NEXT_PUBLIC_SANITY_DATASET
+ * - apiVersion → NEXT_PUBLIC_SANITY_API_VERSION
+ *
+ * `apiVersion` MUST be a fixed date string (YYYY-MM-DD).
+ * It locks query behavior and prevents breaking changes
+ * when Sanity evolves its API.
+ */
 import { apiVersion, dataset, projectId } from '../env';
 
 /**
@@ -13,6 +24,10 @@ import { apiVersion, dataset, projectId } from '../env';
  * - useCdn:
  *   - Enabled only in production for performance.
  *   - Disabled in dev to avoid stale data and live-edge quirks.
+ *
+ * - apiVersion:
+ *   - Explicitly set via NEXT_PUBLIC_SANITY_API_VERSION.
+ *   - Never left implicit to avoid unexpected API changes.
  *
  * - perspective: 'published'
  *   - Ensures stable reads.
