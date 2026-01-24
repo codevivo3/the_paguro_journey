@@ -75,7 +75,7 @@ export async function getCountriesForDestinations(options?: { preview?: boolean 
   return sanityClient.fetch<CountryForDestinations[]>(
     COUNTRIES_FOR_DESTINATIONS_QUERY,
     { preview: options?.preview ?? false },
-    options?.preview
+    options?.preview || process.env.NODE_ENV !== 'production'
       ? { cache: 'no-store' }
       : { next: { revalidate: 60 * 60 * 24 } }, // 24h
   );

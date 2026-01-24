@@ -1,0 +1,36 @@
+'use client';
+
+import * as React from 'react';
+import Link from 'next/link';
+
+import MediaImage from '@/components/features/media/MediaImage';
+
+type GalleryImage = {
+  src: string;
+  alt?: string | null;
+  countrySlug: string;
+  orientation?: 'portrait' | 'landscape' | string;
+};
+
+function GalleryItem({ item }: { item: GalleryImage }) {
+  const aspect =
+    item.orientation === 'portrait' ? 'aspect-[3/4]' : 'aspect-video';
+
+  return (
+    <Link
+      href={`/gallery/${item.countrySlug}`}
+      aria-label={item.alt ?? 'Apri immagine'}
+      className='block'
+    >
+      <div className={`relative ${aspect} overflow-hidden rounded-md`}>
+        <MediaImage
+          src={item.src}
+          alt={item.alt ?? ''}
+          fill
+          sizes='(max-width: 768px) 50vw, 33vw'
+          className='object-cover'
+        />
+      </div>
+    </Link>
+  );
+}

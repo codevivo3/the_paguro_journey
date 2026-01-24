@@ -1,19 +1,11 @@
 // src/app/(site)/blog/page.tsx
 import type { Metadata } from 'next';
-import Image from 'next/image';
-import Link from 'next/link';
 
 import { Masonry, MasonryItem } from '@/components/ui/Masonry';
-import {
-  Card,
-  CardMedia,
-  CardBody,
-  CardTitle,
-  CardText,
-} from '@/components/ui/Card';
+import BlogCardClient from '@/components/features/blog/BlogCardClient';
 
 import { getBlogPostsForIndex } from '@/sanity/queries/blog';
-import { urlFor } from '@/sanity/lib/image'; // you likely already have this
+import { urlFor } from '@/sanity/lib/image';
 
 export const metadata: Metadata = {
   title: 'Blog',
@@ -71,11 +63,7 @@ export default async function BlogPage() {
             {posts.map((post, index) => {
               // Resolve Sanity image to URL (if present)
               const coverSrc = post.coverImage
-                ? urlFor(post.coverImage)
-                    .width(1200)
-                    .height(900)
-                    .fit('crop')
-                    .url()
+                ? urlFor(post.coverImage).width(1200).height(900).fit('crop').url()
                 : BLOG_PLACEHOLDER_COVER;
 
               // We can’t know orientation from Sanity without storing it,
@@ -87,42 +75,16 @@ export default async function BlogPage() {
                     ? 'aspect-[3/4]'
                     : 'aspect-video';
 
-              const alt = post.title;
-
               return (
                 <MasonryItem key={post._id}>
-                  <Card>
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      aria-label={`Apri articolo: ${post.title}`}
-                      className='block'
-                    >
-                      <CardMedia className={mediaAspect}>
-                        <Image
-                          src={coverSrc}
-                          alt={alt}
-                          fill
-                          sizes='(max-width: 1024px) 100vw, 33vw'
-                          className='object-cover transition-transform duration-300 hover:scale-[1.02]'
-                        />
-                      </CardMedia>
-                    </Link>
-
-                    <CardBody>
-                      <CardTitle>{post.title}</CardTitle>
-                      {post.excerpt ? (
-                        <CardText>{post.excerpt}</CardText>
-                      ) : null}
-
-                      <Link
-                        href={`/blog/${post.slug}`}
-                        aria-label={`Leggi l'articolo: ${post.title}`}
-                        className='mt-auto inline-flex items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 hover:text-[color:var(--paguro-link-hover)]'
-                      >
-                        Leggi l&apos;articolo <span aria-hidden>➜</span>
-                      </Link>
-                    </CardBody>
-                  </Card>
+                  <BlogCardClient
+                    href={`/blog/${post.slug}`}
+                    title={post.title}
+                    excerpt={post.excerpt ?? ''}
+                    coverSrc={coverSrc}
+                    mediaAspect={mediaAspect}
+                    ariaLabel={`Apri articolo: ${post.title}`}
+                  />
                 </MasonryItem>
               );
             })}

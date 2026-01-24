@@ -1,31 +1,44 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Image from 'next/image';
-
-import {
-  Card,
-  CardMedia,
-  CardBody,
-  CardTitle,
-  CardText,
-} from '@/components/ui/Card';
 
 import type { YouTubeVideo } from '@/lib/youtube';
-import { cleanYouTubeDescription } from '@/lib/cleanYouTubeDescription';
 import { useCarouselFades } from './useCarouselFades';
+import VideoCardClient from '@/components/features/videos/VideoCardClient';
 
+// Refs (no re-renders):
+// - scrollerRef: the horizontal scroll container
+// - holdRef: manages continuous scroll while an arrow is held
 export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const holdRef = useRef<{ raf: number; dir: -1 | 0 | 1 }>({
-    raf: 0,
-    dir: 0,
-  });
+  const holdRef = useRef<{ raf: number; dir: -1 | 0 | 1 }>({ raf: 0, dir: 0 });
 
-  // ✅ PASS THE REF — not scrollerRef.current
+  // Arrow styling is shared with Hero arrows via CSS vars in globals.css.
+  const arrowBase = `
+    absolute top-1/2 z-50 -translate-y-1/2
+    rounded-full px-2 py-2
+    text-white backdrop-blur-md
+    transition duration-300 ease-out
+    hover:scale-[1.06] active:scale-[0.96]
+  `;
+
+  const arrowBg = `
+    bg-[color:var(--carousel-arrow-bg)]
+    hover:bg-[color:var(--carousel-arrow-bg-hover)]
+    active:bg-[color:var(--carousel-arrow-bg-active)]
+
+    ring-1 ring-[color:var(--carousel-arrow-ring)]
+    hover:ring-[color:var(--carousel-arrow-ring-hover)]
+
+    shadow-[0_14px_40px_rgba(0,0,0,0.18)]
+    transition-colors
+  `;
+
+  // Fade gradients depend on scroll position — pass the ref itself (not .current).
   const { fadeClass, recalc } = useCarouselFades(scrollerRef);
 
-  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  // Refs to each card wrapper, used to find and scroll to the centered item.
+  const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   function getCenteredIndex(): number {
     const el = scrollerRef.current;
@@ -35,7 +48,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
     let bestIdx = 0;
     let bestDist = Number.POSITIVE_INFINITY;
 
-    itemRefs.current.forEach((node, i) => {
+    cardRefs.current.forEach((node, i) => {
       if (!node) return;
       const nodeCenter = node.offsetLeft + node.offsetWidth / 2;
       const dist = Math.abs(nodeCenter - centerX);
@@ -50,7 +63,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
 
   function scrollToIndex(index: number) {
     const el = scrollerRef.current;
-    const node = itemRefs.current[index];
+    const node = cardRefs.current[index];
     if (!el || !node) return;
 
     const target = node.offsetLeft + node.offsetWidth / 2 - el.clientWidth / 2;
@@ -60,13 +73,14 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
     window.setTimeout(() => recalc(), 220);
   }
 
+  // Discrete step: center the previous/next card.
   function step(dir: -1 | 1) {
     const current = getCenteredIndex();
     const next = Math.max(0, Math.min(videos.length - 1, current + dir));
     scrollToIndex(next);
   }
 
-  // Continuous scrolling when holding arrow (stop anywhere)
+  // Hold-to-scroll: continuous scroll while pointer is held down.
   function startHold(dir: -1 | 1) {
     if (holdRef.current.raf) cancelAnimationFrame(holdRef.current.raf);
     holdRef.current.dir = dir;
@@ -83,6 +97,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
     holdRef.current.raf = requestAnimationFrame(tick);
   }
 
+  // Stop hold-to-scroll and recompute fades.
   function stopHold() {
     holdRef.current.dir = 0;
     if (holdRef.current.raf) cancelAnimationFrame(holdRef.current.raf);
@@ -90,6 +105,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
     recalc();
   }
 
+  // Safety: ensure any active RAF is cancelled when the component unmounts.
   useEffect(() => {
     return () => stopHold();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -102,7 +118,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         <button
           type='button'
           aria-label='Scorri a sinistra'
-          className='absolute left-2 top-1/2 z-50 -translate-y-1/2 rounded-full bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/10 via-[color:var(--paguro-ocean)]/40 to-[color:var(--paguro-ocean)]/70 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/20 hover:via-[color:var(--paguro-ocean)]/50 hover:to-[color:var(--paguro-ocean)]/80 hover:to-90% transition-transform duration-300 hover:scale-[1.07] active:scale-[0.96]'
+          className={`${arrowBase} ${arrowBg} left-2`}
           onPointerDown={(e) => {
             e.preventDefault();
             e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -133,7 +149,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         <button
           type='button'
           aria-label='Scorri a destra'
-          className='absolute right-2 top-1/2 z-50 -translate-y-1/2 rounded-full  bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/10 via-[color:var(--paguro-ocean)]/40 to-[color:var(--paguro-ocean)]/70 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/20 hover:via-[color:var(--paguro-ocean)]/50 hover:to-[color:var(--paguro-ocean)]/80 hover:to-90% transition-transform duration-300 hover:scale-[1.07] active:scale-[0.96]'
+          className={`${arrowBase} ${arrowBg} right-2`}
           onPointerDown={(e) => {
             e.preventDefault();
             e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -170,45 +186,14 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
             <div
               key={video.id}
               ref={(el) => {
-                itemRefs.current[i] = el;
+                cardRefs.current[i] = el;
               }}
               className='shrink-0 w-[85%] sm:w-[70%] md:w-[48%] lg:w-[32%]'
             >
-              <Card>
-                <CardMedia className='aspect-video'>
-                  <a
-                    href={video.href}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    aria-label={`Guarda il video: ${video.title}`}
-                    className='block relative h-full w-full'
-                  >
-                    <Image
-                      src={video.thumbnail}
-                      alt={video.title}
-                      fill
-                      sizes='(max-width: 768px) 85vw, (max-width: 1024px) 70vw, 33vw'
-                      className='object-cover transition-transform duration-300 hover:scale-[1.02]'
-                      quality={90}
-                    />
-                  </a>
-                </CardMedia>
-
-                <CardBody className='flex h-full flex-col'>
-                  <CardTitle>{video.title}</CardTitle>
-                  <CardText className='clamp-4'>
-                    {cleanYouTubeDescription(video.description)}
-                  </CardText>
-                  <a
-                    href={video.href}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='mt-auto inline-flex items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 hover:text-[color:var(--paguro-link-hover)]'
-                  >
-                    Guarda il video <span aria-hidden>➜</span>
-                  </a>
-                </CardBody>
-              </Card>
+              <VideoCardClient
+                video={video}
+                ariaLabel={`Guarda il video: ${video.title}`}
+              />
             </div>
           ))}
         </div>

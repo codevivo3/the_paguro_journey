@@ -5,6 +5,7 @@ import type { SanityHomeHeroSlide } from '@/sanity/queries/homeHeroSlides';
 export type HeroSlide = {
   src: string;
   alt?: string;
+  blurDataURL?: string;
 };
 
 export function mapSanityHeroSlides(
@@ -21,6 +22,7 @@ export function mapSanityHeroSlides(
       return {
         src,
         alt: s.alt ?? s.title ?? 'Foto di viaggio',
+        blurDataURL: s.blurDataURL,
       };
     })
     .filter(Boolean) as HeroSlide[];

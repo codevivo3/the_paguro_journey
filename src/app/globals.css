@@ -9,10 +9,14 @@
 /* ========================================================================== */
 
 :root {
-  /* Fonts (wired from next/font in layout.tsx) */
+  /* ------------------------------------------------------------------------ */
+  /* Fonts (wired from next/font in layout.tsx)                                */
+  /* ------------------------------------------------------------------------ */
   --font-editorial: var(--font-libre-baskerville, serif); /* Headlines */
   --font-body: var(--font-merriweather, serif); /* Long-form reading */
   --font-ui: var(--font-plus-jakarta, sans-serif); /* UI */
+
+  color-scheme: light dark; /* let browser/OS decide native UI (scrollbars, inputs) */
 
   /* ------------------------------------------------------------------------ */
   /* Brand palette (references + future tweaks)                               */
@@ -32,28 +36,54 @@
   --paguro-surface: #edf0e1; /* cards / surfaces */
 
   /* Text */
-  --paguro-text: #2F3B31;
-  --paguro-text-muted: color-mix(in srgb, var(--paguro-text) 65%, transparent);
-  --paguro-text-meta: color-mix(in srgb, var(--paguro-text) 50%, transparent);
+  --paguro-text: #2f3b31;
+  --paguro-text-muted: rgba(47, 59, 49, 0.65);
+  --paguro-text-meta: rgba(47, 59, 49, 0.5);
 
   /* Borders */
-  --paguro-border: rgba(29, 29, 31, 0.1);
+  --paguro-border: rgba(29, 31, 29, 0.1);
 
   /* Links */
   --paguro-link: #1f5f76;
   --paguro-link-hover: var(--paguro-coral);
-
-  /* Buttons */
-  --paguro-btn-text: #ffffff;
-  --geo-btn: #7fb6c7;
-  --geo-btn-alt: #7fb6c7;
-
   /* Icons */
   --paguro-icon-bg: rgba(91, 194, 217, 0.12);
   --paguro-icon-fg: var(--paguro-ocean);
 
   /* Footer */
   --paguro-footer: #e6e9d5;
+
+  /* ------------------------------------------------------------------------ */
+  /* Components: Destination pill (light mode)                                */
+  /* ------------------------------------------------------------------------ */
+  --pill-bg-light: rgba(91, 194, 217, 0.18); /* soft sea-glass */
+  --pill-from: rgba(91, 194, 217, 0.18);
+  --pill-to: rgba(255, 255, 255, 0.24);
+  --pill-from-hover: rgba(255, 255, 255, 0.24);
+  --pill-to-hover: rgba(91, 194, 217, 0.18);
+
+  --pill-text: #2f5f6b; /* calm ocean ink */
+
+  /* ------------------------------------------------------------------------ */
+  /* Components: Carousel arrows (light mode)                                 */
+  /* Neutral, OS-consistent translucent surfaces (no brand tint)              */
+  /* ------------------------------------------------------------------------ */
+  --carousel-arrow-bg: rgba(0, 0, 0, 0.06);
+  --carousel-arrow-bg-hover: rgba(0, 0, 0, 0.1);
+  --carousel-arrow-bg-active: rgba(0, 0, 0, 0.14);
+  --carousel-arrow-ring: rgba(0, 0, 0, 0.1);
+  --carousel-arrow-ring-hover: rgba(0, 0, 0, 0.16);
+}
+
+@supports (color: color-mix(in srgb, white 50%, transparent)) {
+  :root {
+    --paguro-text-muted: color-mix(
+      in srgb,
+      var(--paguro-text) 65%,
+      transparent
+    );
+    --paguro-text-meta: color-mix(in srgb, var(--paguro-text) 50%, transparent);
+  }
 }
 
 /* ========================================================================== */
@@ -62,13 +92,19 @@
 /* ========================================================================== */
 
 :root[data-theme='dark'] {
-  /* Brand palette (dark equivalents) */
+  /* ------------------------------------------------------------------------ */
+  /* Brand palette (dark equivalents)                                         */
+  /* ------------------------------------------------------------------------ */
   --paguro-ocean: #5bc2d9;
   --paguro-deep: #2a3a35;
 
   /* Accents */
   --paguro-sunset: #f2a341;
   --paguro-coral: #eb7134;
+
+  /* ------------------------------------------------------------------------ */
+  /* Semantic tokens (dark overrides)                                         */
+  /* ------------------------------------------------------------------------ */
 
   /* Surfaces */
   --paguro-bg: #171b1a;
@@ -96,6 +132,25 @@
 
   /* Footer */
   --paguro-footer: #2a3a35;
+
+  /* ------------------------------------------------------------------------ */
+  /* Components: Destination pill (dark mode)                                 */
+  /* ------------------------------------------------------------------------ */
+  --pill-text: #ffffff;
+  --pill-from: rgba(255, 255, 255, 0.15);
+  --pill-to: rgba(255, 255, 255, 0.05);
+  --pill-from-hover: rgba(255, 255, 255, 0.1);
+  --pill-to-hover: rgba(91, 194, 217, 0.14);
+
+  /* ------------------------------------------------------------------------ */
+  /* Components: Carousel arrows (dark mode)                                  */
+  /* Neutral, OS-consistent translucent surfaces (no brand tint)              */
+  /* ------------------------------------------------------------------------ */
+  --carousel-arrow-bg: rgba(255, 255, 255, 0.08);
+  --carousel-arrow-bg-hover: rgba(255, 255, 255, 0.12);
+  --carousel-arrow-bg-active: rgba(255, 255, 255, 0.16);
+  --carousel-arrow-ring: rgba(255, 255, 255, 0.14);
+  --carousel-arrow-ring-hover: rgba(255, 255, 255, 0.22);
 }
 
 /* ========================================================================== */
@@ -247,8 +302,30 @@ body {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Page scrollbar — native colors, just thinner                               */
+/* - Color stays OS/browser default (via `color-scheme: light dark`)           */
+/* - We only adjust width + thumb radius                                       */
+/* -------------------------------------------------------------------------- */
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+}
+
+/* Chromium / Safari */
+html::-webkit-scrollbar {
+  width: 8px; /* vertical */
+  height: 8px; /* horizontal */
+}
+
+/* Keep native colors; only round the thumb */
+html::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+}
+
 /* ========================================================================== */
-/*  Utilities                                                                 */
+/*  Hides Scrollbar from LatestVideosSection                                  */
 /* ========================================================================== */
 
 /* Hide scrollbar but keep scrolling */
@@ -259,6 +336,26 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Edge */
+}
+
+/* ========================================================================== */
+/* Sanity Studio — force full viewport + remove outer page scrolling/gutter   */
+/* ========================================================================== */
+
+/* When Studio is present, prevent the outer page from scrolling.
+   Studio manages its own internal scroll containers. */
+html:has(.studio-shell),
+body:has(.studio-shell) {
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Make the Studio wrapper fully occupy the viewport */
+.studio-shell {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100svh;
 }
 
 /* ========================================================================== */
@@ -280,43 +377,56 @@ body {
   animation: crab-walk 35s linear infinite;
 }
 
-/* Arrow hover micro-interactions */
-@keyframes arrowPop {
-  0% {
-    transform: scale(1);
-  }
-  60% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1.06);
-  }
+/* ========================================================================== */
+/*  Loading Language                                                          */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* Skeleton shimmer (media loading)                                           */
+/* Use: add className="skeleton" to any placeholder surface                   */
+/* -------------------------------------------------------------------------- */
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+
+  /* base */
+  background-color: rgba(0, 0, 0, 0.06); /* light mode base */
+
+  /* shimmer layer */
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  background-position: 200% 0;
+
+  animation: skeleton-bg 1.1s linear infinite;
 }
 
-/* Springy bounce (no overshoot chaos, just premium UI) */
-@keyframes arrowSpring {
-  0% {
-    transform: translateX(0) scale(1);
-  }
-  35% {
-    transform: translateX(-2px) scale(1.18);
-  }
-  60% {
-    transform: translateX(1px) scale(0.96);
-  }
-  80% {
-    transform: translateX(-1px) scale(1.06);
-  }
-  100% {
-    transform: translateX(0) scale(1);
-  }
+:root[data-theme='dark'] .skeleton {
+  background-color: rgba(255, 255, 255, 0.08); /* dark mode base */
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
+/* Neutralize any older pseudo-element shimmer so it can’t conflict */
+.skeleton::after {
+  content: none;
+}
 
-@keyframes arrowSpringRight {
-  0%   { transform: translateX(0) scale(1); }
-  35%  { transform: translateX(2px)  scale(1.18); }
-  60%  { transform: translateX(-1px) scale(0.96); }
-  80%  { transform: translateX(1px)  scale(1.06); }
-  100% { transform: translateX(0) scale(1); }
+@keyframes skeleton-bg {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

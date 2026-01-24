@@ -11,7 +11,26 @@ import {
 
 import { UIProvider } from '@/context/ui-context';
 
+// -----------------------------------------------------------------------------
+// Theme bootstrap (runs before hydration)
+// -----------------------------------------------------------------------------
+const THEME_BOOTSTRAP_SCRIPT = `(() => {
+  try {
+    const stored = localStorage.getItem('theme');
+    const theme =
+      stored === 'dark' || stored === 'light'
+        ? stored
+        : window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
 
+    document.documentElement.dataset.theme = theme;
+  } catch {
+    // no-op (e.g. privacy mode / disabled storage)
+  }
+})();`;
+
+// Fonts used throughout the application, exposed as CSS variables for styling
 const merriweather = Merriweather({
   subsets: ['latin'],
   variable: '--font-merriweather',
@@ -39,7 +58,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 // Keep these as sensible defaults; override per-page where needed.
 // -----------------------------------------------------------------------------
 export const metadata: Metadata = {
-  // NOTE: change this to your production domain once you deploy.
+  // NOTE: update this to your production domain once deployed.
   // This enables correct absolute URLs for OpenGraph/Twitter images.
   metadataBase: new URL('http://thepagurojourney.com/'),
 
@@ -105,12 +124,12 @@ export const metadata: Metadata = {
   },
 };
 
-// Root layout component wrapping all pages
+// -----------------------------------------------------------------------------
+// Root layout component wrapping all routes
+// -----------------------------------------------------------------------------
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang='it'
@@ -123,18 +142,11 @@ export default function RootLayout({
           This reads localStorage (user preference) and falls back to OS preference.
         */}
         <script
-          dangerouslySetInnerHTML={{
-            __html: `(function () {
-                  try {
-                    var stored = localStorage.getItem('theme');
-                    var theme = stored === 'dark' || stored === 'light'
-                      ? stored
-                      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                    document.documentElement.dataset.theme = theme;
-                    document.documentElement.style.colorScheme = theme;
-                  } catch (e) {}
-                })();`,
-          }}
+          // Theme bootstrap: run before hydration to avoid a flash of the wrong theme.
+          // Strategy:
+          // 1) localStorage.theme ("light" | "dark") wins
+          // 2) otherwise fall back to OS preference
+          dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }}
         />
       </head>
       <body suppressHydrationWarning className='antialiased'>

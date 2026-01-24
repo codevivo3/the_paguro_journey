@@ -15,7 +15,8 @@ const ABOUT_IMAGE_QUERY = /* groq */ `
     "aboutImage": aboutImage->{
       alt,
       caption,
-      "image": image.asset
+      "image": image.asset,
+      "blurDataURL": image.asset->metadata.lqip
     }
   }
 `;
@@ -24,12 +25,14 @@ async function getAboutImageFromSanity(): Promise<{
   src: string;
   alt: string;
   caption?: string;
+  blurDataURL?: string;
 } | null> {
   const data = await client.fetch<{
     aboutImage?: {
       alt?: string;
       caption?: string;
       image?: SanityImageSource;
+      blurDataURL?: string;
     };
   } | null>(ABOUT_IMAGE_QUERY);
 
@@ -45,6 +48,7 @@ async function getAboutImageFromSanity(): Promise<{
     src,
     alt: img.alt ?? 'Valentina e Mattia in un paesaggio naturale',
     caption: img.caption,
+    blurDataURL: img.blurDataURL,
   };
 }
 
@@ -90,6 +94,7 @@ export default async function AboutPage() {
   const imgSrc = aboutImage?.src ?? '/about-pic.jpg';
   const imgAlt =
     aboutImage?.alt ?? 'Valentina e Mattia in un paesaggio naturale';
+  const blurDataURL = aboutImage?.blurDataURL;
 
   return (
     <main className='px-6 pb-16 pt-24'>
@@ -111,6 +116,8 @@ export default async function AboutPage() {
               className='object-cover'
               sizes='(max-width: 1024px) 100vw, 768px'
               priority
+              placeholder={blurDataURL ? 'blur' : 'empty'}
+              blurDataURL={blurDataURL}
             />
           </div>
 

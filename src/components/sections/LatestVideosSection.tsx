@@ -1,7 +1,14 @@
+/****
+ * LatestVideosSection
+ *
+ * Displays the most recent YouTube videos using a horizontal carousel.
+ * Includes a direct link to the Paguro Journey YouTube channel.
+ */
 import { getLatestRegularVideos } from '@/lib/youtube';
 import VideoCarousel from '@/components/features/videos/VideoCarousel.client';
 
 export default async function LatestVidsSection() {
+  // Server-side fetch: keeps API keys and quota logic out of the client bundle
   const latestVideos = await getLatestRegularVideos(15);
 
   return (
@@ -12,19 +19,32 @@ export default async function LatestVidsSection() {
             <h3 className='t-page-title leading-none'>Ultimi Video</h3>
             <a
               href='https://www.youtube.com/@thepagurojourney'
-              className='inline-flex items-center'
-              aria-label='YouTube'
+              target='_blank'
+              rel='noreferrer'
+              className='inline-flex items-center justify-center leading-none rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-ocean)]/40'
+              aria-label='Visita il canale YouTube di The Paguro Journey'
             >
+              {/*
+                YouTube logo (inline SVG):
+                - red rounded rectangle background
+                - white play triangle as a separate path
+                This allows precise control over color and shadows.
+              */}
               <svg
-                className='block h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 transition-transform duration-300 hover:scale-[1.1]'
+                className='block h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 drop-shadow-sm transition-transform duration-300 hover:scale-[1.1] active:scale-[0.95]'
                 viewBox='0 0 640 640'
                 preserveAspectRatio='xMidYMid meet'
                 focusable='false'
                 aria-hidden='true'
+                role='img'
               >
                 <path
                   fill='#ff0233'
-                  d='M581.7 188.1C575.5 164.4 556.9 145.8 533.4 139.5C490.9 128 320.1 128 320.1 128C320.1 128 149.3 128 106.7 139.5C83.2 145.8 64.7 164.4 58.4 188.1C47 231 47 320.4 47 320.4C47 320.4 47 409.8 58.4 452.7C64.7 476.3 83.2 494.2 106.7 500.5C149.3 512 320.1 512 320.1 512C320.1 512 490.9 512 533.5 500.5C557 494.2 575.5 476.3 581.8 452.7C593.2 409.8 593.2 320.4 593.2 320.4C593.2 320.4 593.2 231 581.8 188.1zM264.2 401.6L264.2 239.2L406.9 320.4L264.2 401.6z'
+                  d='M581.7 188.1C575.5 164.4 556.9 145.8 533.4 139.5C490.9 128 320.1 128 320.1 128C320.1 128 149.3 128 106.7 139.5C83.2 145.8 64.7 164.4 58.4 188.1C47 231 47 320.4 47 320.4C47 320.4 47 409.8 58.4 452.7C64.7 476.3 83.2 494.2 106.7 500.5C149.3 512 320.1 512 320.1 512C320.1 512 490.9 512 533.5 500.5C557 494.2 575.5 476.3 581.8 452.7C593.2 409.8 593.2 320.4 593.2 320.4C593.2 320.4 593.2 231 581.8 188.1z'
+                />
+                <path
+                  fill='#ffffff'
+                  d='M264.2 401.6V239.2L406.9 320.4L264.2 401.6z'
                 />
               </svg>
             </a>
@@ -34,6 +54,11 @@ export default async function LatestVidsSection() {
           </p>
         </header>
 
+        {/*
+          Presentation-only carousel:
+          - scrolling, controls, and fades handled client-side
+          - data already resolved server-side
+        */}
         <VideoCarousel videos={latestVideos} />
       </div>
     </section>

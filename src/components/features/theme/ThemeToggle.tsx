@@ -4,23 +4,83 @@ import * as React from 'react';
 
 type Theme = 'light' | 'dark';
 
+/**
+ * Reads the preferred theme.
+ * Priority:
+ * 1) persisted user choice (localStorage)
+ * 2) OS preference (prefers-color-scheme)
+ */
 function getPreferredTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
+
   const stored = window.localStorage.getItem('theme');
   if (stored === 'light' || stored === 'dark') return stored;
+
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches
     ? 'dark'
     : 'light';
 }
 
+/**
+ * Applies theme to the document.
+ * NOTE: We only set `data-theme`.
+ * We intentionally do NOT force `color-scheme` so native UI (scrollbars, inputs)
+ * can follow the OS/browser.
+ */
 function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
-  // optional but nice: lets form controls match theme
-  document.documentElement.style.colorScheme = theme;
+}
+
+// --- Icons (inline SVG; no external deps) ----------------------------------
+
+function SunIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      width='24'
+      height='24'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      {...props}
+    >
+      <circle cx='12' cy='12' r='4' />
+      <path d='M12 2v2' />
+      <path d='M12 20v2' />
+      <path d='m4.93 4.93 1.41 1.41' />
+      <path d='m17.66 17.66 1.41 1.41' />
+      <path d='M2 12h2' />
+      <path d='M20 12h2' />
+      <path d='m6.34 17.66-1.41 1.41' />
+      <path d='m19.07 4.93-1.41 1.41' />
+    </svg>
+  );
+}
+
+function MoonIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      width='24'
+      height='24'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      {...props}
+    >
+      <path d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' />
+    </svg>
+  );
 }
 
 export default function SwitchTheme() {
-  const [theme, setTheme] = React.useState<Theme>('light');
+  const [theme, setTheme] = React.useState<Theme>(() => 'light');
 
   React.useEffect(() => {
     const t = getPreferredTheme();
@@ -28,14 +88,26 @@ export default function SwitchTheme() {
     applyTheme(t);
   }, []);
 
-  function toggle() {
+  const toggle = React.useCallback(() => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     applyTheme(next);
     window.localStorage.setItem('theme', next);
-  }
+  }, [theme]);
 
   const isDark = theme === 'dark';
+
+  const trackClassName =
+    'relative inline-flex h-9 w-16 items-center rounded-full p-1 ' +
+    'transition-colors duration-300 ' +
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-ocean)]/40 ' +
+    'shadow-sm';
+
+  const knobClassName =
+    'relative z-10 grid size-7 place-items-center rounded-full ' +
+    'bg-white/90 backdrop-blur shadow-md transition-transform duration-300 ' +
+    'ease-[cubic-bezier(.2,.9,.2,1.2)] ' +
+    (isDark ? 'translate-x-7' : 'translate-x-0');
 
   return (
     <button
@@ -44,45 +116,30 @@ export default function SwitchTheme() {
       role='switch'
       aria-checked={isDark}
       aria-label='Cambia tema'
-      className='inline-flex items-center gap-2 h-9.5 rounded-full border border-white/20 bg-radial-[at_50%_75%] from-white/20 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90%  px-3 py-2 text-sm text-[color:var(--paguro-text)] shadow-sm transition'
+      className={trackClassName}
+      style={{
+        backgroundImage: isDark
+          ? 'linear-gradient(135deg, rgba(42,58,53,0.95), rgba(23,27,26,0.95))'
+          : 'linear-gradient(135deg, rgba(91,194,217,0.55), rgba(65,155,191,0.85))',
+      }}
     >
-      <span className='sr-only'>Tema</span>
+      <span className='sr-only'>Cambia tema</span>
 
-      {/* track */}
-      <span
-        className='relative inline-flex h-3.5 w-8 items-center rounded-full border border-white/30 bg-black/3 shadow-inner'
-        aria-hidden='true'
-      >
-        {/* thumb */}
-        <span
-          className={[
-            'absolute left-0.5 h-2.5 w-4 rounded-full bg-[color:var(--paguro-sunset)] transition-transform',
-            isDark ? 'translate-x-2.5' : 'translate-x-0',
-          ].join(' ')}
-        />
+      {/* Decorative track icons (subtle) */}
+      <span aria-hidden='true' className='absolute left-2 text-white/80'>
+        <SunIcon className='size-4' />
       </span>
 
-      <span className='t-meta leading-none'>
+      <span aria-hidden='true' className='absolute right-2 text-white/80'>
+        <MoonIcon className='size-4' />
+      </span>
+
+      {/* Sliding knob */}
+      <span aria-hidden='true' className={knobClassName}>
         {isDark ? (
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='20'
-            height='20'
-            fill='#ffffff'
-            viewBox='0 0 256 256'
-          >
-            <path d='M236.37,139.4a12,12,0,0,0-12-3A84.07,84.07,0,0,1,119.6,31.59a12,12,0,0,0-15-15A108.86,108.86,0,0,0,49.69,55.07,108,108,0,0,0,136,228a107.09,107.09,0,0,0,64.93-21.69,108.86,108.86,0,0,0,38.44-54.94A12,12,0,0,0,236.37,139.4Zm-49.88,47.74A84,84,0,0,1,68.86,69.51,84.93,84.93,0,0,1,92.27,48.29Q92,52.13,92,56A108.12,108.12,0,0,0,200,164q3.87,0,7.71-.27A84.79,84.79,0,0,1,186.49,187.14Z'></path>
-          </svg>
+          <MoonIcon className='size-4 text-[color:var(--paguro-deep)]' />
         ) : (
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='20'
-            height='20'
-            fill='#ffffff'
-            viewBox='0 0 256 256'
-          >
-            <path d='M116,36V20a12,12,0,0,1,24,0V36a12,12,0,0,1-24,0Zm80,92a68,68,0,1,1-68-68A68.07,68.07,0,0,1,196,128Zm-24,0a44,44,0,1,0-44,44A44.05,44.05,0,0,0,172,128ZM51.51,68.49a12,12,0,1,0,17-17l-12-12a12,12,0,0,0-17,17Zm0,119-12,12a12,12,0,0,0,17,17l12-12a12,12,0,1,0-17-17ZM196,72a12,12,0,0,0,8.49-3.51l12-12a12,12,0,0,0-17-17l-12,12A12,12,0,0,0,196,72Zm8.49,115.51a12,12,0,0,0-17,17l12,12a12,12,0,0,0,17-17ZM48,128a12,12,0,0,0-12-12H20a12,12,0,0,0,0,24H36A12,12,0,0,0,48,128Zm80,80a12,12,0,0,0-12,12v16a12,12,0,0,0,24,0V220A12,12,0,0,0,128,208Zm108-92H220a12,12,0,0,0,0,24h16a12,12,0,0,0,0-24Z'></path>
-          </svg>
+          <SunIcon className='size-4 text-[color:var(--paguro-deep)]' />
         )}
       </span>
     </button>

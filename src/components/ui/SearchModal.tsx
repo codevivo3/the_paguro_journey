@@ -2,8 +2,6 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-import Image from 'next/image';
-
 import { useUI } from '@/context/ui-context';
 
 export default function SearchModal() {
@@ -54,15 +52,31 @@ export default function SearchModal() {
         type='button'
         onClick={openSearch}
         aria-label='Search'
-        className='inline-flex items-center h-9.5 w-9.5 px-2 py-1 rounded-3xl transition-colors duration-500 hover:bg-white/20 hover:shadow-sm hover:text-[color:var(--paguro-text-light)] hover:border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
+        className='group relative inline-flex h-8 w-8 items-center justify-center rounded-full text-white/80 transition-colors duration-200 hover:text-white focus-visible:outline-none'
       >
+        <svg
+          aria-hidden
+          className='absolute inset-0 -rotate-90 pointer-events-none'
+          viewBox='0 0 36 36'
+        >
+          <circle
+            cx='18'
+            cy='18'
+            r='16'
+            fill='none'
+            stroke='currentColor'
+            strokeWidth='2'
+            strokeLinecap='butt'
+            className='[stroke-dasharray:101] [stroke-dashoffset:100] opacity-0 transition-[stroke-dashoffset,opacity] duration-300 ease-out group-hover:[stroke-dashoffset:0] group-hover:opacity-100'
+          />
+        </svg>
         <svg
           xmlns='http://www.w3.org/2000/svg'
           fill='none'
           viewBox='0 0 24 24'
-          strokeWidth='1.5'
+          strokeWidth='1.3'
           stroke='currentColor'
-          className='size-5.5'
+          className='relative z-10 size-5.5'
         >
           <path
             strokeLinecap='round'
@@ -86,7 +100,7 @@ export default function SearchModal() {
               >
                 <div className='flex items-center justify-between'>
                   <h2 className='text-black [font-family:var(--font-ui)] font-semibold'>
-                    Search
+                    Cerca
                   </h2>
                   <button
                     type='button'
@@ -111,16 +125,33 @@ export default function SearchModal() {
                   </button>
                 </div>
 
-                <input
-                  ref={searchInputRef}
-                  type='text'
-                  placeholder='Search...'
-                  className='[font-family:var(--font-ui)] mt-4 w-full rounded border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring focus:ring-blue-500'
-                  autoFocus
-                />
+                <div
+                  className="
+                    mt-4 rounded-full p-[2px]
+                    bg-gradient-to-r
+                    from-[color:var(--paguro-ocean)]
+                    to-[color:var(--paguro-deep)]
+                    focus-within:shadow-[0_0_0_2px_rgba(91,194,217,0.35)]
+                  "
+                >
+                  <input
+                    ref={searchInputRef}
+                    type='text'
+                    placeholder='Cerca...'
+                    className='
+                      w-full rounded-full
+                      bg-white
+                      px-3 py-2
+                      text-black
+                      [font-family:var(--font-ui)]
+                      focus:outline-none
+                    '
+                    autoFocus
+                  />
+                </div>
               </div>
             </div>,
-            document.body
+            document.body,
           )
         : null}
     </>

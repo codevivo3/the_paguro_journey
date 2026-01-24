@@ -46,10 +46,6 @@ export const metadata = {
   const sanitySlides = await getHomeHeroSlides();
   const slides = mapSanityHeroSlides(sanitySlides);
 
-  console.log('sanitySlides raw:', sanitySlides);
-  console.log('slides mapped:', slides);
-  console.log('HERO SLIDES', slides);
-
 
   return (
     <>

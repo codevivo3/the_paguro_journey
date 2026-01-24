@@ -1,5 +1,57 @@
 'use client';
 
+/**
+ * Shared arrow icon for hero navigation.
+ * Direction is controlled via rotation to avoid SVG duplication.
+ */
+function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      fill='none'
+      viewBox='0 0 24 24'
+      strokeWidth='2'
+      stroke='currentColor'
+      className={`size-8 ${direction === 'right' ? 'rotate-180' : ''}`}
+      aria-hidden='true'
+    >
+      <path
+        strokeLinecap='round'
+        strokeLinejoin='round'
+        d='M15.75 19.5 8.25 12l7.5-7.5'
+      />
+    </svg>
+  );
+}
+
+/**
+ * Generic arrow button wrapper to keep markup DRY.
+ * Visibility is handled via `group-hover` on the parent hero container.
+ */
+function ArrowButton({
+  onClick,
+  ariaLabel,
+  className,
+  direction,
+}: {
+  onClick: () => void;
+  ariaLabel: string;
+  className: string;
+  direction: 'left' | 'right';
+}) {
+  return (
+    <button
+      type='button'
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={className}
+    >
+      <ArrowIcon direction={direction} />
+    </button>
+  );
+}
+
+
 type HeroSlideControlsProps = {
   count: number;
   activeIndex: number;
@@ -15,64 +67,58 @@ export default function HeroSlideControls({
   onNext,
   onSelect,
 }: HeroSlideControlsProps) {
+  // No controls needed for a single (or missing) slide
   if (count <= 1) return null;
+
+  // Base arrow layout + interaction behavior
+  // - Hidden by default
+  // - Revealed when the hero container is hovered (group-hover)
+  const arrowBase =
+    'absolute top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 text-white ' +
+    'backdrop-blur shadow-xl transition ' +
+    'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto ' +
+    'duration-300 ease-out ' +
+    'hover:scale-[1.05] active:scale-[0.95]';
+
+  // Neutral, glassy background — no gradients, no theme coupling
+  const arrowBg =
+    'bg-white/5 ' +
+    'hover:bg-white/10 active:bg-white/15 ' +
+    'ring-1 ring-white/10 hover:ring-white/20 ' +
+    'transition-colors';
 
   return (
     <>
-      {/* Slide navigation arrows (previous / next) */}
-      <button
+      {/* Previous slide */}
+      <ArrowButton
         onClick={onPrev}
-        aria-label='Immagine precedente'
-        className='absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 backdrop-blur transition-colors duration-300 bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/3 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/6 hover:via-[color:var(--paguro-ocean)]/20 hover:to-[color:var(--paguro-ocean)]/30 hover:to-90% transition-transform duration-300 hover:scale-[1.05] active:scale-[0.95]'
-      >
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          fill='none'
-          viewBox='0 0 24 24'
-          strokeWidth='2'
-          stroke='currentColor'
-          className='size-8'
-        >
-          <path
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            strokeWidth='2'
-            d='M15.75 19.5 8.25 12l7.5-7.5'
-          />
-        </svg>
-      </button>
+        ariaLabel='Immagine precedente'
+        direction='left'
+        className={`${arrowBase} ${arrowBg} left-4`}
+      />
 
-      <button
+      {/* Next slide */}
+      <ArrowButton
         onClick={onNext}
-        aria-label='Immagine successiva'
-        className='absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 text-white backdrop-blur transition-colors duration-300 bg-radial-[at_50%_75%] from-[color:var(--paguro-ocean)]/3 via-[color:var(--paguro-ocean)]/10 to-[color:var(--paguro-ocean)]/25 to-90% px-2 py-2 text-white backdrop-blur transition shadow-xl hover:bg-radial-[at_50%_75%] hover:from-[color:var(--paguro-ocean)]/6 hover:via-[color:var(--paguro-ocean)]/20 hover:to-[color:var(--paguro-ocean)]/30 hover:to-90% transition-transform duration-300 hover:scale-[1.05] active:scale-[0.95]'
-      >
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          fill='none'
-          viewBox='0 0 24 24'
-          strokeWidth='2'
-          stroke='currentColor'
-          className='size-8'
-        >
-          <path
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            d='m8.25 4.5 7.5 7.5-7.5 7.5'
-          />
-        </svg>
-      </button>
+        ariaLabel='Immagine successiva'
+        direction='right'
+        className={`${arrowBase} ${arrowBg} right-4`}
+      />
 
-      {/* Slide indicators (one dot per slide) */}
+      {/* Slide indicators */}
       <div className='absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2'>
         {Array.from({ length: count }).map((_, i) => (
           <button
             key={i}
+            type='button'
             onClick={() => onSelect(i)}
             aria-label={`Go to slide ${i + 1}`}
-            className={`h-2.5 w-2.5 rounded-full transition ${
-              i === activeIndex ? 'bg-white' : 'bg-white/40 hover:bg-white/70'
-            }`}
+            className={
+              'h-1 w-5 rounded-full transition ' +
+              (i === activeIndex
+                ? 'bg-white/80'
+                : 'bg-white/20 hover:bg-white/50')
+            }
           />
         ))}
       </div>

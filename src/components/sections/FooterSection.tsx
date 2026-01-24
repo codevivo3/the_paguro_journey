@@ -7,23 +7,23 @@ import MailIcon from '../icons/MailIcon';
 
 export default function Footer() {
   return (
-    <footer className='mt-32 border-t border-[color:var(--paguro-border)] bg-[color:var(--paguro-footer)] py-16 text-[color:var(--paguro-text)]'>
-      <div className='mx-auto max-w-5xl px-6 grid gap-10 md:grid-cols-3'>
+    <footer className='mt-24 border-t border-[color:var(--paguro-border)] bg-[color:var(--paguro-footer)] py-12 text-[color:var(--paguro-text)]'>
+      <div className='mx-auto max-w-5xl px-6 grid gap-8 md:grid-cols-3'>
         {/* Identity */}
         <div className='space-y-2'>
           <Link
             href={'/'}
-            className='text-xl [font-family:var(--font-ui)] font-semibold transition-colors hover:text-[color:var(--paguro-coral)]'
+            className='text-lg [font-family:var(--font-ui)] font-semibold transition-colors hover:text-[color:var(--paguro-coral)]'
           >
             The Paguro Journey
           </Link>
-          <p className='mt-2 text-sm t-body'>
+          <p className='mt-2 text-xs text-[color:var(--paguro-text)]/70'>
             Viaggi consapevoli, destinazioni fuori rotta.
           </p>
         </div>
 
         {/* Navigation */}
-        <nav className='flex flex-col items-center gap-2 text-sm'>
+        <nav className='flex flex-col items-center gap-1.5 text-xs'>
           <Link
             href='/blog'
             className='transition-colors hover:text-[color:var(--paguro-coral)]'
@@ -58,7 +58,7 @@ export default function Footer() {
 
         {/* Social */}
         <div className='flex flex-col items-center md:justify-self-end'>
-          <div className='flex items-center gap-5'>
+          <div className='flex items-center gap-4'>
             <a
               href='mailto:thepagurojourney@gmail.com'
               target='_blank'
@@ -66,7 +66,7 @@ export default function Footer() {
               aria-label='Email'
               className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
             >
-              <MailIcon className='h-7.5 w-7.5' />
+              <MailIcon className='h-6.5 w-6.5' />
             </a>
             <a
               href='https://www.youtube.com/@thepagurojourney'
@@ -75,7 +75,7 @@ export default function Footer() {
               aria-label='YouTube'
               className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
             >
-              <YouTubeIcon className='h-7.5 w-7.5' />
+              <YouTubeIcon className='h-7 w-7' />
             </a>
             <a
               href='https://www.instagram.com/the_paguro_journey/'
@@ -84,7 +84,7 @@ export default function Footer() {
               aria-label='Instagram'
               className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
             >
-              <InstagramIcon className='h-6 w-6' />
+              <InstagramIcon className='h-5 w-5' />
             </a>
             <a
               href='https://www.tiktok.com/login?redirect_url=https%3A%2F%2Fwww.tiktok.com%2F%40the_paguro_journey&lang=en&enter_method=mandatory'
@@ -93,13 +93,13 @@ export default function Footer() {
               aria-label='TikTok'
               className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
             >
-              <TikTokIcon className='h-6 w-6' />
+              <TikTokIcon className='h-4.5 w-4.5' />
             </a>
           </div>
         </div>
       </div>
 
-      <div className='mt-12 text-center text-xs t-meta'>
+      <div className='mt-8 text-center text-[0.7rem] t-meta'>
         © {new Date().getFullYear()} The Paguro Journey
       </div>
     </footer>

@@ -29,13 +29,19 @@ export default function Button({
   external = false,
 }: ButtonProps) {
   const baseClass =
-    'inline-flex items-center gap-2 rounded-full bg-[color:var(--paguro-ocean)] px-6 py-3 text-lg transition-colors hover:bg-[color:var(--paguro-link-hover)] font-extrabold [font-family:var(--font-ui)]';
+    'group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ' +
+    '[font-family:var(--font-ui)] text-white overflow-hidden transition-all duration-300 ' +
+    'bg-[color:var(--paguro-ocean)] ' +
+    'before:absolute before:inset-0 before:z-0 before:bg-[color:var(--paguro-link-hover)] ' +
+    'before:translate-x-[-100%] before:transition-transform before:duration-500 ' +
+    'hover:before:translate-x-0 ' +
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40';
 
   // Button element (action)
   if (!href) {
     return (
       <button onClick={onClick} className={`${baseClass} ${className}`}>
-        {children}
+        <span className='relative z-10'>{children}</span>
       </button>
     );
   }
@@ -49,7 +55,7 @@ export default function Button({
         rel="noopener noreferrer"
         className={`${baseClass} ${className}`}
       >
-        {children}
+        <span className='relative z-10'>{children}</span>
       </a>
     );
   }
@@ -57,7 +63,7 @@ export default function Button({
   // Internal link
   return (
     <Link href={href} className={`${baseClass} ${className}`}>
-      {children}
+      <span className='relative z-10'>{children}</span>
     </Link>
   );
 }

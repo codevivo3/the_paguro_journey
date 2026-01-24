@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
+import MediaImage from '@/components/features/media/MediaImage';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -184,7 +184,7 @@ export default function GalleryGrid({
                 className='group block w-full overflow-hidden rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm'
               >
                 <div className={`relative w-full ${aspect}`}>
-                  <Image
+                  <MediaImage
                     src={img.src}
                     alt={alt}
                     fill

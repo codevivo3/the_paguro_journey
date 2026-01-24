@@ -1,17 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 
 import Image from 'next/image';
 
 import { useUI } from '@/context/ui-context';
 import HeroSlideControls from './HeroSlideControls';
 
+const SWIPE_THRESHOLD_PX = 45;
+
 type HeroSlideShowProps = {
   /** Hero slides (preferably fetched from Sanity). */
   slides?: Array<{
     src: string;
     alt?: string;
+    /** Optional base64 blur placeholder (blur-up). */
+    blurDataURL?: string;
   }>;
   /** Milliseconds each slide stays visible */
   intervalMs?: number;
@@ -32,39 +36,94 @@ export default function HeroSection({
 }: HeroSlideShowProps) {
   // Slides are provided by the parent (source-of-truth: Sanity).
   // We only normalize/validate here to keep this component purely presentational.
-  const safeSlides =
-    (slides ?? []).filter((s) => typeof s?.src === 'string' && s.src.length > 0);
-  const hasSlides = safeSlides.length > 0;
+  const safeSlides = useMemo(
+    () =>
+      (slides ?? []).filter(
+        (s) => typeof s?.src === 'string' && s.src.length > 0,
+      ),
+    [slides],
+  );
+
+  const slideCount = safeSlides.length;
+  const hasSlides = slideCount > 0;
 
   const { isSearchOpen } = useUI();
-  const isPaused = isSearchOpen;
 
   const [index, setIndex] = useState(0);
 
-  const slideCount = safeSlides.length;
+  // Swipe support (mobile / trackpad)
+  const [isInteracting, setIsInteracting] = useState(false);
+  const startXRef = useRef<number | null>(null);
 
-  const goTo = (next: number) => {
-    setIndex(((next % slideCount) + slideCount) % slideCount);
-  };
+  // Pause autoplay while overlays are open or the user is interacting.
+  const isPaused = isSearchOpen || isInteracting;
 
-  const goNext = () => goTo(index + 1);
-  const goPrev = () => goTo(index - 1);
+  const goTo = useCallback(
+    (next: number) => {
+      if (slideCount === 0) return;
+      setIndex(((next % slideCount) + slideCount) % slideCount);
+    },
+    [slideCount],
+  );
+
+  const goNext = useCallback(() => {
+    setIndex((prev) => {
+      if (slideCount === 0) return prev;
+      const next = prev + 1;
+      return ((next % slideCount) + slideCount) % slideCount;
+    });
+  }, [slideCount]);
+
+  const goPrev = useCallback(() => {
+    setIndex((prev) => {
+      if (slideCount === 0) return prev;
+      const next = prev - 1;
+      return ((next % slideCount) + slideCount) % slideCount;
+    });
+  }, [slideCount]);
 
   // Clamp index during render to avoid out-of-range access
-  const safeIndex = safeSlides.length ? index % safeSlides.length : 0;
+  const safeIndex = slideCount ? index % slideCount : 0;
 
-  // Loop slides (pause while Search modal is open)
+  // Autoplay slides (paused while Search modal is open or user is swiping)
   useEffect(() => {
     if (isPaused) return;
     if (!hasSlides) return;
 
     const id = window.setInterval(() => {
-      // Use safeSlides.length to stay consistent with filtering
-      setIndex((prev) => (prev + 1) % safeSlides.length);
+      setIndex((prev) => (prev + 1) % slideCount);
     }, intervalMs);
 
     return () => window.clearInterval(id);
-  }, [isPaused, hasSlides, safeSlides.length, intervalMs]);
+  }, [isPaused, hasSlides, slideCount, intervalMs]);
+
+  const onPointerDown = useCallback((e: PointerEvent) => {
+    setIsInteracting(true);
+    startXRef.current = e.clientX;
+  }, []);
+
+  const onPointerUp = useCallback(
+    (e: PointerEvent) => {
+      const startX = startXRef.current;
+      startXRef.current = null;
+      setIsInteracting(false);
+
+      if (startX == null) return;
+
+      const deltaX = e.clientX - startX;
+      if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) return;
+
+      // Swipe left → next. Swipe right → prev.
+      if (deltaX < 0) goNext();
+      else goPrev();
+    },
+    [goNext, goPrev],
+  );
+
+  const onPointerCancel = useCallback(() => {
+    startXRef.current = null;
+    setIsInteracting(false);
+  }, []);
 
   if (!hasSlides) {
     // Fail-safe: avoid crashing if paths are missing
@@ -79,22 +138,25 @@ export default function HeroSection({
   // Full-viewport hero: <Image fill /> only fills a parent with an explicit height.
   return (
     <section
-      className={`relative w-full h-[100svh] overflow-hidden ${className}`}
+      className={`group relative w-full h-[100svh] overflow-hidden ${className}`}
       aria-label='Hero slideshow'
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
     >
       {/* Slides (full-viewport cinematic hero) */}
-      <div className='absolute inset-0 bg-black'>
-        {safeSlides.map((slide, i) => {
-          const isActive = i === safeIndex;
-          return (
+      <div className='absolute inset-0 bg-black overflow-hidden'>
+        <div
+          className='flex h-full w-full transition-transform ease-in-out motion-reduce:transition-none'
+          style={{
+            transform: `translateX(-${safeIndex * 100}%)`,
+            transitionDuration: `${transitionMs}ms`,
+          }}
+        >
+          {safeSlides.map((slide, i) => (
             <div
               key={`${slide.src}-${i}`}
-              className={
-                'absolute inset-0 transition-opacity ease-in-out ' +
-                (isActive ? 'opacity-100' : 'opacity-0')
-              }
-              style={{ transitionDuration: `${transitionMs}ms` }}
-              aria-hidden={!isActive}
+              className='relative h-full w-full shrink-0'
             >
               <Image
                 src={slide.src}
@@ -103,10 +165,13 @@ export default function HeroSection({
                 priority={i === 0}
                 sizes='100vw'
                 className='object-cover'
+                loading={i === 0 ? 'eager' : 'lazy'}
+                placeholder={slide.blurDataURL ? 'blur' : 'empty'}
+                blurDataURL={slide.blurDataURL}
               />
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
       {/* Optional contrast overlay */}

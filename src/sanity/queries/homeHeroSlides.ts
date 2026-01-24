@@ -6,6 +6,7 @@ export type SanityHomeHeroSlide = {
   title?: string;
   alt?: string;
   image: unknown; // sanity image asset ref
+  blurDataURL?: string;
 };
 
 const HOME_HERO_SLIDES_QUERY = /* groq */ `
@@ -14,7 +15,8 @@ const HOME_HERO_SLIDES_QUERY = /* groq */ `
       _id,
       title,
       alt,
-      image
+      image,
+      "blurDataURL": image.asset->metadata.lqip
     }
   }
 `;
