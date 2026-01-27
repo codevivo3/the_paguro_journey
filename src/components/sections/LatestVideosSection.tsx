@@ -12,9 +12,9 @@ export default async function LatestVidsSection() {
   const latestVideos = await getLatestRegularVideos(15);
 
   return (
-    <section className='px-6 py-16'>
-      <div className='mx-auto max-w-5xl space-y-8'>
-        <header className='space-y-3'>
+    <section className='px-4 py-10 md:px-6 md:py-16'>
+      <div className='mx-auto max-w-5xl space-y-6 md:space-y-8'>
+        <header className='space-y-2 md:space-y-3'>
           <div className='flex flex-col items-center justify-center gap-3'>
             <h3 className='t-page-title title-divider title-divider-center'>
               Ultimi Video
@@ -23,7 +23,7 @@ export default async function LatestVidsSection() {
               href='https://www.youtube.com/@thepagurojourney'
               target='_blank'
               rel='noreferrer'
-              className='inline-flex items-center justify-center rounded-md bg-white/80 p-1.5 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-ocean)]/40'
+              className='inline-flex items-center justify-center rounded-md bg-white/80 p-1 shadow-sm md:p-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-ocean)]/40'
               aria-label='Visita il canale YouTube di The Paguro Journey'
             >
               {/*
@@ -51,8 +51,8 @@ export default async function LatestVidsSection() {
               </svg>
             </a>
           </div>
-          <p className='t-page-subtitle'>
-            Uno sguardo alle nostre avventure più recenti.{' '}
+          <p className='t-page-subtitle text-sm md:text-base'>
+            Uno sguardo alle nostre avventure più recenti.
           </p>
         </header>
 

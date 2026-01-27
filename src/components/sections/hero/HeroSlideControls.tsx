@@ -12,7 +12,7 @@ function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
       viewBox='0 0 24 24'
       strokeWidth='2'
       stroke='currentColor'
-      className={`size-8 ${direction === 'right' ? 'rotate-180' : ''}`}
+      className={`size-9 md:size-8 ${direction === 'right' ? 'rotate-180' : ''}`}
       aria-hidden='true'
     >
       <path
@@ -74,9 +74,11 @@ export default function HeroSlideControls({
   // - Hidden by default
   // - Revealed when the hero container is hovered (group-hover)
   const arrowBase =
-    'absolute top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 text-white ' +
+    // Mobile: always visible + larger tap target
+    'absolute top-1/2 z-20 -translate-y-1/2 rounded-full p-3 md:px-2 md:py-2 text-white ' +
     'backdrop-blur shadow-xl transition ' +
-    'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto ' +
+    // Mobile: visible/tappable; md+: hidden until hover
+    'opacity-100 pointer-events-auto md:opacity-0 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto ' +
     'duration-300 ease-out ' +
     'hover:scale-[1.05] active:scale-[0.95]';
 
@@ -94,7 +96,7 @@ export default function HeroSlideControls({
         onClick={onPrev}
         ariaLabel='Immagine precedente'
         direction='left'
-        className={`${arrowBase} ${arrowBg} left-4`}
+        className={`${arrowBase} ${arrowBg} left-3 md:left-4`}
       />
 
       {/* Next slide */}
@@ -102,11 +104,11 @@ export default function HeroSlideControls({
         onClick={onNext}
         ariaLabel='Immagine successiva'
         direction='right'
-        className={`${arrowBase} ${arrowBg} right-4`}
+        className={`${arrowBase} ${arrowBg} right-3 md:right-4`}
       />
 
       {/* Slide indicators */}
-      <div className='absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2'>
+      <div className='absolute bottom-4 md:bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-3 md:gap-2'>
         {Array.from({ length: count }).map((_, i) => (
           <button
             key={i}
@@ -114,7 +116,7 @@ export default function HeroSlideControls({
             onClick={() => onSelect(i)}
             aria-label={`Go to slide ${i + 1}`}
             className={
-              'h-1 w-5 rounded-full transition ' +
+              'h-2 w-7 md:h-1 md:w-5 rounded-full transition ' +
               (i === activeIndex
                 ? 'bg-white/80'
                 : 'bg-white/20 hover:bg-white/50')

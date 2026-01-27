@@ -1,5 +1,3 @@
-
-
 import { NextResponse } from 'next/server';
 
 import { searchContent } from '@/sanity/queries/search';
@@ -23,7 +21,38 @@ type ApiResponse = {
     items: YouTubeItem[];
     total: number;
   };
+  // Helpful during debugging / observability. Present only when YouTube search fails.
+  youtubeError?: string;
 };
+
+// --- Simple in-memory cache for YouTube results (per server instance) ---
+// NOTE: In serverless/edge environments this cache is best-effort (per instance, may reset).
+const YT_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const ytCache = new Map<string, { expiresAt: number; value: { items: YouTubeItem[]; total: number } }>();
+
+function ytCacheKey(q: string, limit: number) {
+  return `${q.toLowerCase()}::${limit}`;
+}
+
+function ytCacheGet(key: string) {
+  const hit = ytCache.get(key);
+  if (!hit) return null;
+  if (Date.now() > hit.expiresAt) {
+    ytCache.delete(key);
+    return null;
+  }
+  return hit.value;
+}
+
+function ytCacheSet(key: string, value: { items: YouTubeItem[]; total: number }) {
+  ytCache.set(key, { expiresAt: Date.now() + YT_CACHE_TTL_MS, value });
+  // Basic bound to avoid unbounded growth in long-running processes.
+  // Keep the most recent ~200 entries.
+  if (ytCache.size > 200) {
+    const firstKey = ytCache.keys().next().value as string | undefined;
+    if (firstKey) ytCache.delete(firstKey);
+  }
+}
 
 function normalizeQ(input: string) {
   return input.trim();
@@ -45,16 +74,24 @@ function jsonError(message: string, status = 400) {
 async function searchYouTube(args: {
   q: string;
   limit?: number;
-}): Promise<{ items: YouTubeItem[]; total: number }> {
+}): Promise<{ items: YouTubeItem[]; total: number; youtubeError?: string }> {
   const key = process.env.YOUTUBE_API_KEY;
   const channelId = process.env.YOUTUBE_CHANNEL_ID;
 
   if (!key || !channelId) {
-    // YouTube is optional; if env vars are missing, fail soft.
-    return { items: [], total: 0 };
+    // YouTube is optional; if env vars are missing, fail soft but report why.
+    const missing = [!key ? 'YOUTUBE_API_KEY' : null, !channelId ? 'YOUTUBE_CHANNEL_ID' : null]
+      .filter(Boolean)
+      .join(', ');
+    return { items: [], total: 0, youtubeError: `Missing env var(s): ${missing}` };
   }
 
-  const limit = Math.min(10, Math.max(1, args.limit ?? 6));
+  const limit = Math.min(24, Math.max(1, args.limit ?? 6));
+  const cacheKey = ytCacheKey(args.q, limit);
+  const cached = ytCacheGet(cacheKey);
+  if (cached) {
+    return { ...cached };
+  }
 
   const url = new URL('https://www.googleapis.com/youtube/v3/search');
   url.searchParams.set('part', 'snippet');
@@ -74,7 +111,18 @@ async function searchYouTube(args: {
 
   if (!res.ok) {
     // Fail soft: don't break site search because YouTube had an issue.
-    return { items: [], total: 0 };
+    let body = '';
+    try {
+      body = await res.text();
+    } catch {
+      body = '';
+    }
+
+    const msg = `YouTube API error ${res.status} ${res.statusText}${body ? `: ${body.slice(0, 400)}` : ''}`;
+    // Server-side visibility
+    console.error(msg);
+
+    return { items: [], total: 0, youtubeError: msg };
   }
 
   const data = (await res.json()) as {
@@ -86,9 +134,11 @@ async function searchYouTube(args: {
         publishedAt?: string;
         channelTitle?: string;
         thumbnails?: {
-          medium?: { url?: string };
           default?: { url?: string };
+          medium?: { url?: string };
           high?: { url?: string };
+          standard?: { url?: string };
+          maxres?: { url?: string };
         };
       };
     }>;
@@ -103,6 +153,8 @@ async function searchYouTube(args: {
       const publishedAt = it.snippet?.publishedAt;
       const channelTitle = it.snippet?.channelTitle;
       const thumbnailUrl =
+        it.snippet?.thumbnails?.maxres?.url ??
+        it.snippet?.thumbnails?.standard?.url ??
         it.snippet?.thumbnails?.high?.url ??
         it.snippet?.thumbnails?.medium?.url ??
         it.snippet?.thumbnails?.default?.url;
@@ -118,16 +170,28 @@ async function searchYouTube(args: {
     })
     .filter(Boolean) as YouTubeItem[];
 
-  return {
+  const result = {
     items,
     total: data.pageInfo?.totalResults ?? items.length,
   };
+
+  ytCacheSet(cacheKey, result);
+
+  return result;
 }
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const rawQ = searchParams.get('q') ?? '';
   const q = normalizeQ(rawQ);
+  const yt = searchParams.get('yt');
+  const ytLimit = yt === 'all' ? 24 : 6;
+
+  const sanity = searchParams.get('sanity');
+  const sanityLimit = sanity === 'all' ? 24 : 8;
+
+  const pageParam = searchParams.get('page');
+  const page = Math.max(1, Number(pageParam ?? '1') || 1);
 
   // Guardrails (your preference): min 3 chars.
   if (q.length > 0 && q.length < 3) {
@@ -168,8 +232,8 @@ export async function GET(req: Request) {
 
   try {
     const [sanityRes, ytRes] = await Promise.all([
-      searchContent({ q, limit: 8 }),
-      searchYouTube({ q, limit: 6 }),
+      searchContent({ q, page, limit: sanityLimit }),
+      searchYouTube({ q, limit: ytLimit }),
     ]);
 
     return NextResponse.json(
@@ -183,6 +247,7 @@ export async function GET(req: Request) {
           items: ytRes.items,
           total: ytRes.total,
         },
+        ...(ytRes.youtubeError ? { youtubeError: ytRes.youtubeError } : {}),
       } satisfies ApiResponse,
       {
         status: 200,

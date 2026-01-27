@@ -1,5 +1,5 @@
 'use client';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -45,6 +45,7 @@ function NavItem({
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
@@ -66,11 +67,12 @@ export default function Navbar() {
 
   return (
     <nav className='fixed top-0 right-0 left-0 z-[9999] isolate [font-family:var(--font-ui)] bg-[color:var(--paguro-deep)]/80 backdrop-blur-sm'>
-      <div className='mx-auto flex max-w-6xl items-center justify-between h-12 px-6 lg:px-12'>
+      <div className='mx-auto flex max-w-6xl items-center justify-between h-12 px-6 lg:px-12 overflow-x-hidden'>
         {/* Logo */}
         <Link
           href='/'
           aria-label='Go to homepage'
+          onClick={() => setMobileOpen(false)}
           className='flex items-center rounded-xl transition-transform duration-200 ease-out hover:-translate-y-0.3 hover:scale-105 active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
         >
           <Image
@@ -84,7 +86,7 @@ export default function Navbar() {
         </Link>
 
         {/* Navigation */}
-        <ul className='flex items-center gap-6 text-white text-[clamp(0.7rem,1.1vw,0.9rem)]'>
+        <ul className='hidden md:flex items-center gap-6 text-white text-[clamp(0.7rem,1.1vw,0.9rem)]'>
           <NavItem
             href='/blog'
             label='Blog'
@@ -144,7 +146,79 @@ export default function Navbar() {
             <SwitchTheme />
           </li>
         </ul>
+
+        {/* Mobile controls */}
+        <div className='flex md:hidden items-center gap-3 text-white'>
+          <Suspense fallback={null}>
+            <SearchModal />
+          </Suspense>
+          <SwitchTheme />
+
+          <button
+            type='button'
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((v) => !v)}
+            className='inline-flex items-center justify-center rounded-lg p-2 hover:bg-white/10 active:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40'
+          >
+            {/* Simple hamburger / close icon */}
+            <svg
+              viewBox='0 0 24 24'
+              className='h-6 w-6'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              aria-hidden='true'
+            >
+              {mobileOpen ? (
+                <>
+                  <path d='M18 6L6 18' />
+                  <path d='M6 6l12 12' />
+                </>
+              ) : (
+                <>
+                  <path d='M3 6h18' />
+                  <path d='M3 12h18' />
+                  <path d='M3 18h18' />
+                </>
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {mobileOpen ? (
+        <div className='md:hidden absolute top-12 left-0 right-0 bg-[color:var(--paguro-deep)]/95 backdrop-blur-sm border-t border-white/10'>
+          <ul className='mx-auto max-w-6xl px-6 py-4 space-y-2 text-white'>
+            {[
+              { href: '/blog', label: 'Blog' },
+              { href: '/destinations', label: 'Destinazioni' },
+              { href: '/gallery', label: 'Galleria' },
+              { href: '/about', label: 'Chi Siamo' },
+              { href: '/contact', label: 'Contatti' },
+            ].map((item) => {
+              const active = isActive(item.href);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={
+                      'block rounded-xl px-3 py-3 text-base font-semibold transition ' +
+                      (active ? 'bg-white/10' : 'hover:bg-white/10 active:bg-white/15')
+                    }
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
     </nav>
   );
 }

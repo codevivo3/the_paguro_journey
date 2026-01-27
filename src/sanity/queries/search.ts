@@ -1,5 +1,6 @@
 // src/sanity/queries/search.ts
 import { client } from '@/sanity/lib/client';
+import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 export type SearchItem = {
   _id: string;
@@ -7,6 +8,7 @@ export type SearchItem = {
   title: string;
   slug?: string;
   excerpt?: string;
+  coverImage?: SanityImageSource | null;
   coverImageUrl?: string | null;
 };
 
@@ -58,7 +60,17 @@ const SEARCH_QUERY = /* groq */ `
     title,
     "slug": slug.current,
     excerpt,
-    "coverImageUrl": coverImage.asset->url
+    // Cover image (supports direct image fields OR mediaItem references)
+    "coverImage": coalesce(
+      coverImage,
+      coverImage->image,
+      coverImage.image
+    ),
+    "coverImageUrl": coalesce(
+      coverImage.asset->url,
+      coverImage.image.asset->url,
+      coverImage->image.asset->url
+    )
   }
 }
 `;

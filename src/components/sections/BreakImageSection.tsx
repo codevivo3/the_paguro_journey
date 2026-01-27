@@ -45,25 +45,25 @@ export default function BreakImageSection({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className='relative aspect-[16/9] overflow-hidden rounded-sm'>
+      <div className='relative aspect-[4/5] md:aspect-[16/9] overflow-hidden rounded-sm'>
         <Image
           src={src}
           alt={alt}
           fill
           priority={priority}
           className='object-cover'
-          sizes='(max-width: 1024px) 100vw, 768px'
+          sizes='(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 768px'
         />
       </div>
 
       {caption ? (
-        <figcaption className='t-meta mt-3'>
+        <figcaption className='t-meta mt-2 md:mt-3 text-center md:text-left'>
           {caption}
         </figcaption>
       ) : null}
 
       {meta?.credit ? (
-        <div className='t-meta mt-1 text-xs'>
+        <div className='t-meta mt-1 text-xs text-center md:text-left'>
           © {meta.credit}
         </div>
       ) : null}
@@ -71,7 +71,7 @@ export default function BreakImageSection({
   );
 
   return (
-    <section className='mx-auto w-full max-w-3xl py-10'>
+    <section className='mx-auto w-full max-w-3xl py-8 md:py-10'>
       {href ? (
         <a
           href={href}

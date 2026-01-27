@@ -129,7 +129,7 @@ export default function HeroSection({
     // Fail-safe: avoid crashing if paths are missing
     return (
       <div
-        className={`relative w-full h-screen bg-black ${className}`}
+        className={`relative w-full h-[100svh] bg-black overflow-hidden ${className}`}
         aria-label='Hero slideshow'
       />
     );
@@ -138,7 +138,7 @@ export default function HeroSection({
   // Full-viewport hero: <Image fill /> only fills a parent with an explicit height.
   return (
     <section
-      className={`group relative w-full h-[100svh] overflow-hidden ${className}`}
+      className={`group relative w-full h-[100svh] overflow-hidden select-none touch-pan-y ${className}`}
       aria-label='Hero slideshow'
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}

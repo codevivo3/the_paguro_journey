@@ -1,9 +1,9 @@
 export default function IntroSection() {
   return (
-    <section className='relative overflow-hidden bg-[color:var(--paguro-bg)]'>
+    <section className='relative overflow-hidden bg-[color:var(--paguro-bg)] py-16 md:py-24'>
       {/* Decorative Haikei SVG */}
       <svg
-        className="pointer-events-none absolute left-0 top-0 z-0 block h-40 w-full opacity-75 [html[data-theme='dark']_&]:hidden"
+        className="pointer-events-none absolute left-0 top-0 z-0 block h-28 md:h-40 w-full opacity-75 [html[data-theme='dark']_&]:hidden"
         viewBox='0 0 960 540'
         preserveAspectRatio='none'
         fill='none'
@@ -50,14 +50,14 @@ export default function IntroSection() {
           fill='#d5d9b8'
         />
       </svg>
-      <div className='relative z-10 mx-auto max-w-3xl space-y-4 px-6 pb-10'>
+      <div className='relative z-10 mx-auto max-w-3xl space-y-6 px-4 md:px-6 pb-12 md:pb-16'>
         {/* Section title (uses global typography preset) */}
-        <h2 className='t-page-title-intro text-6xl text-center title-divider title-divider-center mt-30'>
+        <h2 className='t-page-title-intro text-4xl md:text-6xl text-center title-divider title-divider-center mt-12 md:mt-30'>
           Racconti di Viaggio
         </h2>
 
         {/* Intro copy (uses global typography preset) */}
-        <p className='t-body text-justify'>
+        <p className='t-body text-sm md:text-base text-left md:text-justify'>
           Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate
           quis quam facilis reiciendis impedit debitis eos deleniti vero at
           maxime. Dolorem numquam pariatur ullam ipsum corrupti illum. Illum

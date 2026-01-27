@@ -6,14 +6,14 @@ import Footer from '@/components/sections/FooterSection';
 
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className='min-h-screen flex flex-col'>
       <Suspense fallback={null}>
         <Navbar />
       </Suspense>
 
-      {children}
+      <div className='flex-1'>{children}</div>
 
       <Footer />
-    </>
+    </div>
   );
 }

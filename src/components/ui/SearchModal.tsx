@@ -52,6 +52,19 @@ function useSearchResults(opts: {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isAbortError = (err: unknown) => {
+    if (!err || typeof err !== 'object') return false;
+    const anyErr = err as { name?: unknown; code?: unknown; message?: unknown };
+    const name = typeof anyErr.name === 'string' ? anyErr.name : '';
+    const code = typeof anyErr.code === 'string' ? anyErr.code : '';
+    const msg = typeof anyErr.message === 'string' ? anyErr.message : '';
+    return (
+      name === 'AbortError' ||
+      code === 'UND_ERR_ABORTED' ||
+      msg.toLowerCase().includes('signal is aborted')
+    );
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -84,7 +97,12 @@ function useSearchResults(opts: {
         const json = (await res.json()) as ApiResponse;
         setData(json);
       } catch (err) {
-        if (controller.signal.aborted) return;
+        // Abort is expected when:
+        // - user closes modal
+        // - user submits a new query quickly
+        // Next can surface this as a runtime error in dev unless we swallow it.
+        if (controller.signal.aborted || isAbortError(err)) return;
+
         setError(err instanceof Error ? err.message : 'Search failed');
         setData(null);
       } finally {
@@ -93,7 +111,11 @@ function useSearchResults(opts: {
     })();
 
     return () => {
-      controller.abort();
+      try {
+        controller.abort();
+      } catch {
+        // Extremely defensive: abort() should not throw, but we never want this to surface.
+      }
     };
   }, [submittedQuery, isOpen]);
 
@@ -151,6 +173,7 @@ export default function SearchModal() {
 
   const qFromUrl = sp.get('q') ?? '';
   const [value, setValue] = useState(qFromUrl);
+  const [debouncedValue, setDebouncedValue] = useState(qFromUrl);
   const [submittedQuery, setSubmittedQuery] = useState('');
 
   const { data, loading, error, reset: resetResults } = useSearchResults({ isOpen: isSearchOpen, submittedQuery });
@@ -159,6 +182,7 @@ export default function SearchModal() {
   // This does NOT trigger navigation while typing.
   useEffect(() => {
     setValue(qFromUrl);
+    setDebouncedValue(qFromUrl);
   }, [qFromUrl]);
 
   const currentSearch = useMemo(() => sp.toString(), [sp]);
@@ -203,7 +227,25 @@ export default function SearchModal() {
     };
   }, [isSearchOpen]);
 
-  // (removed fetch effect, now handled by useSearchResults)
+  // Debounce typing so we don't fire a request on every keystroke.
+  // This auto-triggers search (no Enter needed) once the user pauses typing.
+  useEffect(() => {
+    if (!isSearchOpen) return;
+
+    const id = window.setTimeout(() => {
+      setDebouncedValue(value);
+
+      const q = value.trim();
+      if (q.length >= 3) {
+        setSubmittedQuery(q);
+      } else {
+        // If query becomes too short, clear results.
+        setSubmittedQuery('');
+      }
+    }, 500);
+
+    return () => window.clearTimeout(id);
+  }, [value, isSearchOpen]);
 
   const trimmedValue = value.trim();
   const submittedTrimmed = submittedQuery.trim();
@@ -299,6 +341,8 @@ export default function SearchModal() {
                   onSubmit={() => {
                     const q = value.trim();
                     if (q.length < 3) return;
+                    // Immediate search on submit (skips debounce wait).
+                    setDebouncedValue(q);
                     setSubmittedQuery(q);
                   }}
                 />
@@ -314,8 +358,7 @@ export default function SearchModal() {
                   {/* Scrollbar styling relies on Tailwind scrollbar plugin or modern WebKit support. */}
                   {!trimmedValue ? (
                     <p className='text-sm t-body'>
-                      Digita almeno 3 caratteri e poi premi Invio (↵) oppure
-                      clicca l’icona per cercare.
+                      Digita almeno 3 caratteri per cercare.
                     </p>
                   ) : trimmedValue.length < 3 ? (
                     <p className='text-sm t-body'>
@@ -323,7 +366,7 @@ export default function SearchModal() {
                     </p>
                   ) : !submittedTrimmed ? (
                     <p className='text-sm t-body'>
-                      Premi Invio (↵) oppure clicca l’icona per cercare.
+                      Sto preparando la ricerca…
                     </p>
                   ) : loading ? (
                     <LoadingRow />
