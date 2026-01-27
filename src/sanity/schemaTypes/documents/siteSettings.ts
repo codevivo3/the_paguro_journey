@@ -80,6 +80,50 @@ export default defineType({
     }),
 
     /* ---------------------------------------------------------------------- */
+    /* Home — Divider Image                                                   */
+    /* ---------------------------------------------------------------------- */
+
+    defineField({
+      name: 'homeDivider',
+      title: 'Homepage Divider Image',
+      type: 'object',
+      description:
+        'Curated break-up image used on the homepage (e.g. right under the CTA).',
+      fields: [
+        defineField({
+          name: 'media',
+          title: 'Image',
+          type: 'reference',
+          to: [{ type: 'mediaItem' }],
+          description: 'Select a single image from the media library.',
+          options: { filter: 'type == "image"' },
+          validation: (r) => r.required(),
+        }),
+        defineField({
+          name: 'altOverride',
+          title: 'Alt text override',
+          type: 'string',
+          description:
+            'Optional. If empty, the referenced media alt text will be used.',
+        }),
+        defineField({
+          name: 'caption',
+          title: 'Caption (optional)',
+          type: 'string',
+          description: 'Optional short caption shown under the image.',
+        }),
+        defineField({
+          name: 'link',
+          title: 'Optional link',
+          type: 'url',
+          description:
+            'Optional. Where should this image link to (internal or external).',
+          validation: (r) => r.uri({ scheme: ['http', 'https'] }),
+        }),
+      ],
+    }),
+
+    /* ---------------------------------------------------------------------- */
     /* About                                                                  */
     /* ---------------------------------------------------------------------- */
 

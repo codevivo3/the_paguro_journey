@@ -24,7 +24,17 @@ const THEME_BOOTSTRAP_SCRIPT = `(() => {
           ? 'dark'
           : 'light';
 
-    document.documentElement.dataset.theme = theme;
+    const root = document.documentElement;
+
+    // Keep CSS variables logic
+    root.dataset.theme = theme;
+
+    // Tailwind dark mode (darkMode: 'class')
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
   } catch {
     // no-op (e.g. privacy mode / disabled storage)
   }

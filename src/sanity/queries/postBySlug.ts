@@ -33,7 +33,11 @@ export type BlogPostBySlug = {
 const POST_BY_SLUG_QUERY = /* groq */ `
   *[
     _type == "post" &&
-    (status == "published" || $preview == true) &&
+    (
+      $preview == true ||
+      !defined(status) ||
+      status == "published"
+    ) &&
     slug.current == $slug
   ][0]{
     _id,
@@ -61,17 +65,39 @@ const POST_BY_SLUG_QUERY = /* groq */ `
   }
 `;
 
+function isAbortError(err: unknown) {
+  if (!err || typeof err !== 'object') return false;
+  const anyErr = err as { name?: string; code?: string; message?: string };
+  return (
+    anyErr.name === 'AbortError' ||
+    anyErr.code === 'UND_ERR_ABORTED' ||
+    (typeof anyErr.message === 'string' &&
+      anyErr.message.toLowerCase().includes('signal is aborted'))
+  );
+}
+
 export async function getPostBySlug(
   slug: string,
   options?: { preview?: boolean },
 ) {
   const sanityClient = options?.preview ? previewClient : client;
+  const isDev = process.env.NODE_ENV === 'development';
 
-  return sanityClient.fetch<BlogPostBySlug | null>(
-    POST_BY_SLUG_QUERY,
-    { slug, preview: options?.preview ?? false },
-    options?.preview
-      ? { cache: 'no-store' }
-      : { next: { revalidate: 60 * 60 } },
-  );
+  try {
+    return await sanityClient.fetch<BlogPostBySlug | null>(
+      POST_BY_SLUG_QUERY,
+      { slug, preview: options?.preview ?? false },
+      // In dev we prefer fresh data and avoid weird abort/caching edge cases.
+      isDev || options?.preview
+        ? { cache: 'no-store' }
+        : { next: { revalidate: 60 * 60 } },
+    );
+  } catch (err) {
+    // Next.js can abort in-flight fetches during navigation / HMR.
+    // Treat AbortError as a benign cancellation.
+    if ((isDev || options?.preview) && isAbortError(err)) {
+      return null;
+    }
+    throw err;
+  }
 }

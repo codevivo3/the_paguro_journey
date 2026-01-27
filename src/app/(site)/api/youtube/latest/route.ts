@@ -10,9 +10,11 @@ type YouTubeItem = {
     title: string;
     description: string;
     thumbnails?: {
+      default?: { url: string; width: number; height: number };
       medium?: { url: string; width: number; height: number };
       high?: { url: string; width: number; height: number };
       standard?: { url: string; width: number; height: number };
+      maxres?: { url: string; width: number; height: number };
     };
     publishedAt?: string;
   };
@@ -24,7 +26,7 @@ export async function GET() {
   if (!key) {
     return NextResponse.json(
       { error: 'Missing YOUTUBE_API_KEY in environment variables.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -37,7 +39,7 @@ export async function GET() {
         error:
           'Missing YOUTUBE_CHANNEL_ID. Add it to .env.local (temporary) or hardcode it for testing.',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -66,7 +68,7 @@ export async function GET() {
           status: res.status,
           details: text,
         },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
@@ -79,8 +81,9 @@ export async function GET() {
       .map((it) => {
         const videoId = it.id.videoId!;
         const thumb =
-          it.snippet.thumbnails?.high?.url ??
+          it.snippet.thumbnails?.maxres?.url ??
           it.snippet.thumbnails?.standard?.url ??
+          it.snippet.thumbnails?.high?.url ??
           it.snippet.thumbnails?.medium?.url ??
           '';
 
@@ -98,7 +101,7 @@ export async function GET() {
   } catch (err) {
     return NextResponse.json(
       { error: 'Server error while calling YouTube API', details: String(err) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

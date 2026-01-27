@@ -221,6 +221,23 @@ body {
     line-height: 1.2;
   }
 
+  /* Decorative divider under section titles (homepage only) */
+  .title-divider::after {
+    content: '';
+    display: block;
+    width: 8rem;
+    height: 2px;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    background-color: var(--paguro-sunset);
+    opacity: 0.85;
+  }
+
+  .title-divider-center::after {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   /* Card typography */
   .t-card-title {
     font-family: var(--font-ui);

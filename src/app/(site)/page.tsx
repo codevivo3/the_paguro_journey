@@ -1,7 +1,8 @@
-// Homepage – landing editoriale di The Paguro Journey
-// Composta da sezioni riutilizzabili pensate per storytelling, scoperta e chiarezza SEO
+import type { Metadata } from 'next';
+// Homepage – editorial landing of The Paguro Journey
+// Composed of reusable sections designed for storytelling, discovery, and SEO clarity
 
-// Esperimenti precedenti sul sistema Hero (mantenuti solo come riferimento)
+// Previous experiments with the Hero system (kept for reference only)
 // import Hero from '@/components/Hero';
 // import HeroVideo from '@/components/HeroVideo';
 // import Navbar from '@/components/Navbar';
@@ -11,13 +12,15 @@ import IntroSection from '@/components/sections/IntroSection';
 import HeroSection from '@/components/sections/hero/HeroSection';
 import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 import CallToAction from '@/components/sections/CTASection';
+import BreakImageSection from '@/components/sections/BreakImageSection';
 
 import { getHomeHeroSlides } from '@/sanity/queries/homeHeroSlides';
 import { mapSanityHeroSlides } from '@/lib/hero-sanity';
+import { getHomeDivider } from '@/sanity/queries/homeDivider';
 
-// Metadata SEO per la homepage
-// Definisce identità del progetto, posizionamento del brand e intento di ricerca
-export const metadata = {
+// SEO metadata for the homepage
+// Defines project identity, brand positioning, and search intent
+export const metadata: Metadata = {
   title: {
     default: 'The Paguro Journey – Racconti di viaggio, destinazioni e slow travel',
     template: '%s | The Paguro Journey',
@@ -46,24 +49,46 @@ export const metadata = {
   const sanitySlides = await getHomeHeroSlides();
   const slides = mapSanityHeroSlides(sanitySlides);
 
+  const homeDivider = await getHomeDivider();
+
+  const dividerSrc = homeDivider?.media?.imageUrl;
+  const dividerAlt =
+    homeDivider?.altOverride?.trim() ||
+    homeDivider?.media?.alt?.trim() ||
+    'Homepage divider image';
+
 
   return (
     <>
-      {/* Area principale dei contenuti editoriali */}
+      {/* Main editorial content area */}
       <main>
-        {/* H1 principale (visivamente nascosto) per semantica SEO e accessibilità */}
+        {/* Main H1 (visually hidden) for SEO semantics and accessibility */}
         <h1 className='sr-only'>The Paguro Journey</h1>
-        {/* Sezione Hero: ingresso visivo e posizionamento del brand */}
+        {/* Hero section: visual entry point and brand positioning */}
         <HeroSection slides={slides} overlay />
-        {/* Sezione introduttiva: spiega filosofia e visione del progetto */}
+        {/* Intro section: explains the philosophy and vision of the project */}
         <IntroSection />
-        {/* Call to action: accompagna l’utente nel percorso */}
+        {/* Call to action: guides the user into the journey */}
         <CallToAction />
         {/* Partner and collaboration highlights */}
+        {dividerSrc ? (
+          <BreakImageSection
+            src={dividerSrc}
+            alt={dividerAlt}
+            caption={homeDivider?.caption ?? undefined}
+            href={homeDivider?.link ?? undefined}
+            meta={{
+              id: homeDivider?.media?._id,
+              type: 'mediaItem',
+              title: homeDivider?.media?.title,
+              credit: homeDivider?.media?.credit,
+            }}
+          />
+        ) : null}
         {/* <CollabsSection /> */}
-        {/* Anteprima degli ultimi video per valorizzare lo storytelling multimediale */}
+        {/* Latest videos preview to highlight multimedia storytelling */}
         <LatestVidsSection />
-        {/* Iscrizione newsletter: costruzione del pubblico nel lungo periodo */}
+        {/* Newsletter signup: long-term audience building */}
         <NewsletterForm />
       </main>
     </>

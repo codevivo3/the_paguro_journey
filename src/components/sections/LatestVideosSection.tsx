@@ -15,13 +15,15 @@ export default async function LatestVidsSection() {
     <section className='px-6 py-16'>
       <div className='mx-auto max-w-5xl space-y-8'>
         <header className='space-y-3'>
-          <div className='flex items-center justify-center gap-3 sm:gap-4'>
-            <h3 className='t-page-title leading-none'>Ultimi Video</h3>
+          <div className='flex flex-col items-center justify-center gap-3'>
+            <h3 className='t-page-title title-divider title-divider-center'>
+              Ultimi Video
+            </h3>
             <a
               href='https://www.youtube.com/@thepagurojourney'
               target='_blank'
               rel='noreferrer'
-              className='inline-flex items-center justify-center leading-none rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-ocean)]/40'
+              className='inline-flex items-center justify-center rounded-md bg-white/80 p-1.5 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-ocean)]/40'
               aria-label='Visita il canale YouTube di The Paguro Journey'
             >
               {/*
@@ -31,7 +33,7 @@ export default async function LatestVidsSection() {
                 This allows precise control over color and shadows.
               */}
               <svg
-                className='block h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 drop-shadow-sm transition-transform duration-300 hover:scale-[1.1] active:scale-[0.95]'
+                className='block h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 drop-shadow-sm transition-transform duration-300 hover:scale-[1.08] active:scale-[0.95]'
                 viewBox='0 0 640 640'
                 preserveAspectRatio='xMidYMid meet'
                 focusable='false'

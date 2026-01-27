@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import HermitCrabLottie from '@/components/lottie/HermitCrabLottie';
 import Navbar from '@/components/sections/NavbarSection';
 import Button from '@/components/ui/Button';
+import Footer from '@/components/sections/FooterSection';
 
 // Custom App Router 404 page optimized for user experience and brand consistency
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <main className='px-6 pb-24 pt-28'>
+    <main className='pb-24 pt-28'>
       <Navbar />
       <div className='mx-auto max-w-3xl text-center space-y-6'>
         {/* Playful recovery visual: Hermit Crab Lottie animation to soften the error experience */}
@@ -45,6 +46,7 @@ export default function NotFound() {
           </Button>
         </div>
       </div>
+      <Footer />
     </main>
   );
 }

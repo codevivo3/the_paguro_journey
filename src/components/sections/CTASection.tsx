@@ -11,7 +11,9 @@ export default function CallToAction() {
         </p>
 
         {/* CTA headline */}
-        <h2 className='t-section-title text-3xl'>Lorem ipsum dolor sit amet</h2>
+        <h2 className='t-section-title text-3xl title-divider title-divider-center'>
+          Lorem ipsum dolor sit amet
+        </h2>
 
         {/* Supporting copy */}
         <p className='t-body'>

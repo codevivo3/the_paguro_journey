@@ -177,7 +177,7 @@ export default function HeroSection({
       {/* Optional contrast overlay */}
       {overlay && (
         <div
-          className='pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-black/20 to-black/55'
+          className='pointer-events-none absolute inset-0'
           aria-hidden='true'
         />
       )}
