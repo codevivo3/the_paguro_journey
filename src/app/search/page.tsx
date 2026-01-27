@@ -63,7 +63,9 @@ export default async function SearchPage({
       {q ? (
         <p className='t-meta mt-3'>Query: “{q}”</p>
       ) : (
-        <p className='t-body mt-3'>Type a query using the search icon to see results.</p>
+        <p className='t-body mt-3'>
+          Type a query using the search icon to see results.
+        </p>
       )}
 
       {q ? (

@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -135,7 +136,9 @@ export default function Navbar() {
             underlineActive={UNDERLINE_ACTIVE}
           />
           <li>
-            <SearchModal />
+            <Suspense fallback={null}>
+              <SearchModal />
+            </Suspense>
           </li>
           <li>
             <SwitchTheme />
