@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useUI } from '@/context/ui-context';
+import SearchResults from '@/components/search/SearchResults';
+import SearchInput from '@/components/search/SearchInput';
 
 type SanitySearchItem = {
   _id: string;
@@ -104,6 +105,43 @@ function useSearchResults(opts: {
 
   return { data, loading, error, reset };
 }
+
+
+function LoadingRow() {
+  return (
+    <div className='flex items-center gap-2 text-sm text-black/70' aria-live='polite'>
+      <svg
+        className='h-10 w-10 animate-spin'
+        viewBox='0 0 50 50'
+        xmlns='http://www.w3.org/2000/svg'
+        aria-hidden='true'
+      >
+        <defs>
+          <linearGradient id='paguroSpinnerGradient' x1='0%' y1='0%' x2='100%' y2='100%'>
+            <stop offset='0%' stopColor='var(--paguro-ocean)' />
+            <stop offset='25%' stopColor='var(--paguro-deep)' />
+            <stop offset='50%' stopColor='var(--paguro-sand)' />
+            <stop offset='75%' stopColor='var(--paguro-sunset)' />
+            <stop offset='100%' stopColor='var(--paguro-coral)' />
+          </linearGradient>
+        </defs>
+
+        <circle
+          cx='25'
+          cy='25'
+          r='20'
+          fill='none'
+          stroke='url(#paguroSpinnerGradient)'
+          strokeWidth='4'
+          strokeLinecap='round'
+          strokeDasharray='90 40'
+        />
+      </svg>
+      <span className='t-body'>Sto cercando…</span>
+    </div>
+  );
+}
+
 
 export default function SearchModal() {
   const { isSearchOpen, openSearch, closeSearch } = useUI();
@@ -254,54 +292,16 @@ export default function SearchModal() {
                     </svg>
                   </button>
                 </div>
-
-                <div className='mt-4 relative rounded-full p-[2px] bg-gradient-to-r from-[color:var(--paguro-ocean)] via-[color:var(--paguro-deep)] via-[color:var(--paguro-sand)] via-[color:var(--paguro-sunset)] to-[color:var(--paguro-coral)]'>
-                  <input
-                    ref={searchInputRef}
-                    type='text'
-                    placeholder='Cerca...'
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      // Avoid accidental form submits / default Enter behavior.
-                      if (e.key === 'Enter' || e.key === 'NumpadEnter') {
-                        e.preventDefault();
-                        const q = value.trim();
-                        if (q.length >= 3) {
-                          setSubmittedQuery(q);
-                        }
-                      }
-                    }}
-                    className='w-full rounded-full bg-[color:var(--paguro-surface)] px-3 py-2 pr-10 t-page-subtitle text-sm text-justify focus:outline-none'
-                    autoFocus
-                  />
-                  <button
-                    type='button'
-                    aria-label='Search'
-                    onClick={() => {
-                      const q = value.trim();
-                      if (q.length < 3) return;
-                      setSubmittedQuery(q);
-                    }}
-                    className='absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--paguro-text-muted)] transition-colors hover:text-[color:var(--paguro-text)] focus:outline-none'
-                  >
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      strokeWidth='2'
-                      stroke='currentColor'
-                      className='size-5'
-                      aria-hidden='true'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        d='m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z'
-                      />
-                    </svg>
-                  </button>
-                </div>
+                <SearchInput
+                  value={value}
+                  onChange={setValue}
+                  inputRef={searchInputRef}
+                  onSubmit={() => {
+                    const q = value.trim();
+                    if (q.length < 3) return;
+                    setSubmittedQuery(q);
+                  }}
+                />
 
                 {/* Helper + results */}
                 <div
@@ -326,153 +326,19 @@ export default function SearchModal() {
                       Premi Invio (↵) oppure clicca l’icona per cercare.
                     </p>
                   ) : loading ? (
-                    <div
-                      className='flex items-center gap-2 text-sm text-black/70'
-                      aria-live='polite'
-                    >
-                      <svg
-                        className='h-10 w-10 animate-spin'
-                        viewBox='0 0 50 50'
-                        xmlns='http://www.w3.org/2000/svg'
-                        aria-hidden='true'
-                      >
-                        <defs>
-                          <linearGradient
-                            id='paguroSpinnerGradient'
-                            x1='0%'
-                            y1='0%'
-                            x2='100%'
-                            y2='100%'
-                          >
-                            <stop offset='0%' stopColor='var(--paguro-ocean)' />
-                            <stop offset='25%' stopColor='var(--paguro-deep)' />
-                            <stop offset='50%' stopColor='var(--paguro-sand)' />
-                            <stop
-                              offset='75%'
-                              stopColor='var(--paguro-sunset)'
-                            />
-                            <stop
-                              offset='100%'
-                              stopColor='var(--paguro-coral)'
-                            />
-                          </linearGradient>
-                        </defs>
-
-                        <circle
-                          cx='25'
-                          cy='25'
-                          r='20'
-                          fill='none'
-                          stroke='url(#paguroSpinnerGradient)'
-                          strokeWidth='4'
-                          strokeLinecap='round'
-                          strokeDasharray='90 40'
-                        />
-                      </svg>
-                      <span className='t-body'>Sto cercando…</span>
-                    </div>
+                    <LoadingRow />
                   ) : error ? (
                     <p className='text-sm text-red-600'>{error}</p>
                   ) : showResults ? (
-                    <div className='space-y-4 pb-2'>
-                      <div className='flex items-center justify-between'>
-                        <p className='t-body text-sm'>
-                          {totalCount > 0 ? `${totalCount} result(s)` : null}
-                        </p>
-                        <Link
-                          href={`/search?q=${encodeURIComponent(submittedTrimmed)}`}
-                          onClick={closeAndRestoreFocus}
-                          className='t-section-title text-sm font-semibold text-[color:var(--paguro-deep)] hover:text-[color:var(--paguro-coral)]'
-                        >
-                          View all →
-                        </Link>
-                      </div>
-
-                      {sanityItems.length ? (
-                        <div>
-                          <p className='t-section-title text-xs font-semibold uppercase tracking-wide'>
-                            Posts & Destinations
-                          </p>
-                          <ul className='mt-2 divide-y rounded-md border'>
-                            {sanityItems.map((item) => (
-                              <li key={item._id}>
-                                <button
-                                  type='button'
-                                  onClick={() => {
-                                    router.push(getSanityHref(item));
-                                    closeAndRestoreFocus();
-                                  }}
-                                  className='w-full px-3 py-2 text-left transition-colors hover:bg-black/5'
-                                >
-                                  <div className='flex items-center justify-between gap-3'>
-                                    <span className='t-section-title truncate font-semibold text-sm'>
-                                      {item.title}
-                                    </span>
-                                    <span className='t-body rounded-full border px-2 py-0.5 text-[10px]'>
-                                      {item._type}
-                                    </span>
-                                  </div>
-                                  {item.excerpt ? (
-                                    <p className='t-body mt-1 line-clamp-2 text-xs'>
-                                      {item.excerpt}
-                                    </p>
-                                  ) : null}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-
-                      {youtubeItems.length ? (
-                        <div>
-                          <p className='t-section-title text-xs font-semibold uppercase tracking-wide'>
-                            Videos
-                          </p>
-                          <ul className='mt-2 divide-y rounded-md border'>
-                            {youtubeItems.map((v) => (
-                              <li key={v.id}>
-                                <a
-                                  href={v.url}
-                                  target='_blank'
-                                  rel='noreferrer noopener'
-                                  onClick={closeAndRestoreFocus}
-                                  className='block px-3 py-2 transition-colors hover:bg-black/5'
-                                >
-                                  <div className='flex items-center gap-3'>
-                                    {v.thumbnailUrl ? (
-                                      <div className='h-10 w-16 flex-none overflow-hidden rounded bg-black/10'>
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                          src={v.thumbnailUrl}
-                                          alt=''
-                                          className='h-full w-full object-cover object-center scale-[1.15]'
-                                          loading='lazy'
-                                        />
-                                      </div>
-                                    ) : null}
-                                    <div className='min-w-0'>
-                                      <div className='t-section-title truncate font-semibold text-sm'>
-                                        {v.title}
-                                      </div>
-                                      <div className='t-body mt-1 line-clamp-2 text-xs'>
-                                        {v.channelTitle ?? 'YouTube'}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-
-                      {!sanityItems.length && !youtubeItems.length ? (
-                        <p className='t-body text-sm'>
-                          No matches for “{submittedTrimmed}”.
-                        </p>
-                      ) : null}
-                    </div>
+                    <SearchResults
+                      totalCount={totalCount}
+                      submittedTrimmed={submittedTrimmed}
+                      sanityItems={sanityItems}
+                      youtubeItems={youtubeItems}
+                      onClose={closeAndRestoreFocus}
+                      onNavigate={(href) => router.push(href)}
+                      getSanityHref={getSanityHref}
+                    />
                   ) : null}
                 </div>
               </div>
