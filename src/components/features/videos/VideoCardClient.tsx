@@ -10,7 +10,7 @@ import {
   CardText,
 } from '@/components/ui/Card';
 
-import type { YouTubeVideo } from '@/lib/youtube';
+import type { YouTubeVideo } from '@/lib/youtube/youtube';
 import { cleanYouTubeDescription } from '@/lib/cleanYouTubeDescription';
 import MediaImage from '@/components/features/media/MediaImage';
 
@@ -24,7 +24,10 @@ export type VideoCardClientProps = {
   ariaLabel?: string;
 };
 
-export default function VideoCardClient({ video, ariaLabel }: VideoCardClientProps) {
+export default function VideoCardClient({
+  video,
+  ariaLabel,
+}: VideoCardClientProps) {
   const [ready, setReady] = React.useState(false);
 
   return (

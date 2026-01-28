@@ -34,6 +34,9 @@ export default function Button({
     'bg-[color:var(--paguro-ocean)] ' +
     'before:absolute before:inset-0 before:z-0 before:bg-[color:var(--paguro-link-hover)] ' +
     'before:translate-x-[-100%] before:transition-transform before:duration-500 ' +
+    // Overshoot easing so the fill "bounces" slightly at the end.
+    'before:[transition-timing-function:cubic-bezier(.2,1.8,.4,1)] ' +
+    'motion-reduce:before:[transition-timing-function:ease-out] ' +
     'hover:before:translate-x-0 ' +
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40';
 

@@ -101,6 +101,9 @@ export default defineType({
       type: 'reference',
       to: [{ type: 'worldRegion' }],
       readOnly: true,
+      options: {
+        disableNew: true,
+      },
       description:
         'Automatically attached via seeding script using World Bank data. ' +
         'Not editable. Used for high-level geographic filters, navigation, and grouping.',

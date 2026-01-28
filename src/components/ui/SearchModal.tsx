@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { useUI } from '@/context/ui-context';
 import SearchResults from '@/components/search/SearchResults';
@@ -32,7 +32,6 @@ type ApiResponse = {
   youtube: { items: YouTubeItem[]; total: number };
 };
 
-
 function getSanityHref(item: SanitySearchItem): string {
   if (item._type === 'post') {
     return item.slug ? `/blog/${item.slug}` : '/blog';
@@ -42,10 +41,7 @@ function getSanityHref(item: SanitySearchItem): string {
   return item.slug ? `/destinations/${item.slug}` : '/destinations';
 }
 
-function useSearchResults(opts: {
-  isOpen: boolean;
-  submittedQuery: string;
-}) {
+function useSearchResults(opts: { isOpen: boolean; submittedQuery: string }) {
   const { isOpen, submittedQuery } = opts;
 
   const [data, setData] = useState<ApiResponse | null>(null);
@@ -112,7 +108,10 @@ function useSearchResults(opts: {
 
     return () => {
       try {
-        controller.abort();
+        // Guard + reason: avoids noisy "signal is aborted without reason" overlays in some runtimes.
+        if (!controller.signal.aborted) {
+          controller.abort('cleanup');
+        }
       } catch {
         // Extremely defensive: abort() should not throw, but we never want this to surface.
       }
@@ -128,10 +127,12 @@ function useSearchResults(opts: {
   return { data, loading, error, reset };
 }
 
-
 function LoadingRow() {
   return (
-    <div className='flex items-center gap-2 text-sm text-black/70' aria-live='polite'>
+    <div
+      className='flex items-center gap-2 text-sm text-black/70'
+      aria-live='polite'
+    >
       <svg
         className='h-10 w-10 animate-spin'
         viewBox='0 0 50 50'
@@ -139,7 +140,13 @@ function LoadingRow() {
         aria-hidden='true'
       >
         <defs>
-          <linearGradient id='paguroSpinnerGradient' x1='0%' y1='0%' x2='100%' y2='100%'>
+          <linearGradient
+            id='paguroSpinnerGradient'
+            x1='0%'
+            y1='0%'
+            x2='100%'
+            y2='100%'
+          >
             <stop offset='0%' stopColor='var(--paguro-ocean)' />
             <stop offset='25%' stopColor='var(--paguro-deep)' />
             <stop offset='50%' stopColor='var(--paguro-sand)' />
@@ -164,11 +171,11 @@ function LoadingRow() {
   );
 }
 
-
 export default function SearchModal() {
   const { isSearchOpen, openSearch, closeSearch } = useUI();
 
   const router = useRouter();
+  const pathname = usePathname();
   const sp = useSearchParams();
 
   const qFromUrl = sp.get('q') ?? '';
@@ -176,7 +183,12 @@ export default function SearchModal() {
   const [debouncedValue, setDebouncedValue] = useState(qFromUrl);
   const [submittedQuery, setSubmittedQuery] = useState('');
 
-  const { data, loading, error, reset: resetResults } = useSearchResults({ isOpen: isSearchOpen, submittedQuery });
+  const {
+    data,
+    loading,
+    error,
+    reset: resetResults,
+  } = useSearchResults({ isOpen: isSearchOpen, submittedQuery });
 
   // Keep the input synced when URL changes (back/forward, other navigation).
   // This does NOT trigger navigation while typing.
@@ -184,6 +196,14 @@ export default function SearchModal() {
     setValue(qFromUrl);
     setDebouncedValue(qFromUrl);
   }, [qFromUrl]);
+
+  // Safety: if a navigation happens while the modal is open, close it so
+  // scroll-lock and focus are reliably restored.
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    closeSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const currentSearch = useMemo(() => sp.toString(), [sp]);
 
@@ -201,7 +221,14 @@ export default function SearchModal() {
   };
 
   useEffect(() => {
-    if (!isSearchOpen) return;
+    // Always ensure background scrolling is restored when the modal is closed.
+    if (!isSearchOpen) {
+      if (typeof document !== 'undefined') {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      }
+      return;
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') closeAndRestoreFocus();
@@ -365,9 +392,7 @@ export default function SearchModal() {
                       Ancora {3 - trimmedValue.length} carattere/i…
                     </p>
                   ) : !submittedTrimmed ? (
-                    <p className='text-sm t-body'>
-                      Sto preparando la ricerca…
-                    </p>
+                    <p className='text-sm t-body'>Sto preparando la ricerca…</p>
                   ) : loading ? (
                     <LoadingRow />
                   ) : error ? (

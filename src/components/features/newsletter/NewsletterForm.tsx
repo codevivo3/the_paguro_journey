@@ -25,25 +25,25 @@ export default function NewsletterForm() {
             type='text'
             autoComplete='given-name'
             placeholder='Il tuo nome (opzionale)'
-            className='h-12 w-full rounded-full border border-black/10 bg-white px-4 text-base text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
+            className='h-10 w-full rounded-full border border-black/10 bg-white px-4 text-base text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
           />
 
           <label className='sr-only' htmlFor='email'>
             Indirizzo email
           </label>
-          <input
-            id='email'
-            type='email'
-            inputMode='email'
-            autoComplete='email'
-            placeholder='La tua email'
-            className='h-12 w-full rounded-full border border-black/10 bg-white px-4 text-base text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
-          />
+          <div className='flex flex-col gap-4 md:gap-0 md:flex-row md:items-center md:justify-between'>
+            <input
+              id='email'
+              type='email'
+              inputMode='email'
+              autoComplete='email'
+              placeholder='La tua email'
+              className='h-10 w-full md:flex-1 md:max-w-none rounded-full border border-black/10 bg-white px-4 text-base text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
+            />
 
-          <div className='flex justify-center pt-1'>
-            <Button>
-              Iscriviti
-            </Button>
+            <div className='flex justify-center md:justify-end md:ml-4'>
+              <Button className='px-10'>Iscriviti</Button>
+            </div>
           </div>
         </form>
 

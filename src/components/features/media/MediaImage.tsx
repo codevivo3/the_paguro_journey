@@ -81,7 +81,7 @@ export default function MediaImage({
 
   return (
     <div
-      className={`${wrapperBase} isolate h-full w-full overflow-hidden rounded-[inherit] ${wrapperClassName}`}
+      className={`${wrapperBase} isolate h-full w-full overflow-hidden rounded-[inherit] cursor-inherit ${wrapperClassName}`}
     >
       <style>{`
         @keyframes paguro-skeleton-shimmer {
@@ -124,12 +124,12 @@ export default function MediaImage({
       )}
 
       {/* Image layer */}
-      <div className='absolute inset-0 z-10'>
+      <div className='absolute inset-0 z-10 cursor-inherit'>
         <Image
           key={attempt}
           {...imgProps}
           alt={alt}
-          className={`h-full w-full transition-opacity duration-300 ${
+          className={`h-full w-full cursor-inherit transition-opacity duration-300 ${
             loaded ? 'opacity-100' : 'opacity-0'
           } ${className}`}
           onLoadingComplete={handleLoaded}

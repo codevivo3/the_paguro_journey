@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import type { YouTubeVideo } from '@/lib/youtube';
+import type { YouTubeVideo } from '@/lib/youtube/youtube';
 import { useCarouselFades } from './useCarouselFades';
 import VideoCardClient from '@/components/features/videos/VideoCardClient';
 

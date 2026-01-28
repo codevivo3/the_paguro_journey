@@ -10,7 +10,7 @@ export default function DestinationsLoading() {
 
         {/* Cards skeleton */}
         <section className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 9 }).map((_, i) => (
             <article
               key={i}
               className='overflow-hidden rounded-md border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)]'

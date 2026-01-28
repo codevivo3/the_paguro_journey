@@ -447,3 +447,42 @@ body:has(.studio-shell) {
     background-position: -200% 0;
   }
 }
+
+/* ========================================================================== */
+/*  Cursor sanity (site-wide)                                                 */
+/*  If some global style accidentally overrides cursors, this restores UX.     */
+/* ========================================================================== */
+
+/* Default cursor for the document */
+html,
+body {
+  cursor: auto;
+}
+
+/* Clickable things should look clickable */
+a[href],
+button,
+[role='button'],
+summary,
+label[for],
+input[type='checkbox'],
+input[type='radio'],
+input[type='submit'],
+input[type='button'],
+input[type='reset'],
+select,
+option,
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+/* Text inputs should keep the I‑beam cursor */
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='search'],
+input[type='tel'],
+input[type='url'],
+textarea {
+  cursor: text !important;
+}

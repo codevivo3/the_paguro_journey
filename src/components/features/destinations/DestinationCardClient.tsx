@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import {
   Card,
   CardMedia,
@@ -52,10 +51,12 @@ export function DestinationCardClient({
 
   return (
     <Card>
-      <Link
+      <a
         href={href}
         aria-label={`Apri destinazione: ${country}`}
-        className='block'
+        className='group block cursor-pointer [&_*]:cursor-pointer'
+        target='_blank'
+        rel='noopener noreferrer'
       >
         <CardMedia className={`${mediaAspect} relative`}>
           <MediaImage
@@ -63,11 +64,11 @@ export function DestinationCardClient({
             alt={country}
             fill
             sizes='(max-width: 1024px) 100vw, 33vw'
-            className='object-cover transition-transform duration-300 hover:scale-[1.02]'
+            className='object-cover transition-transform duration-300 group-hover:scale-[1.02]'
             onLoaded={handleLoaded}
           />
         </CardMedia>
-      </Link>
+      </a>
 
       <CardBody>
         {!ready ? (
@@ -90,7 +91,7 @@ export function DestinationCardClient({
             </CardMetaRow>
 
             <div className='flex items-center justify-between'>
-              <p className='t-meta'>Blog {count}</p>
+              <p className='t-meta'>Video: {count}</p>
 
               <CardPill
                 href={regionHref}
@@ -101,12 +102,14 @@ export function DestinationCardClient({
               </CardPill>
             </div>
 
-            <Link
+            <a
               href={href}
-              className='mt-auto inline-flex items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] hover:text-[color:var(--paguro-link-hover)]'
+              target='_blank'
+              rel='noopener noreferrer'
+              className='mt-auto inline-flex cursor-pointer [&_*]:cursor-pointer pointer-events-auto items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] hover:text-[color:var(--paguro-link-hover)]'
             >
               Scopri di più <span aria-hidden>➜</span>
-            </Link>
+            </a>
           </>
         )}
       </CardBody>

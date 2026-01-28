@@ -52,7 +52,7 @@ export default function IntroSection() {
       </svg>
       <div className='relative z-10 mx-auto max-w-3xl space-y-6 px-4 md:px-6 pb-12 md:pb-16'>
         {/* Section title (uses global typography preset) */}
-        <h2 className='t-page-title-intro text-4xl md:text-6xl text-center title-divider title-divider-center mt-12 md:mt-30'>
+        <h2 className='t-page-title-intro text-4xl md:text-6xl text-center title-divider title-divider-center mt-12 md:mt-20 lg:mt-14'>
           Racconti di Viaggio
         </h2>
 

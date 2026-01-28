@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.17.12",
+    "@radix-ui/react-select": "^2.2.6",
     "@sanity/image-url": "^1.2.0",
     "@sanity/vision": "^4.22.0",
     "i18n-iso-countries": "^7.14.0",

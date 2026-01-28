@@ -38,12 +38,14 @@ export function Card({
   ariaLabel?: string;
 }) {
   const cardClasses = cx(
-    'group relative overflow-hidden rounded-md border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg',
+    'group relative overflow-hidden rounded-md border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg [&_a]:pointer-events-auto',
     href
-      ? 'cursor-pointer focus-within:ring-2 focus-within:ring-[color:var(--paguro-ocean)] focus-within:ring-offset-2 focus-within:ring-offset-[color:var(--paguro-bg)]'
+      ? 'focus-within:ring-2 focus-within:ring-[color:var(--paguro-ocean)] focus-within:ring-offset-2 focus-within:ring-offset-[color:var(--paguro-bg)]'
       : undefined,
     className
   );
+
+  const overlayClassName = 'absolute inset-0 z-20 cursor-pointer';
 
   // If href is provided, we render an overlay link.
   // Content stays clickable/accessible only if you DON'T nest other links.
@@ -56,7 +58,7 @@ export function Card({
             target='_blank'
             rel='noreferrer'
             aria-label={ariaLabel ?? 'Apri'}
-            className='absolute inset-0 z-20'
+            className={overlayClassName}
           >
             <span className='sr-only'>{ariaLabel ?? 'Apri'}</span>
           </a>
@@ -64,7 +66,7 @@ export function Card({
           <Link
             href={href}
             aria-label={ariaLabel ?? 'Apri'}
-            className='absolute inset-0 z-20'
+            className={overlayClassName}
           >
             <span className='sr-only'>{ariaLabel ?? 'Apri'}</span>
           </Link>
@@ -88,7 +90,21 @@ export function CardMedia({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cx('relative w-full bg-black/10', className)}>{children}</div>;
+  return (
+    <div
+      className={cx(
+        // Media should always feel clickable when it contains a link.
+        // Some overlays/skeletons can sit above the image and steal the hover cursor.
+        // For UX, we enforce pointer cursor across the whole media block.
+        'relative w-full bg-black/10 cursor-pointer',
+        '[&_a]:pointer-events-auto [&_a]:cursor-pointer',
+        '[&_*]:cursor-pointer',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function CardBody({
@@ -155,7 +171,7 @@ export function CardLink({
   external?: boolean;
 }) {
   const base =
-    'mt-auto inline-flex items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 group-hover:text-[color:var(--paguro-link-hover)]';
+    'mt-auto inline-flex cursor-pointer items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] transition-colors duration-200 group-hover:text-[color:var(--paguro-link-hover)]';
 
   if (external) {
     return (
@@ -207,7 +223,7 @@ export function CardPill({
   }
 
   return (
-    <Link href={href} aria-label={ariaLabel ?? 'Apri filtro'} className={pillClassName}>
+    <Link href={href} aria-label={ariaLabel ?? 'Apri filtro'} className={cx(pillClassName, 'cursor-pointer')}>
       {children}
     </Link>
   );

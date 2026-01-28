@@ -4,7 +4,7 @@
  * Displays the most recent YouTube videos using a horizontal carousel.
  * Includes a direct link to the Paguro Journey YouTube channel.
  */
-import { getLatestRegularVideos } from '@/lib/youtube';
+import { getLatestRegularVideos } from '@/lib/youtube/youtube';
 import VideoCarousel from '@/components/features/videos/VideoCarousel.client';
 
 export default async function LatestVidsSection() {

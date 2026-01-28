@@ -465,12 +465,12 @@ async function attachWorldRegionsToCountries(rows: Row[]) {
 
       patched += 1;
     } catch (err: unknown) {
-      // Usually means the country doc doesn't exist yet
       missingCountry += 1;
 
-      // Debug tip (safe narrowing):
-      // const msg = err instanceof Error ? err.message : String(err);
-      // console.warn(`Missing country doc for ISO2 ${iso2} (${countryDocId}): ${msg}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `⚠️ Missing country doc: ${countryDocId} (ISO2 ${iso2}) — ${msg}`,
+      );
     }
   }
 

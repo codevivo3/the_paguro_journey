@@ -22,6 +22,12 @@ export type CountryForDestinations = {
    * Priority: Country.destinationCover (manual) → latest related post cardImage (fallback).
    */
   coverImage?: SanityImageSource | null;
+
+  /**
+   * Travel styles inferred from related posts (Option A).
+   * Distinct list, suitable for filter pills.
+   */
+  travelStyles?: Array<{ slug: string; label: string; order?: number }>;
 };
 
 const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
@@ -51,8 +57,21 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
     // We use references(^._id) because Posts store countries[] as references.
     "postCount": count(*[
       _type == "post" &&
+      (status == "published" || $preview == true) &&
       references(^._id)
     ]),
+
+    // Travel styles inferred from related posts (Option A).
+    // Distinct + ordered for UI pills.
+    "travelStyles": array::unique(*[
+      _type == "post" &&
+      (status == "published" || $preview == true) &&
+      references(^._id)
+    ].travelStyles[]-> {
+      "slug": slug.current,
+      "label": title,
+      order
+    }) | order(order asc, label asc),
 
     // Card cover image (Sanity image object), with a manual override.
     "coverImage": coalesce(
