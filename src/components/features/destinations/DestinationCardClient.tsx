@@ -10,12 +10,14 @@ import {
   CardPill,
 } from '@/components/ui/Card';
 import MediaImage from '@/components/features/media/MediaImage';
+import { safeLang, type Lang } from '@/lib/route';
 
 function SkeletonBlock({ className = '' }: { className?: string }) {
   return <div className={`skeleton rounded-[inherit] ${className}`} />;
 }
 
 export function DestinationCardClient({
+  lang,
   href,
   regionHref,
   country,
@@ -24,6 +26,7 @@ export function DestinationCardClient({
   coverSrc,
   mediaAspect,
 }: {
+  lang?: Lang;
   href: string;
   regionHref: string;
   country: string;
@@ -32,6 +35,8 @@ export function DestinationCardClient({
   coverSrc: string;
   mediaAspect: string;
 }) {
+  const effectiveLang: Lang = safeLang(lang);
+
   const [ready, setReady] = React.useState(false);
 
   // keep skeleton visible even if the image loads instantly (cache)
@@ -49,11 +54,28 @@ export function DestinationCardClient({
     window.setTimeout(() => setReady(true), remaining);
   }, []);
 
+  const t = {
+    it: {
+      open: 'Apri destinazione',
+      filter: 'Filtra per regione',
+      videos: 'Video',
+      discover: 'Scopri di più',
+    },
+    en: {
+      open: 'Open destination',
+      filter: 'Filter by region',
+      videos: 'Videos',
+      discover: 'Discover more',
+    },
+  } as const;
+
+  const labels = t[effectiveLang];
+
   return (
     <Card>
       <a
         href={href}
-        aria-label={`Apri destinazione: ${country}`}
+        aria-label={`${labels.open}: ${country}`}
         className='group block cursor-pointer [&_*]:cursor-pointer'
         target='_blank'
         rel='noopener noreferrer'
@@ -91,12 +113,12 @@ export function DestinationCardClient({
             </CardMetaRow>
 
             <div className='flex items-center justify-between'>
-              <p className='t-meta'>Video: {count}</p>
+              <p className='t-meta'>{labels.videos}: {count}</p>
 
               <CardPill
                 href={regionHref}
                 className='shrink-0'
-                ariaLabel={`Filtra per regione: ${region}`}
+                ariaLabel={`${labels.filter}: ${region}`}
               >
                 {region}
               </CardPill>
@@ -108,7 +130,7 @@ export function DestinationCardClient({
               rel='noopener noreferrer'
               className='mt-auto inline-flex cursor-pointer [&_*]:cursor-pointer pointer-events-auto items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] hover:text-[color:var(--paguro-link-hover)]'
             >
-              Scopri di più <span aria-hidden>➜</span>
+              {labels.discover} <span aria-hidden>➜</span>
             </a>
           </>
         )}

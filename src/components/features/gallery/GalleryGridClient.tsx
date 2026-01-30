@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 
 import MediaImage from '@/components/features/media/MediaImage';
+import { safeLang, type Lang } from '@/lib/route';
 
 type GalleryImage = {
   src: string;
@@ -12,14 +13,16 @@ type GalleryImage = {
   orientation?: 'portrait' | 'landscape' | string;
 };
 
-function GalleryItem({ item }: { item: GalleryImage }) {
+function GalleryItem({ item, lang }: { item: GalleryImage; lang?: Lang }) {
+  const effectiveLang: Lang = safeLang(lang);
   const aspect =
     item.orientation === 'portrait' ? 'aspect-[3/4]' : 'aspect-video';
+  const fallbackLabel = effectiveLang === 'en' ? 'Open image' : 'Apri immagine';
 
   return (
     <Link
       href={`/gallery/${item.countrySlug}`}
-      aria-label={item.alt ?? 'Apri immagine'}
+      aria-label={item.alt ?? fallbackLabel}
       className='block'
     >
       <div className={`relative ${aspect} overflow-hidden rounded-md`}>

@@ -1,5 +1,7 @@
 // src/sanity/schemaTypes/documents/post.ts
 import { defineType, defineField } from 'sanity';
+import React from 'react';
+import type { ReactElement } from 'react';
 
 /**
  * We keep helper typing extremely lightweight because Sanity `document`
@@ -23,10 +25,45 @@ function getRefIds(value: unknown): string[] {
     .filter((id): id is string => Boolean(id));
 }
 
+// -----------------------------------------------------------------------------
+// Studio description helper (EN + IT, visually separated)
+// -----------------------------------------------------------------------------
+
+function biDesc(en: string, it: string): ReactElement {
+  return React.createElement(
+    React.Fragment,
+    null,
+    React.createElement(
+      'div',
+      { style: { marginBottom: '0.35rem' } },
+      React.createElement('strong', null, 'EN'),
+      ' — ',
+      en,
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement('strong', null, 'IT'),
+      ' — ',
+      it,
+    ),
+  );
+}
+
 export default defineType({
   name: 'post',
   title: 'Blog Post',
   type: 'document',
+  description: biDesc(
+    'A blog article. Write Italian + optional English so the site can be bilingual-ready. Slug uses the Italian title.',
+    'Un articolo del blog. Scrivi Italiano + Inglese opzionale per avere il sito pronto al bilingue. Lo slug usa il titolo italiano.',
+  ),
+
+  fieldsets: [
+    { name: 'langIt', title: 'Italiano (obbligatorio)' },
+    { name: 'langEn', title: 'English (optional)' },
+    { name: 'seo', title: 'SEO (English)' },
+  ],
 
   fields: [
     /* ---------------------------------------------------------------------- */
@@ -34,12 +71,26 @@ export default defineType({
     /* ---------------------------------------------------------------------- */
 
     defineField({
-      name: 'title',
-      title: 'Title',
+      name: 'titleIt',
+      title: 'Titolo (Italiano)',
       type: 'string',
-      description:
-        'Clear, human title. Avoid clickbait. You can refine this later.',
+      fieldset: 'langIt',
+      description: biDesc(
+        'Main title (Italian). Used to generate the slug/URL. Keep it clear and human.',
+        'Titolo principale (Italiano). Usato per generare lo slug/URL. Chiaro e umano.',
+      ),
       validation: (r) => r.required(),
+    }),
+
+    defineField({
+      name: 'titleEn',
+      title: 'Title (English)',
+      type: 'string',
+      fieldset: 'langEn',
+      description: biDesc(
+        'English title for the EN site (optional). If empty, the EN site can fall back to Italian.',
+        'Titolo in inglese per il sito EN (opzionale). Se vuoto, il sito EN può usare l’italiano.',
+      ),
     }),
 
     defineField({
@@ -47,8 +98,10 @@ export default defineType({
       title: 'Cover image',
       type: 'reference',
       to: [{ type: 'mediaItem' }],
-      description:
-        'Image shown on the Blog page cards (and can be reused for social previews).',
+      description: biDesc(
+        'Card cover image shown on Blog listings and previews. The referenced Media Item should already contain bilingual accessibility/caption info.',
+        'Immagine di copertina mostrata nelle card del Blog e nelle anteprime. Il Media Item collegato dovrebbe già contenere info bilingue (accessibilità/didascalia).',
+      ),
       options: {
         filter: 'type == "image"',
       },
@@ -60,32 +113,47 @@ export default defineType({
       title: 'Slug (URL)',
       type: 'slug',
       options: {
-        source: 'title',
+        source: 'titleIt',
         maxLength: 96,
       },
-      description:
-        'Auto-generated from title. Keep it short and readable (used in the page URL).',
+      description: biDesc(
+        'Auto-generated from the Italian title. Keep it short and readable (used in the page URL).',
+        'Generato automaticamente dal titolo italiano. Mantienilo breve e leggibile (usato nell’URL).',
+      ),
       validation: (r) => r.required(),
     }),
 
     defineField({
-      name: 'excerpt',
-      title: 'Excerpt (short summary)',
+      name: 'excerptIt',
+      title: 'Excerpt (Italiano)',
       type: 'text',
       rows: 3,
-      description:
-        'One or two sentences. Used in previews, cards, and social sharing.',
+      fieldset: 'langIt',
+      description: biDesc(
+        '1–2 sentences in Italian. Used in cards/previews and social sharing.',
+        '1–2 frasi in italiano. Usato in card/anteprime e condivisione social.',
+      ),
       validation: (r) => r.max(200),
     }),
 
-    /* ---------------------------------------------------------------------- */
-    /* Content                                                                */
-    /* ---------------------------------------------------------------------- */
+    defineField({
+      name: 'excerptEn',
+      title: 'Excerpt (English)',
+      type: 'text',
+      rows: 3,
+      fieldset: 'langEn',
+      description: biDesc(
+        'Optional English excerpt for the EN site. If empty, fallback can use Italian.',
+        'Estratto in inglese opzionale per il sito EN. Se vuoto, si può usare l’italiano.',
+      ),
+      validation: (r) => r.max(200),
+    }),
 
     defineField({
-      name: 'content',
-      title: 'Content',
+      name: 'contentIt',
+      title: 'Content (Italiano)',
       type: 'array',
+      fieldset: 'langIt',
       of: [
         {
           type: 'block',
@@ -139,9 +207,109 @@ export default defineType({
           },
         },
       ],
-      description:
-        'Main article body. You can add text blocks and reusable media items.',
+      description: biDesc(
+        'Main article body (Italian). Add text blocks and reusable media items.',
+        'Corpo principale dell’articolo (Italiano). Aggiungi testo e media riutilizzabili.',
+      ),
       validation: (r) => r.required(),
+    }),
+
+    defineField({
+      name: 'contentEn',
+      title: 'Content (English)',
+      type: 'array',
+      fieldset: 'langEn',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            { title: 'Normal', value: 'normal' },
+            { title: 'H1', value: 'h1' },
+            { title: 'H2', value: 'h2' },
+            { title: 'H3', value: 'h3' },
+            { title: 'H4', value: 'h4' },
+            { title: 'H5', value: 'h5' },
+            { title: 'H6', value: 'h6' },
+            { title: 'Quote', value: 'blockquote' },
+          ],
+        },
+        {
+          type: 'reference',
+          to: [{ type: 'mediaItem' }],
+        },
+        {
+          name: 'callout',
+          title: 'Callout',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'title',
+              title: 'Title',
+              type: 'string',
+              description: 'Optional heading shown at the top of the callout box.',
+            }),
+            defineField({
+              name: 'body',
+              title: 'Body',
+              type: 'array',
+              of: [{ type: 'block' }],
+              validation: (r) => r.required(),
+            }),
+          ],
+          preview: {
+            select: { title: 'title', body: 'body' },
+            prepare({ title }) {
+              return {
+                title: title || 'Callout',
+                subtitle: 'Callout box',
+              };
+            },
+          },
+        },
+      ],
+      description: biDesc(
+        'Optional English version for the EN site. If empty, the EN site can fall back to Italian.',
+        'Versione inglese opzionale per il sito EN. Se vuota, il sito EN può usare l’italiano.',
+      ),
+    }),
+
+    /* ---------------------------------------------------------------------- */
+    /* SEO (English)                                                           */
+    /* ---------------------------------------------------------------------- */
+
+    defineField({
+      name: 'seo',
+      title: 'SEO (English)',
+      type: 'object',
+      fieldset: 'seo',
+      description: biDesc(
+        'Optional English-only SEO fields used for metadata (title/description). If empty, the site can fall back to the English title/excerpt (or Italian fallback).',
+        'Campi SEO opzionali SOLO in inglese usati per i metadati (titolo/descrizione). Se vuoti, il sito può usare titolo/estratto (inglese o fallback italiano).',
+      ),
+      fields: [
+        defineField({
+          name: 'title',
+          title: 'Meta title (EN)',
+          type: 'string',
+          description: biDesc(
+            'Optional. Overrides the <title> tag for this post on the EN site. Keep ~50–60 characters.',
+            'Opzionale. Sovrascrive il tag <title> per questo post sul sito EN. Tieni ~50–60 caratteri.',
+          ),
+          validation: (r) => r.max(70),
+        }),
+        defineField({
+          name: 'description',
+          title: 'Meta description (EN)',
+          type: 'text',
+          rows: 3,
+          description: biDesc(
+            'Optional. Used for the meta description on the EN site. Aim for ~140–160 characters.',
+            'Opzionale. Usata come meta description sul sito EN. Punta a ~140–160 caratteri.',
+          ),
+          validation: (r) => r.max(180),
+        }),
+      ],
+      options: { collapsed: true, collapsible: true },
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -269,13 +437,14 @@ export default defineType({
 
   preview: {
     select: {
-      title: 'title',
+      title: 'titleIt',
+      seoTitle: 'seo.title',
       status: 'status',
       publishedAt: 'publishedAt',
     },
-    prepare({ title, status, publishedAt }) {
+    prepare({ title, seoTitle, status, publishedAt }) {
       return {
-        title,
+        title: seoTitle || title,
         subtitle:
           status === 'published'
             ? `Published · ${

@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import type { GalleryImage } from './GalleryGrid';
+import { safeLang, type Lang } from '@/lib/route';
 
 function GalleryGridSkeleton() {
   // Keep this aligned with the real grid rhythm (masonry columns + varied aspect ratios)
@@ -19,7 +20,7 @@ function GalleryGridSkeleton() {
 
   return (
     <div
-      aria-label='Caricamento galleria'
+      aria-label='Loading gallery / Caricamento galleria'
       className='columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3'
     >
       {aspects.map((aspect, i) => (
@@ -36,16 +37,19 @@ function GalleryGridSkeleton() {
 const GalleryGrid = dynamic(() => import('./GalleryGrid'), {
   ssr: false,
   loading: () => (
-    <section aria-label='Gallery' className='space-y-5'>
+    <section aria-label='Gallery / Galleria' className='space-y-5'>
       <GalleryGridSkeleton />
     </section>
   ),
 });
 
 export default function GalleryGridClient({
+  lang,
   items,
 }: {
+  lang?: Lang;
   items: GalleryImage[];
 }) {
-  return <GalleryGrid items={items} />;
+  const effectiveLang: Lang = safeLang(lang);
+  return <GalleryGrid lang={effectiveLang} items={items} />;
 }

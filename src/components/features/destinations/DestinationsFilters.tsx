@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import Button from '@/components/ui/Button';
 import PaguroSelect from '@/components/ui/PaguroSelect';
+import { safeLang, type Lang } from '@/lib/route';
 
 /**
  * DestinationsFilters
@@ -125,6 +126,7 @@ export function buildDestinationsHref(args: {
 export function getDestinationsFilterState(
   destinations: DestinationItem[],
   searchParams?: DestinationsSearchParams,
+  lang: Lang = 'it',
 ): DestinationsFilterState {
   const selectedRegion = (firstParam(searchParams?.region) ?? '').trim();
   const selectedCountry = (firstParam(searchParams?.country) ?? '').trim();
@@ -136,7 +138,7 @@ export function getDestinationsFilterState(
         ? { slug: d.regionSlug, label: d.region }
         : null,
     ),
-  ).sort((a, b) => a.label.localeCompare(b.label, 'it'));
+  ).sort((a, b) => a.label.localeCompare(b.label, lang));
 
   // Countries optionally depend on the selected region (so users don't see irrelevant countries).
   const destinationsForCountries = selectedRegion
@@ -149,7 +151,7 @@ export function getDestinationsFilterState(
         ? { slug: d.countrySlug, label: d.country }
         : null,
     ),
-  ).sort((a, b) => a.label.localeCompare(b.label, 'it'));
+  ).sort((a, b) => a.label.localeCompare(b.label, lang));
 
   // Styles optionally depend on selected region/country (keeps the list relevant).
   const destinationsForStyles = destinations.filter((d) => {
@@ -162,7 +164,7 @@ export function getDestinationsFilterState(
     destinationsForStyles.flatMap((d) =>
       (d.travelStyles ?? []).map((s) => ({ slug: s.slug, label: s.label })),
     ),
-  ).sort((a, b) => a.label.localeCompare(b.label, 'it'));
+  ).sort((a, b) => a.label.localeCompare(b.label, lang));
 
   // Filters combined with AND logic: all selected filters must match
   const filtered = destinations.filter((d) => {
@@ -199,17 +201,54 @@ export function getDestinationsFilterState(
  * - basePath: optional base path for links (default '/destinations')
  */
 export default function DestinationsFilters({
+  lang,
   destinations,
   searchParams,
   basePath = '/destinations',
 }: {
+  lang?: Lang;
   destinations: DestinationItem[];
   searchParams?: DestinationsSearchParams;
   basePath?: string;
 }) {
+  const effectiveLang: Lang = safeLang(lang);
+
+  const i18n = {
+    it: {
+      sectionAria: 'Filtri',
+      formAria: 'Filtri destinazioni',
+      region: 'Regione',
+      country: 'Paese',
+      style: 'Stile',
+      all: 'Tutte',
+      allPlural: 'Tutti',
+      resetAria: 'Reset filtri',
+      reset: 'Reset',
+      apply: 'Applica',
+      viewing: 'Stai vedendo:',
+      allRegions: 'tutte le regioni',
+    },
+    en: {
+      sectionAria: 'Filters',
+      formAria: 'Destinations filters',
+      region: 'Region',
+      country: 'Country',
+      style: 'Style',
+      all: 'All',
+      allPlural: 'All',
+      resetAria: 'Reset filters',
+      reset: 'Reset',
+      apply: 'Apply',
+      viewing: 'You are viewing:',
+      allRegions: 'all regions',
+    },
+  } as const;
+
+  const t = i18n[effectiveLang];
+
   // Initial state comes from the URL (searchParams), but the UI is controlled client-side.
   const initial = useMemo(
-    () => getDestinationsFilterState(destinations, searchParams),
+    () => getDestinationsFilterState(destinations, searchParams, effectiveLang),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -219,11 +258,15 @@ export default function DestinationsFilters({
   // Recompute options + filtered list based on the current selection.
   const state = useMemo(
     () =>
-      getDestinationsFilterState(destinations, {
-        region: selected.region,
-        country: selected.country,
-        style: selected.style,
-      }),
+      getDestinationsFilterState(
+        destinations,
+        {
+          region: selected.region,
+          country: selected.country,
+          style: selected.style,
+        },
+        effectiveLang,
+      ),
     [destinations, selected],
   );
 
@@ -232,11 +275,15 @@ export default function DestinationsFilters({
     const next = { ...selected, region: nextRegion };
 
     // If region changes, country/style may no longer be valid.
-    const nextState = getDestinationsFilterState(destinations, {
-      region: next.region,
-      country: next.country,
-      style: next.style,
-    });
+    const nextState = getDestinationsFilterState(
+      destinations,
+      {
+        region: next.region,
+        country: next.country,
+        style: next.style,
+      },
+      effectiveLang,
+    );
 
     const countryStillValid =
       !next.country || nextState.options.countries.some((c) => c.slug === next.country);
@@ -252,11 +299,15 @@ export default function DestinationsFilters({
 
   function setCountry(nextCountry: string) {
     const next = { ...selected, country: nextCountry };
-    const nextState = getDestinationsFilterState(destinations, {
-      region: next.region,
-      country: next.country,
-      style: next.style,
-    });
+    const nextState = getDestinationsFilterState(
+      destinations,
+      {
+        region: next.region,
+        country: next.country,
+        style: next.style,
+      },
+      effectiveLang,
+    );
 
     const styleStillValid =
       !next.style || nextState.options.styles.some((s) => s.slug === next.style);
@@ -278,13 +329,13 @@ export default function DestinationsFilters({
     Boolean(state.selected.style);
 
   return (
-    <section aria-label='Filtri' className='space-y-4'>
+    <section aria-label={t.sectionAria} className='space-y-4'>
       {/* Filters (Select + Apply) — URL-driven via GET params */}
       <form
         method='get'
         action={basePath}
         className='mx-auto w-full max-w-2xl rounded-3xl border border-[color:var(--paguro-sand)]/20 bg-[color:var(--paguro-surface)]/80 p-4 shadow-[0_12px_34px_rgba(0,0,0,0.10)] backdrop-blur-md md:p-5'
-        aria-label='Filtri destinazioni'
+        aria-label={t.formAria}
       >
         <div className='grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3'>
           {/* Region */}
@@ -293,7 +344,7 @@ export default function DestinationsFilters({
               id='destinations-filter-region'
               className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
             >
-              Regione
+              {t.region}
             </span>
 
             <PaguroSelect
@@ -301,7 +352,7 @@ export default function DestinationsFilters({
               labelId='destinations-filter-region'
               value={selected.region}
               onValueChange={setRegion}
-              placeholder='Tutte'
+              placeholder={t.all}
               options={state.options.regions.map((r) => ({
                 value: r.slug,
                 label: r.label,
@@ -315,7 +366,7 @@ export default function DestinationsFilters({
               id='destinations-filter-country'
               className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
             >
-              Paese
+              {t.country}
             </span>
 
             <PaguroSelect
@@ -323,7 +374,7 @@ export default function DestinationsFilters({
               labelId='destinations-filter-country'
               value={selected.country}
               onValueChange={setCountry}
-              placeholder='Tutti'
+              placeholder={t.allPlural}
               options={state.options.countries.map((c) => ({
                 value: c.slug,
                 label: c.label,
@@ -359,25 +410,25 @@ export default function DestinationsFilters({
           <a
             href={basePath}
             className='t-card-title text-sm text-[color:var(--paguro-text)]/70 underline underline-offset-4 hover:text-[color:var(--paguro-ocean)]'
-            aria-label='Reset filtri'
+            aria-label={t.resetAria}
           >
-            Reset
+            {t.reset}
           </a>
 
-          <Button>Applica</Button>
+          <Button>{t.apply}</Button>
         </div>
       </form>
 
       {/* Selected summary (derived from URL params) */}
       {anyActive ? (
         <p className='text-center text-sm text-[color:var(--paguro-text)]/70'>
-          Stai vedendo:{' '}
+          {t.viewing}{' '}
           <span className='font-medium'>
             {(state.selected.region
               ? (state.options.regions.find(
                   (r) => r.slug === state.selected.region,
                 )?.label ?? state.selected.region)
-              : 'tutte le regioni') +
+              : t.allRegions) +
               (state.selected.country
                 ? ` · ${state.options.countries.find((c) => c.slug === state.selected.country)?.label ?? state.selected.country}`
                 : '') +

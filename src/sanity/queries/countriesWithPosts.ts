@@ -3,7 +3,13 @@ import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 export type CountryCard = {
   _id: string;
+
+  /** Resolved title for the requested language */
   title: string;
+
+  /** Raw i18n titles (optional, for future toggle use) */
+  titleI18n?: { it?: string; en?: string };
+
   slug: string;
   postCount: number;
   coverImage?: SanityImageSource | null;
@@ -17,9 +23,11 @@ const COUNTRIES_WITH_POSTS_QUERY = /* groq */ `
       status == "published" &&
       references(^._id)
     ]) > 0
-  ] | order(title asc) {
+  ] | order(coalesce(titleI18n[$lang], title) asc) {
     _id,
-    title,
+
+    titleI18n,
+    "title": coalesce(titleI18n[$lang], title),
     "slug": slug.current,
 
     "postCount": count(*[
@@ -38,10 +46,10 @@ const COUNTRIES_WITH_POSTS_QUERY = /* groq */ `
   }
 `;
 
-export async function getCountriesWithPosts() {
+export async function getCountriesWithPosts(lang: 'it' | 'en' = 'it') {
   return client.fetch<CountryCard[]>(
     COUNTRIES_WITH_POSTS_QUERY,
-    {},
+    { lang },
     { next: { revalidate: 60 * 60 } },
   );
 }

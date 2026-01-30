@@ -156,7 +156,7 @@ export default function SearchResults({
                           alt={v.title}
                           width={64}
                           height={40}
-                          className='h-full w-full object-cover'
+                          className='h-full w-full object-cover scale-[1.1]'
                         />
                       </div>
                     ) : null}

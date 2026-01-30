@@ -7,6 +7,9 @@ import type { GalleryImage } from '../gallery/GalleryGrid';
 
 type GalleryModalProps = {
   /** Whether the modal is visible */
+  lang?: 'it' | 'en';
+
+  /** Whether the modal is visible */
   isOpen: boolean;
 
   /** Current selected image (null when closed) */
@@ -37,6 +40,7 @@ type GalleryModalProps = {
  * NOTE: Keyboard handling and URL logic live in GalleryGrid.
  */
 export default function GalleryModal({
+  lang = 'it',
   isOpen,
   current,
   openIndex,
@@ -47,11 +51,32 @@ export default function GalleryModal({
 }: GalleryModalProps) {
   if (!isOpen || !current || openIndex === null) return null;
 
+  const labels = {
+    it: {
+      dialog: 'Anteprima immagine',
+      openOriginal: 'Apri immagine originale',
+      close: 'Chiudi',
+      prev: 'Immagine precedente',
+      next: 'Immagine successiva',
+      altFallback: 'Foto viaggio',
+    },
+    en: {
+      dialog: 'Image preview',
+      openOriginal: 'Open original image',
+      close: 'Close',
+      prev: 'Previous image',
+      next: 'Next image',
+      altFallback: 'Travel photo',
+    },
+  } as const;
+
+  const t = labels[lang];
+
   return (
     <div
       role='dialog'
       aria-modal='true'
-      aria-label='Anteprima immagine'
+      aria-label={t.dialog}
       className='fixed inset-0 z-50'
     >
       {/* Overlay */}
@@ -83,7 +108,7 @@ export default function GalleryModal({
                 target='_blank'
                 rel='noreferrer'
                 className='rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
-                aria-label='Apri immagine originale'
+                aria-label={t.openOriginal}
               >
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
@@ -106,7 +131,7 @@ export default function GalleryModal({
               <button
                 type='button'
                 onClick={onClose}
-                aria-label='Chiudi'
+                aria-label={t.close}
                 className='inline-flex items-center justify-center rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
               >
                 <svg
@@ -132,7 +157,7 @@ export default function GalleryModal({
             <div className='relative h-[70vh] w-full'>
               <Image
                 src={current.src}
-                alt={current.alt ?? 'Foto viaggio'}
+                alt={current.alt ?? t.altFallback}
                 fill
                 sizes='100vw'
                 className='object-contain'
@@ -145,7 +170,7 @@ export default function GalleryModal({
           <button
             type='button'
             onClick={onPrev}
-            aria-label='Immagine precedente'
+            aria-label={t.prev}
             className='absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full px-2 py-2 backdrop-blur bg-white/3 text-white transition hover:bg-white/20'
           >
             <svg
@@ -167,7 +192,7 @@ export default function GalleryModal({
           <button
             type='button'
             onClick={onNext}
-            aria-label='Immagine successiva'
+            aria-label={t.next}
             className='absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/5 px-2 py-2 text-white backdrop-blur transition hover:bg-white/20'
           >
             <svg

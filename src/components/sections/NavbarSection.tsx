@@ -1,11 +1,13 @@
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
 import SearchModal from '../ui/SearchModal';
 import SwitchTheme from '../features/theme/ThemeToggle';
+import LanguageToggle from '@/components/features/Language/LanguageToggle';
+import { withLangPrefix, stripLangPrefix, safeLang, type Lang } from '@/lib/route';
 
 type NavItemProps = {
   href: string;
@@ -30,7 +32,7 @@ function NavItem({
 }: NavItemProps) {
   return (
     <li className={liClassName}>
-      <Link href={href} className={linkClassName}>
+      <Link href={linkClassName ? href : href} className={linkClassName}>
         {label}
       </Link>
 
@@ -43,12 +45,57 @@ function NavItem({
   );
 }
 
-export default function Navbar() {
+type NavbarProps = {
+  lang?: Lang;
+};
+
+export default function Navbar({ lang }: NavbarProps) {
   const pathname = usePathname();
+  const effectiveLang: Lang = safeLang(
+    lang ?? (pathname === '/en' || pathname.startsWith('/en/') ? 'en' : 'it')
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
+  const readTheme = (): 'light' | 'dark' => {
+    if (typeof document === 'undefined') return 'light';
+
+    const dt = document.documentElement.dataset.theme;
+    if (dt === 'dark' || dt === 'light') return dt;
+
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem('theme');
+      if (stored === 'dark' || stored === 'light') return stored;
+    }
+
+    return 'light';
+  };
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => readTheme());
+
+  useEffect(() => {
+    // Observe dataset changes when the ThemeToggle flips
+    const obs = new MutationObserver(() => {
+      setTheme(readTheme());
+    });
+
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+
+    return () => obs.disconnect();
+  }, []);
+
+  const langToggleBg =
+    theme === 'dark'
+      ? 'linear-gradient(135deg, rgba(42,58,53,0.95), rgba(23,27,26,0.95))'
+      : 'linear-gradient(135deg, rgba(91,194,217,0.55), rgba(65,155,191,0.85))';
+
+  const isActive = (href: string) => {
+    const current = stripLangPrefix(pathname || '/');
+    const target = stripLangPrefix(href);
+    return current === target || current.startsWith(`${target}/`);
+  };
 
   // LI is the positioning + hover group container
   const LI_CLASS =
@@ -65,13 +112,42 @@ export default function Navbar() {
   const UNDERLINE_INACTIVE = 'w-0 group-hover:w-full';
   const UNDERLINE_ACTIVE = 'w-full';
 
+  const labels = {
+    it: {
+      blog: 'Blog',
+      destinations: 'Destinazioni',
+      gallery: 'Galleria',
+      about: 'Chi Siamo',
+      contact: 'Contatti',
+      homeAria: 'Vai alla homepage',
+    },
+    en: {
+      blog: 'Blog',
+      destinations: 'Destinations',
+      gallery: 'Gallery',
+      about: 'About',
+      contact: 'Contact',
+      homeAria: 'Go to homepage',
+    },
+  } as const;
+
+  const t = labels[effectiveLang];
+
+  const navItems = [
+    { href: '/blog', label: t.blog },
+    { href: '/destinations', label: t.destinations },
+    { href: '/gallery', label: t.gallery },
+    { href: '/about', label: t.about },
+    { href: '/contact', label: t.contact },
+  ];
+
   return (
     <nav className='fixed top-0 right-0 left-0 z-[9999] isolate [font-family:var(--font-ui)] bg-[color:var(--paguro-deep)]/80 backdrop-blur-sm'>
       <div className='mx-auto flex max-w-6xl items-center justify-between h-12 px-6 lg:px-12 overflow-x-hidden'>
         {/* Logo */}
         <Link
-          href='/'
-          aria-label='Go to homepage'
+          href={withLangPrefix(effectiveLang, '/')}
+          aria-label={t.homeAria}
           onClick={() => setMobileOpen(false)}
           className='flex items-center rounded-xl transition-transform duration-200 ease-out hover:-translate-y-0.3 hover:scale-105 active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
         >
@@ -87,56 +163,19 @@ export default function Navbar() {
 
         {/* Navigation */}
         <ul className='hidden md:flex items-center gap-6 text-white text-[clamp(0.7rem,1.1vw,0.9rem)]'>
-          <NavItem
-            href='/blog'
-            label='Blog'
-            active={isActive('/blog')}
-            liClassName={LI_CLASS}
-            linkClassName={LINK_CLASS}
-            underlineBase={UNDERLINE_BASE}
-            underlineInactive={UNDERLINE_INACTIVE}
-            underlineActive={UNDERLINE_ACTIVE}
-          />
-          <NavItem
-            href='/destinations'
-            label='Destinazioni'
-            active={isActive('/destinations')}
-            liClassName={LI_CLASS}
-            linkClassName={LINK_CLASS}
-            underlineBase={UNDERLINE_BASE}
-            underlineInactive={UNDERLINE_INACTIVE}
-            underlineActive={UNDERLINE_ACTIVE}
-          />
-          <NavItem
-            href='/gallery'
-            label='Galleria'
-            active={isActive('/gallery')}
-            liClassName={LI_CLASS}
-            linkClassName={LINK_CLASS}
-            underlineBase={UNDERLINE_BASE}
-            underlineInactive={UNDERLINE_INACTIVE}
-            underlineActive={UNDERLINE_ACTIVE}
-          />
-          <NavItem
-            href='/about'
-            label='Chi Siamo'
-            active={isActive('/about')}
-            liClassName={LI_CLASS}
-            linkClassName={LINK_CLASS}
-            underlineBase={UNDERLINE_BASE}
-            underlineInactive={UNDERLINE_INACTIVE}
-            underlineActive={UNDERLINE_ACTIVE}
-          />
-          <NavItem
-            href='/contact'
-            label='Contatti'
-            active={isActive('/contact')}
-            liClassName={LI_CLASS}
-            linkClassName={LINK_CLASS}
-            underlineBase={UNDERLINE_BASE}
-            underlineInactive={UNDERLINE_INACTIVE}
-            underlineActive={UNDERLINE_ACTIVE}
-          />
+          {navItems.map((item) => (
+            <NavItem
+              key={item.href}
+              href={withLangPrefix(effectiveLang, item.href)}
+              label={item.label}
+              active={isActive(withLangPrefix(effectiveLang, item.href))}
+              liClassName={LI_CLASS}
+              linkClassName={LINK_CLASS}
+              underlineBase={UNDERLINE_BASE}
+              underlineInactive={UNDERLINE_INACTIVE}
+              underlineActive={UNDERLINE_ACTIVE}
+            />
+          ))}
           <li>
             <Suspense fallback={null}>
               <SearchModal />
@@ -144,6 +183,9 @@ export default function Navbar() {
           </li>
           <li>
             <SwitchTheme />
+          </li>
+          <li>
+            <LanguageToggle lang={effectiveLang} />
           </li>
         </ul>
 
@@ -153,6 +195,8 @@ export default function Navbar() {
             <SearchModal />
           </Suspense>
           <SwitchTheme />
+
+          <LanguageToggle lang={effectiveLang} />
 
           <button
             type='button'
@@ -193,22 +237,18 @@ export default function Navbar() {
       {mobileOpen ? (
         <div className='md:hidden absolute top-12 left-0 right-0 bg-[color:var(--paguro-deep)]/95 backdrop-blur-sm border-t border-white/10'>
           <ul className='mx-auto max-w-6xl px-6 py-4 space-y-2 text-white'>
-            {[
-              { href: '/blog', label: 'Blog' },
-              { href: '/destinations', label: 'Destinazioni' },
-              { href: '/gallery', label: 'Galleria' },
-              { href: '/about', label: 'Chi Siamo' },
-              { href: '/contact', label: 'Contatti' },
-            ].map((item) => {
-              const active = isActive(item.href);
+            {navItems.map((item) => {
+              const active = isActive(withLangPrefix(effectiveLang, item.href));
               return (
                 <li key={item.href}>
                   <Link
-                    href={item.href}
+                    href={withLangPrefix(effectiveLang, item.href)}
                     onClick={() => setMobileOpen(false)}
                     className={
                       'block rounded-xl px-3 py-3 text-base font-semibold transition ' +
-                      (active ? 'bg-white/10' : 'hover:bg-white/10 active:bg-white/15')
+                      (active
+                        ? 'bg-white/10'
+                        : 'hover:bg-white/10 active:bg-white/15')
                     }
                   >
                     {item.label}

@@ -5,9 +5,16 @@ import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 export type SearchItem = {
   _id: string;
   _type: 'post' | 'destination';
+
+  /** Resolved fields for requested language */
   title: string;
-  slug?: string;
   excerpt?: string;
+
+  /** Raw i18n objects (optional, for future toggle use) */
+  titleI18n?: { it?: string; en?: string };
+  excerptI18n?: { it?: string; en?: string };
+
+  slug?: string;
   coverImage?: SanityImageSource | null;
   coverImageUrl?: string | null;
 };
@@ -25,8 +32,12 @@ const SEARCH_QUERY = /* groq */ `
     _type in $types &&
     (
       title match $pattern ||
+      titleI18n.it match $pattern ||
+      titleI18n.en match $pattern ||
       pt::text(content) match $pattern ||
-      excerpt match $pattern
+      excerpt match $pattern ||
+      excerptI18n.it match $pattern ||
+      excerptI18n.en match $pattern
     ) &&
     (
       $preview == true ||
@@ -39,8 +50,12 @@ const SEARCH_QUERY = /* groq */ `
     _type in $types &&
     (
       title match $pattern ||
+      titleI18n.it match $pattern ||
+      titleI18n.en match $pattern ||
       pt::text(content) match $pattern ||
-      excerpt match $pattern
+      excerpt match $pattern ||
+      excerptI18n.it match $pattern ||
+      excerptI18n.en match $pattern
     ) &&
     (
       $preview == true ||
@@ -50,16 +65,26 @@ const SEARCH_QUERY = /* groq */ `
   ]
   | score(
       title match $pattern,
+      titleI18n.it match $pattern,
+      titleI18n.en match $pattern,
       excerpt match $pattern,
+      excerptI18n.it match $pattern,
+      excerptI18n.en match $pattern,
       pt::text(content) match $pattern
     )
   | order(_score desc, publishedAt desc)
   [$start...$end]{
     _id,
     _type,
-    title,
+
+    titleI18n,
+    excerptI18n,
+
+    "title": coalesce(titleI18n[$lang], title),
+    "excerpt": coalesce(excerptI18n[$lang], excerpt),
+
     "slug": slug.current,
-    excerpt,
+
     // Cover image (supports direct image fields OR mediaItem references)
     "coverImage": coalesce(
       coverImage,
@@ -89,6 +114,7 @@ export async function searchContent(args: {
   limit?: number;
   types?: Array<'post' | 'destination'>;
   preview?: boolean;
+  lang?: 'it' | 'en';
 }): Promise<SearchResult> {
   const page = Math.max(1, args.page ?? 1);
   const limit = Math.min(24, Math.max(6, args.limit ?? 12));
@@ -106,6 +132,7 @@ export async function searchContent(args: {
       end,
       types: args.types ?? ['post', 'destination'],
       preview: args.preview ?? false,
+      lang: args.lang ?? 'it',
     },
     { cache: 'no-store' }, // dev-friendly; later you can revalidate
   );

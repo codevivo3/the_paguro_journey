@@ -8,6 +8,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Masonry, MasonryItem } from '@/components/ui/Masonry';
 import GalleryModal from '../ui/GalleryModal';
 
+import { safeLang, type Lang } from '@/lib/route';
+
 export type GalleryImage = {
   src: string;
   countrySlug: string;
@@ -16,6 +18,7 @@ export type GalleryImage = {
 };
 
 type GalleryGridProps = {
+  lang?: Lang;
   items: GalleryImage[];
 
   /**
@@ -49,14 +52,32 @@ type GalleryGridProps = {
  * UI for the modal lives in GalleryModal.tsx
  */
 export default function GalleryGrid({
+  lang,
   items,
   columnsClassName = 'columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3',
   priorityCount = 3,
   getAspectClassName,
 }: GalleryGridProps) {
+  const effectiveLang: Lang = safeLang(lang);
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const t = {
+    it: {
+      empty: 'Nessuna immagine disponibile.',
+      open: 'Apri immagine',
+      altFallback: 'Foto viaggio',
+    },
+    en: {
+      empty: 'No images available.',
+      open: 'Open image',
+      altFallback: 'Travel photo',
+    },
+  } as const;
+
+  const labels = t[effectiveLang];
 
   // URL-driven modal state: store selected image src in `img`
   const imgParam = searchParams.get('img');
@@ -162,7 +183,7 @@ export default function GalleryGrid({
   if (!items.length) {
     return (
       <div className='rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] p-6 text-sm text-[color:var(--paguro-text)]/70'>
-        Nessuna immagine disponibile.
+        {labels.empty}
       </div>
     );
   }
@@ -173,18 +194,19 @@ export default function GalleryGrid({
       <Masonry className={columnsClassName}>
         {items.map((img, index) => {
           const aspect = aspectFor(img, index);
-          const alt = img.alt ?? 'Foto viaggio';
+          const alt = img.alt ?? labels.altFallback;
 
           return (
             <MasonryItem key={img.src}>
               <button
                 type='button'
                 onClick={() => open(index)}
-                aria-label='Apri immagine'
+                aria-label={labels.open}
                 className='group block w-full overflow-hidden rounded-sm border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm'
               >
                 <div className={`relative w-full ${aspect}`}>
                   <MediaImage
+                    lang={effectiveLang}
                     src={img.src}
                     alt={alt}
                     fill

@@ -1,6 +1,34 @@
-export default function IntroSection() {
+import { safeLang, type Lang } from '@/lib/route';
+type IntroSectionProps = {
+  /** Active language (used only for fallback content) */
+  lang?: Lang;
+
+  /** If provided, these override the fallback copy (Sanity-wired) */
+  title?: string;
+  body?: string;
+};
+
+export default function IntroSection({ lang, title, body }: IntroSectionProps) {
+  const effectiveLang: Lang = safeLang(lang);
+  const content = {
+    it: {
+      title: 'Racconti di Viaggio',
+      body:
+        'Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate quis quam facilis reiciendis impedit debitis eos deleniti vero at maxime. Dolorem numquam pariatur ullam ipsum corrupti illum. Illum harum, blanditiis commodi dicta quos totam facilis, ex quod laborum corporis at. Repudiandae dolore, facilis distinctio architecto ex optio deserunt nesciunt nostrum ut doloribus veritatis porro maxime ab quisquam nam, officia expedita! Necessitatibus, minima molestiae explicabo voluptates odit cupiditate, velit dignissimos saepe qui nisi veniam, reprehenderit maxime? Distinctio architecto hic vel cumque. Aliquid necessitatibus nihil ullam eos fuga enim velit cupiditate voluptatem neque ipsam consequuntur repellat cumque doloribus minima, accusantium ex voluptate!',
+    },
+    en: {
+      title: 'Travel Stories',
+      body:
+        'Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate quis quam facilis reiciendis impedit debitis eos deleniti vero at maxime. Dolorem numquam pariatur ullam ipsum corrupti illum. Illum harum, blanditiis commodi dicta quos totam facilis, ex quod laborum corporis at. Repudiandae dolore, facilis distinctio architecto ex optio deserunt nesciunt nostrum ut doloribus veritatis porro maxime ab quisquam nam, officia expedita! Necessitatibus, minima molestiae explicabo voluptates odit cupiditate, velit dignissimos saepe qui nisi veniam, reprehenderit maxime? Distinctio architecto hic vel cumque. Aliquid necessitatibus nihil ullam eos fuga enim velit cupiditate voluptatem neque ipsam consequuntur repellat cumque doloribus minima, accusantium ex voluptate!',
+    },
+  } as const;
+
+  const fallback = content[effectiveLang];
+  const resolvedTitle = title ?? fallback.title;
+  const resolvedBody = body ?? fallback.body;
+
   return (
-    <section className='relative overflow-hidden bg-[color:var(--paguro-bg)] py-16 md:py-24'>
+    <section className='relative overflow-hidden bg-[color:var(--paguro-bg)] py-10 md:py-16'>
       {/* Decorative Haikei SVG */}
       <svg
         className="pointer-events-none absolute left-0 top-0 z-0 block h-28 md:h-40 w-full opacity-75 [html[data-theme='dark']_&]:hidden"
@@ -50,26 +78,15 @@ export default function IntroSection() {
           fill='#d5d9b8'
         />
       </svg>
-      <div className='relative z-10 mx-auto max-w-3xl space-y-6 px-4 md:px-6 pb-12 md:pb-16'>
+      <div className='relative z-10 mx-auto max-w-3xl space-y-6 px-4 md:px-6'>
         {/* Section title (uses global typography preset) */}
-        <h2 className='t-page-title-intro text-4xl md:text-6xl text-center title-divider title-divider-center mt-12 md:mt-20 lg:mt-14'>
-          Racconti di Viaggio
+        <h2 className='t-page-title-intro text-4xl md:text-6xl text-center title-divider title-divider-center mt-10 md:mt-12'>
+          {resolvedTitle}
         </h2>
 
         {/* Intro copy (uses global typography preset) */}
         <p className='t-body text-sm md:text-base text-left md:text-justify'>
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate
-          quis quam facilis reiciendis impedit debitis eos deleniti vero at
-          maxime. Dolorem numquam pariatur ullam ipsum corrupti illum. Illum
-          harum, blanditiis commodi dicta quos totam facilis, ex quod laborum
-          corporis at. Repudiandae dolore, facilis distinctio architecto ex
-          optio deserunt nesciunt nostrum ut doloribus veritatis porro maxime ab
-          quisquam nam, officia expedita! Necessitatibus, minima molestiae
-          explicabo voluptates odit cupiditate, velit dignissimos saepe qui nisi
-          veniam, reprehenderit maxime? Distinctio architecto hic vel cumque.
-          Aliquid necessitatibus nihil ullam eos fuga enim velit cupiditate
-          voluptatem neque ipsam consequuntur repellat cumque doloribus minima,
-          accusantium ex voluptate!
+          {resolvedBody}
         </p>
       </div>
     </section>

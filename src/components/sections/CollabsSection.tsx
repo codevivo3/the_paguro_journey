@@ -1,69 +1,88 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import Button from '../ui/Button';
+import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
-import { collaborations } from '@/lib/collabs';
+type CollabsSectionProps = {
+  lang?: Lang;
 
-export default function CollabsSection() {
+  /** Optional Sanity-resolved copy */
+  title?: string;
+  body?: string;
+  ctaMediaKit?: string;
+  ctaContact?: string;
+};
+
+export default function CollabsSection({
+  lang,
+  title,
+  body,
+  ctaMediaKit,
+  ctaContact,
+}: CollabsSectionProps) {
+  const effectiveLang: Lang = safeLang(lang);
+
+  const content = {
+    it: {
+      title: 'Collabora con noi',
+      body:
+        'Raccontiamo il viaggio in modo autentico, lento e consapevole. Siamo aperti a collaborazioni editoriali, creative e culturali in linea con il nostro modo di esplorare il mondo.',
+      ctaMediaKit: 'Scarica Media Kit',
+      ctaContact: 'Contattaci',
+    },
+    en: {
+      title: 'Collaborate with us',
+      body:
+        'We tell travel stories in an authentic, slow, and mindful way. We are open to editorial, creative, and cultural collaborations aligned with our way of exploring the world.',
+      ctaMediaKit: 'Download Media Kit',
+      ctaContact: 'Get in touch',
+    },
+  } as const;
+
+  const fallback = content[effectiveLang];
+
+  const resolvedTitle = title ?? fallback.title;
+  const resolvedBody = body ?? fallback.body;
+  const resolvedCtaMediaKit = ctaMediaKit ?? fallback.ctaMediaKit;
+  const resolvedCtaContact = ctaContact ?? fallback.ctaContact;
+
   return (
     <section className='px-6 pb-24 pt-16'>
       <div className='mx-auto max-w-5xl space-y-8'>
-        {/* Section header: title + short intro */}
-        <header className='text-center space-y-3'>
-          <h2 className='t-section-title text-center'>
-            Collaborazioni
-          </h2>
-          <p className='t-body mx-auto max-w-2xl'>
-            Progetti e realtà con cui abbiamo collaborato nel tempo.
+        {/* Section header */}
+        <header className='mx-auto max-w-2xl space-y-3 text-center'>
+          <h2 className='t-section-title text-3xl title-divider title-divider-center'>{resolvedTitle}</h2>
+          <p className='t-body'>
+            {resolvedBody}
           </p>
         </header>
 
-        {/* Collaborations list
-            - Flex-based layout to keep items centered regardless of count
-            - Fixed card width for visual balance
-        */}
-        <ul className='mx-auto flex max-w-4xl flex-wrap justify-center gap-4 sm:gap-5'>
-          {collaborations.map((c) => (
-            <li key={c.name} className='w-[220px] sm:w-[240px]'>
-              <Link
-                href={c.url}
-                target='_blank'
-                rel='noopener noreferrer'
-                aria-label={`Apri collaborazione: ${c.name}`}
-                className='group flex items-center justify-center rounded-2xl border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] px-4 py-5 shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-border)]'
-              >
-                {/* Fixed-height logo container
-                    Keeps logos vertically aligned even with different aspect ratios
-                */}
-                <div className='relative h-20 w-full max-w-[140px]'>
-                  <Image
-                    src={c.logoSrc}
-                    alt={c.logoAlt ?? c.name}
-                    fill
-                    sizes='140px'
-                    className='object-contain opacity-75 transition-opacity duration-300 group-hover:opacity-100'
-                  />
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        {/* Optional micro-CTA
-            Lightweight prompt for future contact or collaborations
-        */}
-        <div className='text-center'>
-          <p className='t-meta'>
-            Vuoi collaborare?{' '}
-            <a
-              href='mailto:thepagurojourney@gmail.com'
-              target='_blank'
-              rel='noopener noreferrer'
-              aria-label='Email'
-              className='inline-flex transition-colors duration-200 hover:text-[color:var(--paguro-coral)]'
+        {/* CTAs */}
+        <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
+          <Button className='min-w-[200px]'>
+            <Link
+              href={withLangPrefix(effectiveLang, '/media-kit')}
+              className="flex w-full items-center justify-around px-4 text-center"
             >
-              Scrivici ➜
-            </a>
-          </p>
+              <span>{resolvedCtaMediaKit}</span>
+              <span aria-hidden className="ml-3">➜</span>
+            </Link>
+          </Button>
+
+          <Button className='min-w-[200px] bg-white'>
+            <Link
+              href={withLangPrefix(effectiveLang, '/contact')}
+              className="
+                flex w-full items-center justify-around px-4
+                text-center
+                text-[color:var(--paguro-ocean)]
+                transition-colors duration-200
+                group-hover:text-white
+              "
+            >
+              <span>{resolvedCtaContact}</span>
+              <span aria-hidden className="ml-3">➜</span>
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

@@ -1,8 +1,10 @@
 'use client';
 
 import type { RefObject } from 'react';
+import { safeLang, type Lang } from '@/lib/route';
 
 type SearchInputProps = {
+  lang?: Lang;
   value: string;
   onChange: (next: string) => void;
   onSubmit: () => void;
@@ -10,17 +12,33 @@ type SearchInputProps = {
 };
 
 export default function SearchInput({
+  lang,
   value,
   onChange,
   onSubmit,
   inputRef,
 }: SearchInputProps) {
+  const effectiveLang: Lang = safeLang(lang);
+
+  const labels = {
+    it: {
+      placeholder: 'Cerca…',
+      ariaSearch: 'Cerca',
+    },
+    en: {
+      placeholder: 'Search…',
+      ariaSearch: 'Search',
+    },
+  } as const;
+
+  const t = labels[effectiveLang];
+
   return (
     <div className='mt-4 relative rounded-full p-[2px] bg-gradient-to-r from-[color:var(--paguro-ocean)] via-[color:var(--paguro-deep)] via-[color:var(--paguro-sand)] via-[color:var(--paguro-sunset)] to-[color:var(--paguro-coral)]'>
       <input
         ref={inputRef}
         type='text'
-        placeholder='Cerca...'
+        placeholder={t.placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
@@ -36,7 +54,7 @@ export default function SearchInput({
 
       <button
         type='button'
-        aria-label='Search'
+        aria-label={t.ariaSearch}
         onClick={onSubmit}
         className='absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--paguro-text-muted)] transition-colors hover:text-[color:var(--paguro-text)] focus:outline-none'
       >

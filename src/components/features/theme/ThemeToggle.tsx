@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { safeLang, type Lang } from '@/lib/route';
 
 type Theme = 'light' | 'dark';
 
@@ -79,21 +80,34 @@ function MoonIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export default function SwitchTheme() {
-  const [theme, setTheme] = React.useState<Theme>(() => 'light');
+export default function SwitchTheme({ lang }: { lang?: Lang }) {
+  const effectiveLang: Lang = safeLang(lang);
+
+  const [theme, setTheme] = React.useState<Theme>(() => {
+    // Initialize from storage/OS preference on the client to avoid an extra setState in an effect.
+    return typeof window === 'undefined' ? 'light' : getPreferredTheme();
+  });
+
+  const labels = {
+    it: { aria: 'Cambia tema', sr: 'Cambia tema' },
+    en: { aria: 'Toggle theme', sr: 'Toggle theme' },
+  } as const;
+
+  const t = labels[effectiveLang];
 
   React.useEffect(() => {
-    const t = getPreferredTheme();
-    setTheme(t);
-    applyTheme(t);
-  }, []);
+    // Sync React theme state -> DOM + persistence.
+    applyTheme(theme);
+    try {
+      window.localStorage.setItem('theme', theme);
+    } catch {
+      // ignore
+    }
+  }, [theme]);
 
   const toggle = React.useCallback(() => {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    applyTheme(next);
-    window.localStorage.setItem('theme', next);
-  }, [theme]);
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  }, []);
 
   const isDark = theme === 'dark';
 
@@ -115,7 +129,7 @@ export default function SwitchTheme() {
       onClick={toggle}
       role='switch'
       aria-checked={isDark}
-      aria-label='Cambia tema'
+      aria-label={t.aria}
       className={trackClassName}
       style={{
         backgroundImage: isDark
@@ -123,7 +137,7 @@ export default function SwitchTheme() {
           : 'linear-gradient(135deg, rgba(91,194,217,0.55), rgba(65,155,191,0.85))',
       }}
     >
-      <span className='sr-only'>Cambia tema</span>
+      <span className='sr-only'>{t.sr}</span>
 
       {/* Decorative track icons (subtle) */}
       <span aria-hidden='true' className='absolute left-2 text-white/80'>

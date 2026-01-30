@@ -7,6 +7,7 @@ import type { SanityGalleryItem } from '@/sanity/queries/gallery';
 
 export function mapSanityToGalleryImages<TGalleryImage>(
   items: SanityGalleryItem[],
+  lang: 'it' | 'en' = 'it',
   map: (x: {
     id: string;
     src: string;
@@ -32,10 +33,12 @@ export function mapSanityToGalleryImages<TGalleryImage>(
         ?.map((c) => c.slug ?? c.title ?? '')
         .filter(Boolean);
 
+      const fallbackAlt = lang === 'en' ? 'Gallery image' : 'Immagine della galleria';
+
       return map({
         id: it._id,
         src,
-        alt: it.alt ?? it.title ?? 'Gallery image',
+        alt: it.alt ?? it.title ?? fallbackAlt,
         caption: it.caption ?? undefined,
         
         // ✅ pick the first country slug (or fallback)

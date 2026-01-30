@@ -1,5 +1,7 @@
 'use client';
 
+import { safeLang, type Lang } from '@/lib/route';
+
 /**
  * Shared arrow icon for hero navigation.
  * Direction is controlled via rotation to avoid SVG duplication.
@@ -51,24 +53,59 @@ function ArrowButton({
   );
 }
 
-
 type HeroSlideControlsProps = {
+  lang?: Lang;
   count: number;
   activeIndex: number;
   onPrev: () => void;
   onNext: () => void;
   onSelect: (index: number) => void;
+
+  /** Optional Sanity-resolved label overrides */
+  prevLabel?: string;
+  nextLabel?: string;
+  /** Template supports `{n}` placeholder, e.g. "Go to slide {n}" */
+  goToLabelTemplate?: string;
 };
 
 export default function HeroSlideControls({
+  lang,
   count,
   activeIndex,
   onPrev,
   onNext,
   onSelect,
+  prevLabel,
+  nextLabel,
+  goToLabelTemplate,
 }: HeroSlideControlsProps) {
   // No controls needed for a single (or missing) slide
   if (count <= 1) return null;
+
+  const effectiveLang: Lang = safeLang(lang);
+
+  const labels = {
+    it: {
+      prev: 'Immagine precedente',
+      next: 'Immagine successiva',
+      goTo: (n: number) => `Vai alla slide ${n}`,
+    },
+    en: {
+      prev: 'Previous image',
+      next: 'Next image',
+      goTo: (n: number) => `Go to slide ${n}`,
+    },
+  } as const;
+
+  const fallback = labels[effectiveLang];
+
+  const resolvedPrev = prevLabel ?? fallback.prev;
+  const resolvedNext = nextLabel ?? fallback.next;
+
+  const resolvedGoTo = (n: number) => {
+    if (goToLabelTemplate) return goToLabelTemplate.replace('{n}', String(n));
+    return fallback.goTo(n);
+  };
 
   // Base arrow layout + interaction behavior
   // - Hidden by default
@@ -94,7 +131,7 @@ export default function HeroSlideControls({
       {/* Previous slide */}
       <ArrowButton
         onClick={onPrev}
-        ariaLabel='Immagine precedente'
+        ariaLabel={resolvedPrev}
         direction='left'
         className={`${arrowBase} ${arrowBg} left-3 md:left-4`}
       />
@@ -102,7 +139,7 @@ export default function HeroSlideControls({
       {/* Next slide */}
       <ArrowButton
         onClick={onNext}
-        ariaLabel='Immagine successiva'
+        ariaLabel={resolvedNext}
         direction='right'
         className={`${arrowBase} ${arrowBg} right-3 md:right-4`}
       />
@@ -114,7 +151,7 @@ export default function HeroSlideControls({
             key={i}
             type='button'
             onClick={() => onSelect(i)}
-            aria-label={`Go to slide ${i + 1}`}
+            aria-label={resolvedGoTo(i + 1)}
             className={
               'h-2 w-7 md:h-1 md:w-5 rounded-full transition ' +
               (i === activeIndex

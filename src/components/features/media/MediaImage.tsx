@@ -2,12 +2,11 @@
 
 import * as React from 'react';
 import Image, { type ImageProps } from 'next/image';
+import { safeLang, type Lang } from '@/lib/route';
 
-
-type MediaImageProps = Omit<
-  ImageProps,
-  'onLoadingComplete' | 'onError' | 'alt'
-> & {
+type MediaImageProps = Omit<ImageProps, 'onLoad' | 'onError' | 'alt'> & {
+  /** Optional language for default UI strings */
+  lang?: Lang;
   /** Optional alt text. If omitted, we fall back to empty string (decorative). */
   alt?: string;
   /** Show a small retry button overlay when the image fails to load */
@@ -22,10 +21,11 @@ type MediaImageProps = Omit<
 };
 
 export default function MediaImage({
+  lang,
   alt = '',
   retry = true,
-  retryAriaLabel = 'Riprova a caricare l’immagine',
-  retryLabel = 'Riprova',
+  retryAriaLabel,
+  retryLabel,
   wrapperClassName = '',
   className = '',
   onLoaded,
@@ -34,6 +34,23 @@ export default function MediaImage({
   const [loaded, setLoaded] = React.useState(false);
   const [errored, setErrored] = React.useState(false);
   const [attempt, setAttempt] = React.useState(0);
+
+  const effectiveLang: Lang = safeLang(lang);
+
+  const defaults = {
+    it: {
+      retryAriaLabel: 'Riprova a caricare l’immagine',
+      retryLabel: 'Riprova',
+    },
+    en: {
+      retryAriaLabel: 'Retry loading image',
+      retryLabel: 'Retry',
+    },
+  } as const;
+
+  const d = defaults[effectiveLang];
+  const resolvedRetryAriaLabel = retryAriaLabel ?? d.retryAriaLabel;
+  const resolvedRetryLabel = retryLabel ?? d.retryLabel;
 
   // Skeleton lifecycle control
   const [skeletonMounted, setSkeletonMounted] = React.useState(true);
@@ -48,7 +65,7 @@ export default function MediaImage({
     setSkeletonFade(false);
   }, [imgProps.src]);
 
-  const handleLoaded = () => {
+  const handleLoaded = (_e?: unknown) => {
     setLoaded(true);
     onLoaded?.();
 
@@ -115,10 +132,10 @@ export default function MediaImage({
           <button
             type='button'
             onClick={handleRetry}
-            aria-label={retryAriaLabel}
+            aria-label={resolvedRetryAriaLabel}
             className='rounded-full border border-black/10 bg-white/80 px-3 py-1 text-xs font-semibold text-black shadow-sm backdrop-blur-sm hover:bg-white'
           >
-            {retryLabel}
+            {resolvedRetryLabel}
           </button>
         </div>
       )}
@@ -132,7 +149,7 @@ export default function MediaImage({
           className={`h-full w-full cursor-inherit transition-opacity duration-300 ${
             loaded ? 'opacity-100' : 'opacity-0'
           } ${className}`}
-          onLoadingComplete={handleLoaded}
+          onLoad={handleLoaded}
           onError={handleError}
         />
       </div>

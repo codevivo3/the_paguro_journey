@@ -5,11 +5,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } 
 import Image from 'next/image';
 
 import { useUI } from '@/context/ui-context';
+import { safeLang, type Lang } from '@/lib/route';
 import HeroSlideControls from './HeroSlideControls';
 
 const SWIPE_THRESHOLD_PX = 45;
 
 type HeroSlideShowProps = {
+  lang?: Lang;
+  /** Optional aria-label overrides (Sanity-wired). */
+  ariaLabel?: string;
+  ariaLabelEmpty?: string;
   /** Hero slides (preferably fetched from Sanity). */
   slides?: Array<{
     src: string;
@@ -17,6 +22,19 @@ type HeroSlideShowProps = {
     /** Optional base64 blur placeholder (blur-up). */
     blurDataURL?: string;
   }>;
+  slidesDesktop?: Array<{
+    src: string;
+    alt?: string;
+    /** Optional base64 blur placeholder (blur-up). */
+    blurDataURL?: string;
+  }>;
+  slidesMobile?: Array<{
+    src: string;
+    alt?: string;
+    /** Optional base64 blur placeholder (blur-up). */
+    blurDataURL?: string;
+  }>;
+  mobileBreakpointPx?: number;
   /** Milliseconds each slide stays visible */
   intervalMs?: number;
   /** Milliseconds for the fade transition */
@@ -28,7 +46,13 @@ type HeroSlideShowProps = {
 };
 
 export default function HeroSection({
+  lang = 'it',
+  ariaLabel,
+  ariaLabelEmpty,
   slides,
+  slidesDesktop,
+  slidesMobile,
+  mobileBreakpointPx = 768,
   intervalMs = 5500,
   transitionMs = 1000,
   overlay = false,
@@ -36,20 +60,68 @@ export default function HeroSection({
 }: HeroSlideShowProps) {
   // Slides are provided by the parent (source-of-truth: Sanity).
   // We only normalize/validate here to keep this component purely presentational.
+  const { isSearchOpen } = useUI();
+
+  const effectiveLang: Lang = safeLang(lang);
+
+  const labels = {
+    it: {
+      aria: 'Slideshow hero',
+      ariaEmpty: 'Slideshow hero',
+    },
+    en: {
+      aria: 'Hero slideshow',
+      ariaEmpty: 'Hero slideshow',
+    },
+  } as const;
+
+  const fallback = labels[effectiveLang];
+  const resolvedAria = ariaLabel ?? fallback.aria;
+  const resolvedAriaEmpty = ariaLabelEmpty ?? fallback.ariaEmpty;
+
+  const [index, setIndex] = useState(0);
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Decide slide source: mobile vs desktop.
+  // We keep this logic here so the parent can stay simple.
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${mobileBreakpointPx}px)`);
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+
+    // Support older Safari
+    if (mq.addEventListener) mq.addEventListener('change', apply);
+    else mq.addListener(apply);
+
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', apply);
+      else mq.removeListener(apply);
+    };
+  }, [mobileBreakpointPx]);
+
+  const rawSlides = useMemo(() => {
+    const hasMobile = Array.isArray(slidesMobile) && slidesMobile.length > 0;
+    const hasDesktop = Array.isArray(slidesDesktop) && slidesDesktop.length > 0;
+
+    if (isMobile && hasMobile) return slidesMobile;
+    if (!isMobile && hasDesktop) return slidesDesktop;
+
+    return slides;
+  }, [isMobile, slides, slidesDesktop, slidesMobile]);
+
   const safeSlides = useMemo(
     () =>
-      (slides ?? []).filter(
+      (rawSlides ?? []).filter(
         (s) => typeof s?.src === 'string' && s.src.length > 0,
       ),
-    [slides],
+    [rawSlides],
   );
 
   const slideCount = safeSlides.length;
+
+
   const hasSlides = slideCount > 0;
-
-  const { isSearchOpen } = useUI();
-
-  const [index, setIndex] = useState(0);
 
   // Swipe support (mobile / trackpad)
   const [isInteracting, setIsInteracting] = useState(false);
@@ -130,7 +202,7 @@ export default function HeroSection({
     return (
       <div
         className={`relative w-full h-[100svh] bg-black overflow-hidden ${className}`}
-        aria-label='Hero slideshow'
+        aria-label={resolvedAriaEmpty}
       />
     );
   }
@@ -139,7 +211,7 @@ export default function HeroSection({
   return (
     <section
       className={`group relative w-full h-[100svh] overflow-hidden select-none touch-pan-y ${className}`}
-      aria-label='Hero slideshow'
+      aria-label={resolvedAria}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
@@ -183,6 +255,7 @@ export default function HeroSection({
       )}
       {/* Optional "hidden" H1 for SEO can live in the page component, not here */}
       <HeroSlideControls
+        lang={effectiveLang}
         count={slideCount}
         activeIndex={safeIndex}
         onPrev={goPrev}

@@ -5,16 +5,42 @@ import { useEffect, useRef, useState } from 'react';
 import type { YouTubeVideo } from '@/lib/youtube/youtube';
 import { useCarouselFades } from './useCarouselFades';
 import VideoCardClient from '@/components/features/videos/VideoCardClient';
+import { safeLang, type Lang } from '@/lib/route';
 
 // Refs (no re-renders):
 // - scrollerRef: horizontal scroll container
 // - holdRef: manages RAF loop for hold-to-scroll
-export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
+
+export default function VideoCarousel({
+  lang,
+  videos,
+}: {
+  lang?: Lang;
+  videos: YouTubeVideo[];
+}) {
+  const effectiveLang: Lang = safeLang(lang);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const holdRef = useRef<{ raf: number; dir: -1 | 0 | 1 }>({ raf: 0, dir: 0 });
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const labels = {
+    it: {
+      left: 'Scorri a sinistra',
+      right: 'Scorri a destra',
+      section: 'Ultimi video',
+      watchPrefix: 'Guarda il video',
+    },
+    en: {
+      left: 'Scroll left',
+      right: 'Scroll right',
+      section: 'Latest videos',
+      watchPrefix: 'Watch video',
+    },
+  } as const;
+
+  const t = labels[effectiveLang];
 
   // Arrow styling is shared with Hero arrows via CSS vars in globals.css.
   const arrowBase = `
@@ -214,7 +240,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         {/* LEFT ARROW */}
         <button
           type='button'
-          aria-label='Scorri a sinistra'
+          aria-label={t.left}
           className={`${arrowBase} ${arrowBg} left-2 ${
             canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
@@ -247,7 +273,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         {/* RIGHT ARROW */}
         <button
           type='button'
-          aria-label='Scorri a destra'
+          aria-label={t.right}
           className={`${arrowBase} ${arrowBg} right-2 ${
             canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
@@ -281,7 +307,7 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
         <div
           ref={scrollerRef}
           className='relative z-0 flex gap-6 overflow-x-auto pb-4 scroll-smooth no-scrollbar pl-0 pr-0 md:pl-16 md:pr-16 lg:pl-24 lg:pr-24'
-          aria-label='Ultimi video'
+          aria-label={t.section}
         >
           {/* Mobile-only spacers: let the first/last cards reach true centered positions */}
           <div aria-hidden className='shrink-0 w-[7.5%] sm:w-[15%] md:hidden' />
@@ -295,8 +321,9 @@ export default function VideoCarousel({ videos }: { videos: YouTubeVideo[] }) {
               className='shrink-0 w-[80%] sm:w-[70%] md:w-[48%] lg:w-[32%]'
             >
               <VideoCardClient
+                lang={effectiveLang}
                 video={video}
-                ariaLabel={`Guarda il video: ${video.title}`}
+                ariaLabel={`${t.watchPrefix}: ${video.title}`}
               />
             </div>
           ))}

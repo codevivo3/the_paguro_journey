@@ -1,5 +1,31 @@
 // src/sanity/schemaTypes/taxonomy/country.ts
+import React, { type ReactElement } from 'react';
 import { defineType, defineField } from 'sanity';
+
+/**
+ * Bilingual descriptions (EN + IT) for Studio fields.
+ * English first, Italian second.
+ */
+function biDesc(en: string, it: string): ReactElement {
+  return React.createElement(
+    React.Fragment,
+    null,
+    React.createElement(
+      'div',
+      { style: { marginBottom: '0.5rem' } },
+      React.createElement('strong', null, 'EN'),
+      ' — ',
+      en,
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement('strong', null, 'IT'),
+      ' — ',
+      it,
+    ),
+  );
+}
 
 /**
  * Country schema represents a standardized set of country data used across the site.
@@ -57,20 +83,52 @@ export default defineType({
       name: 'title',
       title: 'Country name',
       type: 'string',
-      description:
-        'Human-readable country name used across the site (e.g. Italy, Thailand). ' +
-        'This is the primary editorial label shown to readers.',
+      description: biDesc(
+        'Internal label for editors (Studio search). Keep it in English for consistency. The website should use “Country display name (EN/IT)” instead.',
+        'Etichetta interna per gli editor (ricerca in Studio). Tienila in inglese per coerenza. Il sito dovrebbe usare “Country display name (EN/IT)”.',
+      ),
       validation: (r) => r.required(),
+    }),
+
+    defineField({
+      name: 'nameI18n',
+      title: 'Country display name (EN/IT)',
+      type: 'object',
+      description: biDesc(
+        'Public-facing country name used on the website. The UI can switch between EN and IT based on site language.',
+        'Nome del Paese mostrato sul sito. La UI può passare tra EN e IT in base alla lingua del sito.',
+      ),
+      fields: [
+        defineField({
+          name: 'en',
+          title: 'English (required)',
+          type: 'string',
+          description: biDesc(
+            'Country name in English (e.g. Italy, Thailand).',
+            'Nome del Paese in inglese (es. Italy, Thailand).',
+          ),
+          validation: (r) => r.required(),
+        }),
+        defineField({
+          name: 'it',
+          title: 'Italiano (optional)',
+          type: 'string',
+          description: biDesc(
+            'Country name in Italian (e.g. Italia, Thailandia). Leave empty if you do not localize countries yet.',
+            'Nome del Paese in italiano (es. Italia, Thailandia). Lascia vuoto se non localizzi ancora i Paesi.',
+          ),
+        }),
+      ],
     }),
 
     defineField({
       name: 'isoCode',
       title: 'ISO-2 Code',
       type: 'string',
-      description:
-        'Official two-letter ISO-3166-1 alpha-2 code (e.g. IT, TH, JP). ' +
-        'Used for flags, deterministic IDs, seeding scripts, and stable references. ' +
-        'Must always be correct.',
+      description: biDesc(
+        'Official two-letter ISO‑3166‑1 alpha‑2 code (e.g. IT, TH, JP). Used for flags, stable IDs, seeding scripts, and references. Must always be correct.',
+        'Codice ufficiale ISO‑3166‑1 alpha‑2 a due lettere (es. IT, TH, JP). Usato per bandiere, ID stabili, script di seeding e riferimenti. Deve essere sempre corretto.',
+      ),
       validation: (r) =>
         r
           .required()
@@ -89,9 +147,10 @@ export default defineType({
         source: 'isoCode',
         maxLength: 96,
       },
-      description:
-        'URL-safe identifier derived from the ISO-2 code. ' +
-        'This keeps country URLs stable and predictable over time.',
+      description: biDesc(
+        'URL-safe identifier derived from the ISO‑2 code. Keeps country URLs stable and predictable over time.',
+        'Identificatore URL-safe derivato dal codice ISO‑2. Mantiene gli URL dei Paesi stabili e prevedibili nel tempo.',
+      ),
       validation: (r) => r.required(),
     }),
 
@@ -104,9 +163,10 @@ export default defineType({
       options: {
         disableNew: true,
       },
-      description:
-        'Automatically attached via seeding script using World Bank data. ' +
-        'Not editable. Used for high-level geographic filters, navigation, and grouping.',
+      description: biDesc(
+        'Automatically attached via seeding script using World Bank data. Not editable. Used for geographic grouping and filters.',
+        'Associato automaticamente tramite script di seeding usando dati World Bank. Non modificabile. Usato per raggruppamenti e filtri geografici.',
+      ),
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -118,9 +178,10 @@ export default defineType({
       title: 'Short description',
       type: 'text',
       rows: 3,
-      description:
-        'Optional editorial intro used in destination pages, hero sections, or SEO snippets. ' +
-        'Keep it concise and reader-friendly.',
+      description: biDesc(
+        'Optional editorial intro used in destination pages, hero sections, or SEO snippets. Keep it concise and reader‑friendly.',
+        'Introduzione editoriale opzionale usata nelle pagine destinazione, hero o snippet SEO. Mantienila concisa e leggibile.',
+      ),
     }),
 
     // Optional cover image for Destination cards.
@@ -133,18 +194,21 @@ export default defineType({
       type: 'reference',
       to: [{ type: 'mediaItem' }],
       options: { filter: 'type == "image"' },
-      description:
-        'Optional. Overrides the auto cover used on Destinations cards. If empty, the card uses the latest related blog card image.',
+      description: biDesc(
+        'Optional. Overrides the auto cover used on Destination cards. If empty, the latest related blog card image is used.',
+        'Opzionale. Sovrascrive l’immagine di copertina automatica delle card Destinazione. Se vuoto, viene usata l’ultima immagine del blog correlato.',
+      ),
     }),
   ],
 
   preview: {
     select: {
       title: 'title',
+      nameEn: 'nameI18n.en',
       iso: 'isoCode',
       worldRegion: 'worldRegion.title',
     },
-    prepare({ title, iso, worldRegion }) {
+    prepare({ title, nameEn, iso, worldRegion }) {
       const flag = iso2ToFlagEmoji(iso);
 
       const parts = [
@@ -153,7 +217,7 @@ export default defineType({
       ].filter(Boolean);
 
       return {
-        title: `${flag} ${title}`,
+        title: `${flag} ${nameEn || title}`,
         subtitle: parts.length ? parts.join(' • ') : undefined,
       };
     },

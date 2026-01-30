@@ -127,7 +127,7 @@ function useSearchResults(opts: { isOpen: boolean; submittedQuery: string }) {
   return { data, loading, error, reset };
 }
 
-function LoadingRow() {
+function LoadingRow({ lang = 'it' }: { lang?: 'it' | 'en' }) {
   return (
     <div
       className='flex items-center gap-2 text-sm text-black/70'
@@ -166,13 +166,45 @@ function LoadingRow() {
           strokeDasharray='90 40'
         />
       </svg>
-      <span className='t-body'>Sto cercando…</span>
+      <span className='t-body'>{lang === 'en' ? 'Searching…' : 'Sto cercando…'}</span>
     </div>
   );
 }
 
-export default function SearchModal() {
+type SearchModalProps = {
+  lang?: 'it' | 'en';
+};
+
+export default function SearchModal({ lang = 'it' }: SearchModalProps) {
   const { isSearchOpen, openSearch, closeSearch } = useUI();
+
+  const withLangPrefix = (href: string) => {
+    if (lang === 'en') return href === '/' ? '/en' : `/en${href}`;
+    return href;
+  };
+
+  const labels = {
+    it: {
+      openButton: 'Cerca',
+      dialog: 'Cerca',
+      title: 'Cerca',
+      close: 'Chiudi ricerca',
+      minChars: 'Digita almeno 3 caratteri per cercare.',
+      remaining: (n: number) => `Ancora ${n} carattere/i…`,
+      preparing: 'Sto preparando la ricerca…',
+    },
+    en: {
+      openButton: 'Search',
+      dialog: 'Search',
+      title: 'Search',
+      close: 'Close search',
+      minChars: 'Type at least 3 characters to search.',
+      remaining: (n: number) => `${n} character(s) to go…`,
+      preparing: 'Preparing the search…',
+    },
+  } as const;
+
+  const t = labels[lang];
 
   const router = useRouter();
   const pathname = usePathname();
@@ -289,7 +321,7 @@ export default function SearchModal() {
         ref={searchButtonRef}
         type='button'
         onClick={openSearch}
-        aria-label='Search'
+        aria-label={t.openButton}
         className='group relative inline-flex h-8 w-8 items-center justify-center rounded-full text-white/80 transition-colors duration-200 hover:text-white focus-visible:outline-none'
       >
         <svg
@@ -329,7 +361,7 @@ export default function SearchModal() {
             <div
               role='dialog'
               aria-modal='true'
-              aria-label='Search'
+              aria-label={t.dialog}
               onClick={closeAndRestoreFocus}
               className='fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4 backdrop-blur-md'
             >
@@ -338,10 +370,10 @@ export default function SearchModal() {
                 className='w-full max-w-md rounded-md bg-[color:var(--paguro-surface)] p-6 shadow-xl max-h-[85vh] flex flex-col'
               >
                 <div className='flex items-center justify-between'>
-                  <h2 className='t-section-title font-semibold'>Cerca</h2>
+                  <h2 className='t-section-title font-semibold'>{t.title}</h2>
                   <button
                     type='button'
-                    aria-label='Close search modal'
+                    aria-label={t.close}
                     onClick={closeAndRestoreFocus}
                     className='text-[color:var(--paguro-text)] text-xl [font-family:var(--font-ui)] transition-transform duration-300 hover:scale-[1.25]'
                   >
@@ -362,6 +394,7 @@ export default function SearchModal() {
                   </button>
                 </div>
                 <SearchInput
+                  lang={lang}
                   value={value}
                   onChange={setValue}
                   inputRef={searchInputRef}
@@ -385,16 +418,16 @@ export default function SearchModal() {
                   {/* Scrollbar styling relies on Tailwind scrollbar plugin or modern WebKit support. */}
                   {!trimmedValue ? (
                     <p className='text-sm t-body'>
-                      Digita almeno 3 caratteri per cercare.
+                      {t.minChars}
                     </p>
                   ) : trimmedValue.length < 3 ? (
                     <p className='text-sm t-body'>
-                      Ancora {3 - trimmedValue.length} carattere/i…
+                      {t.remaining(3 - trimmedValue.length)}
                     </p>
                   ) : !submittedTrimmed ? (
-                    <p className='text-sm t-body'>Sto preparando la ricerca…</p>
+                    <p className='text-sm t-body'>{t.preparing}</p>
                   ) : loading ? (
-                    <LoadingRow />
+                    <LoadingRow lang={lang} />
                   ) : error ? (
                     <p className='text-sm text-red-600'>{error}</p>
                   ) : showResults ? (
@@ -404,8 +437,8 @@ export default function SearchModal() {
                       sanityItems={sanityItems}
                       youtubeItems={youtubeItems}
                       onClose={closeAndRestoreFocus}
-                      onNavigate={(href) => router.push(href)}
-                      getSanityHref={getSanityHref}
+                      onNavigate={(href) => router.push(withLangPrefix(href))}
+                      getSanityHref={(item) => withLangPrefix(getSanityHref(item))}
                     />
                   ) : null}
                 </div>

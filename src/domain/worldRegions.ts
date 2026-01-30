@@ -1,4 +1,4 @@
-/**
+/*
  * World Region labels — SINGLE SOURCE OF TRUTH
  * Used by:
  * - seed scripts
@@ -8,45 +8,56 @@
 
 export const WORLD_REGION_LABELS = {
   'east-asia-and-pacific': {
-    titleIt: 'Asia Orientale e Pacifico',
-    shortTitle: 'East Asia & Pacific',
-    shortTitleIt: 'Asia Est & Pacifico',
+    title: { it: 'Asia Orientale e Pacifico', en: 'East Asia & Pacific' },
+    shortTitle: { it: 'Asia Est & Pacifico', en: 'East Asia & Pacific' },
   },
   'europe-and-central-asia': {
-    titleIt: 'Europa e Asia Centrale',
-    shortTitle: 'Europe & Central Asia',
-    shortTitleIt: 'Europa & Asia Centrale',
+    title: { it: 'Europa e Asia Centrale', en: 'Europe & Central Asia' },
+    shortTitle: { it: 'Europa & Asia Centrale', en: 'Europe & Central Asia' },
   },
   'latin-america-and-caribbean': {
-    titleIt: 'America Latina e Caraibi',
-    shortTitle: 'Latin America & Caribbean',
-    shortTitleIt: 'America Latina & Caraibi',
+    title: { it: 'America Latina e Caraibi', en: 'Latin America & Caribbean' },
+    shortTitle: { it: 'America Latina & Caraibi', en: 'Latin America & Caribbean' },
   },
   'middle-east-north-africa-afghanistan-and-pakistan': {
-    titleIt: 'Medio Oriente e Nord Africa (Afghanistan e Pakistan)',
-    shortTitle: 'Middle East & North Africa',
-    shortTitleIt: 'Medio Oriente & Nord Africa',
+    title: {
+      it: 'Medio Oriente e Nord Africa (Afghanistan e Pakistan)',
+      en: 'Middle East & North Africa (Afghanistan & Pakistan)',
+    },
+    shortTitle: { it: 'Medio Oriente & Nord Africa', en: 'Middle East & North Africa' },
   },
   'north-america': {
-    titleIt: 'Nord America',
-    shortTitle: 'North America',
-    shortTitleIt: 'Nord America',
+    title: { it: 'Nord America', en: 'North America' },
+    shortTitle: { it: 'Nord America', en: 'North America' },
   },
   'south-asia': {
-    titleIt: 'Asia Meridionale',
-    shortTitle: 'South Asia',
-    shortTitleIt: 'Asia del Sud',
+    title: { it: 'Asia Meridionale', en: 'South Asia' },
+    shortTitle: { it: 'Asia del Sud', en: 'South Asia' },
   },
   'sub-saharan-africa': {
-    titleIt: 'Africa Sub-sahariana',
-    shortTitle: 'Sub-Saharan Africa',
-    shortTitleIt: 'Africa Subsahariana',
+    title: { it: 'Africa Sub-sahariana', en: 'Sub-Saharan Africa' },
+    shortTitle: { it: 'Africa Subsahariana', en: 'Sub-Saharan Africa' },
   },
 } as const;
 
 export type WorldRegionSlug = keyof typeof WORLD_REGION_LABELS;
 
-export function getRegionShortTitleIt(slug?: string) {
-  if (!slug) return 'Altro';
-  return WORLD_REGION_LABELS[slug as WorldRegionSlug]?.shortTitleIt ?? 'Altro';
+export type Lang = 'it' | 'en';
+
+const FALLBACK = { it: 'Altro', en: 'Other' } as const;
+
+export function getRegionTitle(slug?: string, lang: Lang = 'it') {
+  if (!slug) return FALLBACK[lang];
+  return (
+    WORLD_REGION_LABELS[slug as WorldRegionSlug]?.title?.[lang] ??
+    FALLBACK[lang]
+  );
+}
+
+export function getRegionShortTitle(slug?: string, lang: Lang = 'it') {
+  if (!slug) return FALLBACK[lang];
+  return (
+    WORLD_REGION_LABELS[slug as WorldRegionSlug]?.shortTitle?.[lang] ??
+    FALLBACK[lang]
+  );
 }

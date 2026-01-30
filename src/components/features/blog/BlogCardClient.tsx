@@ -12,6 +12,7 @@ import {
   CardPill,
 } from '@/components/ui/Card';
 import MediaImage from '@/components/features/media/MediaImage';
+import { safeLang, type Lang } from '@/lib/route';
 
 type BlogCardClientProps = {
   /** Blog post URL */
@@ -34,6 +35,8 @@ type BlogCardClientProps = {
   pillAriaLabel?: string;
   /** Aspect utility, e.g. 'aspect-video' or 'aspect-[3/4]' */
   mediaAspect?: string;
+  /** Current language */
+  lang?: Lang;
 };
 
 /**
@@ -52,15 +55,32 @@ export default function BlogCardClient({
   pillHref,
   pillAriaLabel,
   mediaAspect = 'aspect-video',
+  lang,
 }: BlogCardClientProps) {
+  const effectiveLang: Lang = safeLang(lang);
   const [ready, setReady] = React.useState(false);
+
+  const labels = {
+    it: {
+      openAria: (title: string) => `Apri articolo: ${title}`,
+      readMore: 'Leggi',
+      openFilter: 'Apri filtro',
+    },
+    en: {
+      openAria: (title: string) => `Open article: ${title}`,
+      readMore: 'Read',
+      openFilter: 'Open filter',
+    },
+  } as const;
+
+  const t = labels[effectiveLang];
 
   return (
     <Card>
       {/* Media */}
       <Link
         href={href}
-        aria-label={ariaLabel ?? `Apri articolo: ${title}`}
+        aria-label={ariaLabel ?? t.openAria(title)}
         className='block'
       >
         <CardMedia className={`${mediaAspect} relative`}>
@@ -105,7 +125,7 @@ export default function BlogCardClient({
               {pill ? (
                 <CardPill
                   href={pillHref}
-                  ariaLabel={pillAriaLabel ?? 'Apri filtro'}
+                  ariaLabel={pillAriaLabel ?? t.openFilter}
                   className='shrink-0'
                 >
                   {pill}
@@ -117,7 +137,7 @@ export default function BlogCardClient({
               href={href}
               className='mt-auto inline-flex items-center gap-2 pt-4 text-sm font-medium text-[color:var(--paguro-link)] hover:text-[color:var(--paguro-link-hover)]'
             >
-              Leggi <span aria-hidden>➜</span>
+              {t.readMore} <span aria-hidden>➜</span>
             </Link>
           </div>
         )}

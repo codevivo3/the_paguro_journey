@@ -26,6 +26,7 @@ export function Card({
   href,
   external,
   ariaLabel,
+  lang = 'it',
 }: {
   children: React.ReactNode;
   className?: string;
@@ -36,6 +37,7 @@ export function Card({
   href?: string;
   external?: boolean;
   ariaLabel?: string;
+  lang?: 'it' | 'en';
 }) {
   const cardClasses = cx(
     'group relative overflow-hidden rounded-md border border-[color:var(--paguro-border)] bg-[color:var(--paguro-surface)] shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg [&_a]:pointer-events-auto',
@@ -47,6 +49,8 @@ export function Card({
 
   const overlayClassName = 'absolute inset-0 z-20 cursor-pointer';
 
+  const defaultOpenLabel = lang === 'en' ? 'Open' : 'Apri';
+
   // If href is provided, we render an overlay link.
   // Content stays clickable/accessible only if you DON'T nest other links.
   return (
@@ -57,18 +61,18 @@ export function Card({
             href={href}
             target='_blank'
             rel='noreferrer'
-            aria-label={ariaLabel ?? 'Apri'}
+            aria-label={ariaLabel ?? defaultOpenLabel}
             className={overlayClassName}
           >
-            <span className='sr-only'>{ariaLabel ?? 'Apri'}</span>
+            <span className='sr-only'>{ariaLabel ?? defaultOpenLabel}</span>
           </a>
         ) : (
           <Link
             href={href}
-            aria-label={ariaLabel ?? 'Apri'}
+            aria-label={ariaLabel ?? defaultOpenLabel}
             className={overlayClassName}
           >
-            <span className='sr-only'>{ariaLabel ?? 'Apri'}</span>
+            <span className='sr-only'>{ariaLabel ?? defaultOpenLabel}</span>
           </Link>
         )
       ) : null}
@@ -199,11 +203,13 @@ export function CardPill({
   children,
   className,
   ariaLabel,
+  lang = 'it',
 }: {
   href?: string;
   children: React.ReactNode;
   className?: string;
   ariaLabel?: string;
+  lang?: 'it' | 'en';
 }) {
   const pillClassName = cx(
     'inline-flex h-8 items-center justify-center rounded-3xl px-2 text-xs font-bold',
@@ -222,8 +228,10 @@ export function CardPill({
     return <span className={pillClassName}>{children}</span>;
   }
 
+  const defaultFilterLabel = lang === 'en' ? 'Open filter' : 'Apri filtro';
+
   return (
-    <Link href={href} aria-label={ariaLabel ?? 'Apri filtro'} className={cx(pillClassName, 'cursor-pointer')}>
+    <Link href={href} aria-label={ariaLabel ?? defaultFilterLabel} className={cx(pillClassName, 'cursor-pointer')}>
       {children}
     </Link>
   );

@@ -3,8 +3,12 @@ import { client, previewClient } from '@/sanity/lib/client';
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 export type WorldRegionRef = {
-  title: string; // EN canonical
-  titleIt: string; // IT label
+  /** Resolved title for requested language */
+  title: string;
+
+  /** Optional raw i18n titles (future toggle use) */
+  titleI18n?: { it?: string; en?: string };
+
   slug: string;
   order?: number;
 } | null;
@@ -12,6 +16,7 @@ export type WorldRegionRef = {
 export type CountryForDestinations = {
   _id: string;
   title: string;
+  titleI18n?: { it?: string; en?: string };
   slug: string;
   worldRegion: WorldRegionRef;
 
@@ -27,7 +32,12 @@ export type CountryForDestinations = {
    * Travel styles inferred from related posts (Option A).
    * Distinct list, suitable for filter pills.
    */
-  travelStyles?: Array<{ slug: string; label: string; order?: number }>;
+  travelStyles?: Array<{
+    slug: string;
+    label: string;
+    titleI18n?: { it?: string; en?: string };
+    order?: number;
+  }>;
 };
 
 const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
@@ -40,15 +50,16 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
   // 4) Cover image priority:
   //    - If Country has destinationCover (a reference to mediaItem), use that.
   //    - Else, fall back to the latest related Post cardImage.
-  *[_type == "country"] | order(title asc) {
+  *[_type == "country"] | order(coalesce(titleI18n[$lang], title) asc) {
     _id,
-    title,
+    titleI18n,
+    "title": coalesce(titleI18n[$lang], title),
     "slug": slug.current,
 
     // Region grouping (World Bank) for UI filters
     worldRegion->{
-      title,
-      titleIt,
+      titleI18n,
+      "title": coalesce(titleI18n[$lang], title),
       "slug": slug.current,
       order
     },
@@ -69,7 +80,8 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
       references(^._id)
     ].travelStyles[]-> {
       "slug": slug.current,
-      "label": title,
+      titleI18n,
+      "label": coalesce(titleI18n[$lang], title),
       order
     }) | order(order asc, label asc),
 
@@ -88,12 +100,15 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
   }
 `;
 
-export async function getCountriesForDestinations(options?: { preview?: boolean }) {
+export async function getCountriesForDestinations(options?: {
+  preview?: boolean;
+  lang?: 'it' | 'en';
+}) {
   const sanityClient = options?.preview ? previewClient : client;
 
   return sanityClient.fetch<CountryForDestinations[]>(
     COUNTRIES_FOR_DESTINATIONS_QUERY,
-    { preview: options?.preview ?? false },
+    { preview: options?.preview ?? false, lang: options?.lang ?? 'it' },
     options?.preview || process.env.NODE_ENV !== 'production'
       ? { cache: 'no-store' }
       : { next: { revalidate: 60 * 60 * 24 } }, // 24h

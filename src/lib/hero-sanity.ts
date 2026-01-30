@@ -9,9 +9,18 @@ export type HeroSlide = {
 };
 
 export function mapSanityHeroSlides(
-  slides: SanityHomeHeroSlide[],
+  slides:
+    | SanityHomeHeroSlide[]
+    | { desktop?: SanityHomeHeroSlide[]; mobile?: SanityHomeHeroSlide[] }
+    | null
+    | undefined,
+  lang: 'it' | 'en' = 'it',
 ): HeroSlide[] {
-  return slides
+  const list: SanityHomeHeroSlide[] = Array.isArray(slides)
+    ? slides
+    : slides?.desktop ?? slides?.mobile ?? [];
+
+  return list
     .map((s) => {
       const src = s.image
         ? urlFor(s.image).width(2400).auto('format').quality(80).url()
@@ -19,9 +28,11 @@ export function mapSanityHeroSlides(
 
       if (!src) return null;
 
+      const fallbackAlt = lang === 'en' ? 'Travel photo' : 'Foto di viaggio';
+
       return {
         src,
-        alt: s.alt ?? s.title ?? 'Foto di viaggio',
+        alt: s.alt ?? s.titleResolved ?? s.captionResolved ?? fallbackAlt,
         blurDataURL: s.blurDataURL,
       };
     })

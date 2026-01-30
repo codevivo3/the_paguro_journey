@@ -1,10 +1,57 @@
 // src/sanity/schemaTypes/documents/siteSettings.ts
+import React, { type ReactElement } from 'react';
 import { defineField, defineType } from 'sanity';
+
+/**
+ * Bilingual descriptions (EN + IT) for Studio fields.
+ * Keep English first, Italian second.
+ */
+function biDesc(en: string, it: string): ReactElement {
+  return React.createElement(
+    React.Fragment,
+    null,
+    React.createElement(
+      'div',
+      { style: { marginBottom: '0.5rem' } },
+      React.createElement('strong', null, 'EN'),
+      ' — ',
+      en,
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement('strong', null, 'IT'),
+      ' — ',
+      it,
+    ),
+  );
+}
+
+/**
+ * Sanity typings expect `string` for fieldset descriptions, but Studio can render React nodes.
+ * Coerce without using `any` to satisfy stricter lint rules.
+ */
+function asFieldsetDescription(node: ReactElement): string {
+  return node as unknown as string;
+}
+
+/**
+ * String-only bilingual description.
+ * Use this where Sanity types expect `string` (e.g. document/fieldset descriptions).
+ */
+function biDescText(en: string, it: string): string {
+  return `EN — ${en}\n\nIT — ${it}`;
+}
 
 export default defineType({
   name: 'siteSettings',
   title: 'Site Settings',
   type: 'document',
+
+  description: biDescText(
+    'Single source of truth for global site configuration (ONE document). Treat this like “config”, not content. Editors should rarely change this after initial setup.',
+    'Fonte unica per la configurazione globale del sito (UN solo documento). Trattalo come “config”, non contenuto. Gli editor dovrebbero modificarlo raramente dopo il setup iniziale.',
+  ),
 
   /**
    * Single source of truth for global site configuration.
@@ -18,6 +65,75 @@ export default defineType({
   // Sanity Studio UI tweak (not crucial, but harmless)
   __experimental_formPreviewTitle: false,
 
+  fieldsets: [
+    {
+      name: 'global',
+      title: 'Site Settings — Global',
+      description: asFieldsetDescription(
+        biDesc(
+          'Global site configuration. Rarely changed.',
+          'Configurazione globale del sito. Da modificare raramente.',
+        ),
+      ),
+      options: { collapsible: true, collapsed: false },
+    },
+    {
+      name: 'homeHeroHeadline',
+      title: 'Home — Hero Headline',
+      description: asFieldsetDescription(
+        biDesc(
+          'Hero headline text.',
+          'Testo headline hero.',
+        ),
+      ),
+      options: { collapsible: true, collapsed: true },
+    },
+    {
+      name: 'homeHeroSlideshow',
+      title: 'Home — Hero Slideshow',
+      description: asFieldsetDescription(
+        biDesc(
+          'Homepage hero image slideshows (desktop and mobile).',
+          'Slideshow immagini hero homepage (desktop e mobile).',
+        ),
+      ),
+      options: { collapsible: true, collapsed: false },
+    },
+    {
+      name: 'homeIntro',
+      title: 'Home — Intro',
+      description: asFieldsetDescription(
+        biDesc(
+          'Introductory text shown below the hero.',
+          'Testo introduttivo mostrato sotto l’hero.',
+        ),
+      ),
+      options: { collapsible: true, collapsed: false },
+    },
+    {
+      name: 'homeDivider',
+      title: 'Home — Divider Image',
+      description: asFieldsetDescription(
+        biDesc(
+          'Break image separating homepage sections.',
+          'Immagine di separazione delle sezioni homepage.',
+        ),
+      ),
+      options: { collapsible: true, collapsed: true },
+    },
+    {
+      name: 'about',
+      title: 'About',
+      description: asFieldsetDescription(
+        biDesc(
+          'Image used on the About page.',
+          'Immagine usata nella pagina About.',
+        ),
+      ),
+      options: { collapsible: true, collapsed: true },
+    },
+  ],
+
   fields: [
     /* ---------------------------------------------------------------------- */
     /* Global                                                                 */
@@ -27,39 +143,70 @@ export default defineType({
       name: 'siteTitle',
       title: 'Site Title (internal)',
       type: 'string',
-      description:
-        'Internal label for the project. Not necessarily the SEO title. ' +
-        'Example: “The Paguro Journey”.',
+      description: biDesc(
+        'Internal label for the project (not necessarily the SEO title). Example: “The Paguro Journey”.',
+        'Etichetta interna del progetto (non necessariamente il titolo SEO). Esempio: “The Paguro Journey”.',
+      ),
+      fieldset: 'global',
       validation: (r) => r.required(),
     }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Home — Hero                                                            */
-    /* ---------------------------------------------------------------------- */
 
     defineField({
       name: 'homeHeroHeadline',
       title: 'Home Hero Headline',
-      type: 'string',
+      type: 'object',
       readOnly: true,
-      description: 'Owner-managed. Request changes to the developer.',
+      description: biDesc(
+        'Developer-managed hero headline. Not editable by content editors.',
+        'Headline hero gestita dallo sviluppatore. Non modificabile dagli editor.',
+      ),
+      fieldset: 'homeHeroHeadline',
+      fields: [
+        defineField({ name: 'en', title: 'English', type: 'string' }),
+        defineField({ name: 'it', title: 'Italiano', type: 'string' }),
+      ],
     }),
+
     defineField({
-      name: 'homeHeroSubheadline',
-      title: 'Home Hero Subheadline',
-      type: 'text',
-      rows: 2,
-      readOnly: true,
-      description: 'Owner-managed. Request changes to the developer.',
+      name: 'homeIntro',
+      title: 'Homepage Intro',
+      type: 'object',
+      description: biDesc(
+        'Short text shown at the beginning of the homepage. Fill both languages.',
+        'Testo breve mostrato all’inizio della homepage. Compila entrambe le lingue.',
+      ),
+      fieldset: 'homeIntro',
+      fields: [
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'text',
+          rows: 3,
+          validation: (r) => r.required(),
+        }),
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'text',
+          rows: 3,
+          validation: (r) => r.required(),
+        }),
+      ],
     }),
+
+    /* ---------------------------------------------------------------------- */
+    /* Home — Hero Slideshow                                                  */
+    /* ---------------------------------------------------------------------- */
 
     defineField({
       name: 'homeHeroSlides',
       title: 'Home Hero Slideshow',
       type: 'array',
-      description:
-        'Curated slideshow for the homepage hero. Drag to reorder. ' +
-        'Uses Media Items (images only). Recommended: 3–7 slides.',
+      description: biDesc(
+        'Curated slideshow for the homepage hero (DESKTOP). Drag to reorder. Uses Media Items (images only). Select only Desktop-eligible Media Items.',
+        'Slideshow curato per l’hero della homepage (DESKTOP). Trascina per riordinare. Usa i Media Item (solo immagini). Seleziona solo i Media Item idonei per Desktop.',
+      ),
+      fieldset: 'homeHeroSlideshow',
       of: [
         {
           type: 'reference',
@@ -71,12 +218,40 @@ export default defineType({
              * - Only wide formats for better hero UX
              */
             filter:
-              'type == "image" && orientation in ["landscape", "panorama"]',
+              '_type == "mediaItem" && type == "image" && defined(image.asset) && orientation in ["landscape", "panorama"] && (hero.enabled == true || heroEnabled == true) && hero.desktopEligible == true',
           },
         },
       ],
       validation: (r) =>
         r.min(1).warning('At least one hero slide is recommended.'),
+    }),
+
+    defineField({
+      name: 'homeHeroSlidesMobile',
+      title: 'Home Hero Slideshow (Mobile)',
+      type: 'array',
+      description: biDesc(
+        'Curated slideshow for the homepage hero (MOBILE). Drag to reorder. Uses Media Items (images only). Select only Mobile-eligible Media Items.',
+        'Slideshow curato per l’hero della homepage (MOBILE). Trascina per riordinare. Usa i Media Item (solo immagini). Seleziona solo i Media Item idonei per Mobile.',
+      ),
+      fieldset: 'homeHeroSlideshow',
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'mediaItem' }],
+          options: {
+            /**
+             * Guardrails:
+             * - Only images (not videos)
+             * - Only portrait formats for mobile hero UX
+             */
+            filter:
+              '_type == "mediaItem" && type == "image" && defined(image.asset) && (hero.enabled == true || heroEnabled == true) && hero.mobileEligible == true',
+          },
+        },
+      ],
+      validation: (r) =>
+        r.min(1).warning('At least one mobile hero slide is recommended.'),
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -87,37 +262,69 @@ export default defineType({
       name: 'homeDivider',
       title: 'Homepage Divider Image',
       type: 'object',
-      description:
+      description: biDesc(
         'Curated break-up image used on the homepage (e.g. right under the CTA).',
+        'Immagine “break” curata usata in homepage (es. subito sotto la CTA).',
+      ),
+      fieldset: 'homeDivider',
       fields: [
         defineField({
-          name: 'media',
-          title: 'Image',
+          name: 'mediaDesktop',
+          title: 'Desktop image (Landscape)',
           type: 'reference',
           to: [{ type: 'mediaItem' }],
-          description: 'Select a single image from the media library.',
-          options: { filter: 'type == "image"' },
+          description: biDesc(
+            'Select one landscape image from the media library (desktop).',
+            'Seleziona una singola immagine landscape dalla media library (desktop).',
+          ),
+          options: { filter: 'type == "image" && orientation in ["landscape", "panorama"]' },
           validation: (r) => r.required(),
         }),
         defineField({
+          name: 'mediaMobile',
+          title: 'Mobile image (Portrait)',
+          type: 'reference',
+          to: [{ type: 'mediaItem' }],
+          description: biDesc(
+            'Optional. Select a portrait image for mobile. If empty, the desktop image can be reused.',
+            'Opzionale. Seleziona un’immagine portrait per mobile. Se vuoto, si può riusare l’immagine desktop.',
+          ),
+          options: { filter: 'type == "image" && orientation == "portrait"' },
+        }),
+        defineField({
           name: 'altOverride',
-          title: 'Alt text override',
-          type: 'string',
-          description:
+          title: 'Alt text override (EN/IT)',
+          type: 'object',
+          description: biDesc(
             'Optional. If empty, the referenced media alt text will be used.',
+            'Opzionale. Se vuoto, verrà usato l’alt del media selezionato.',
+          ),
+          fields: [
+            defineField({ name: 'en', title: 'English', type: 'string' }),
+            defineField({ name: 'it', title: 'Italiano', type: 'string' }),
+          ],
         }),
         defineField({
           name: 'caption',
-          title: 'Caption (optional)',
-          type: 'string',
-          description: 'Optional short caption shown under the image.',
+          title: 'Caption (optional, EN/IT)',
+          type: 'object',
+          description: biDesc(
+            'Optional short caption shown under the image.',
+            'Didascalia breve opzionale mostrata sotto l’immagine.',
+          ),
+          fields: [
+            defineField({ name: 'en', title: 'English', type: 'string' }),
+            defineField({ name: 'it', title: 'Italiano', type: 'string' }),
+          ],
         }),
         defineField({
           name: 'link',
           title: 'Optional link',
           type: 'url',
-          description:
+          description: biDesc(
             'Optional. Where should this image link to (internal or external).',
+            'Opzionale. Dove deve puntare l’immagine (interno o esterno).',
+          ),
           validation: (r) => r.uri({ scheme: ['http', 'https'] }),
         }),
       ],
@@ -132,44 +339,14 @@ export default defineType({
       title: 'About page image',
       type: 'reference',
       to: [{ type: 'mediaItem' }],
-      description: 'Single curated image for the About page (Chi siamo).',
+      description: biDesc(
+        'Single curated image for the About page (Chi siamo).',
+        'Immagine singola curata per la pagina About (Chi siamo).',
+      ),
+      fieldset: 'about',
       options: {
         filter: 'type == "image"',
       },
-    }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Blog                                                                   */
-    /* ---------------------------------------------------------------------- */
-
-    defineField({
-      name: 'blogPageTitle',
-      title: 'Blog Page Title',
-      type: 'string',
-      description:
-        'Headline shown at the top of the blog index page (optional). ' +
-        'If empty, the page can fall back to a default in the UI.',
-    }),
-
-    defineField({
-      name: 'blogPageIntro',
-      title: 'Blog Page Intro',
-      type: 'text',
-      rows: 4,
-      description:
-        'Optional intro paragraph shown on the blog index page. Keep it scannable.',
-    }),
-
-    /* ---------------------------------------------------------------------- */
-    /* Footer / Misc                                                          */
-    /* ---------------------------------------------------------------------- */
-
-    defineField({
-      name: 'footerNote',
-      title: 'Footer Note',
-      type: 'string',
-      description:
-        'Optional short footer text. Example: © The Paguro Journey — All rights reserved.',
     }),
   ],
 

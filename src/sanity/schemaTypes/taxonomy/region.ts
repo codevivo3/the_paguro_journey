@@ -11,9 +11,35 @@
  * - Each Region must belong to exactly one Country.
  */
 
+import React, { type ReactElement } from 'react';
 import { defineType, defineField } from 'sanity';
 
 type UnknownRecord = Record<string, unknown>;
+
+/**
+ * Bilingual descriptions (EN + IT) for Studio fields.
+ * English first, Italian second.
+ */
+function biDesc(en: string, it: string): ReactElement {
+  return React.createElement(
+    React.Fragment,
+    null,
+    React.createElement(
+      'div',
+      { style: { marginBottom: '0.5rem' } },
+      React.createElement('strong', null, 'EN'),
+      ' — ',
+      en,
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement('strong', null, 'IT'),
+      ' — ',
+      it,
+    ),
+  );
+}
 
 /**
  * Defensive helpers:
@@ -82,9 +108,10 @@ export default defineType({
       name: 'title',
       title: 'Region / Area name',
       type: 'string',
-      description:
-        'Name of the sub-area (e.g. Northern Italy, Tuscany, Cyclades, Bangkok). ' +
-        'Naming convention: use Title Case, singular, and clear geographic names (avoid abbreviations).',
+      description: biDesc(
+        'Name of the sub-area (e.g. Northern Italy, Tuscany, Cyclades, Bangkok). Naming convention: Title Case, singular, clear geographic names (avoid abbreviations).',
+        'Nome della sotto-area (es. Nord Italia, Toscana, Cicladi, Bangkok). Regole: Titolo con iniziali maiuscole, singolare, nomi geografici chiari (evita abbreviazioni).',
+      ),
       validation: (r) => r.required(),
     }),
 
@@ -99,8 +126,10 @@ export default defineType({
       // Keep URLs stable once created (avoid breaking references/links)
       readOnly: ({ document }) => Boolean(getSlugCurrent(document)),
       hidden: ({ document }) => !hasCountry(document),
-      description:
+      description: biDesc(
         'Auto-generated from the Region name. Locked after first save to keep URLs stable.',
+        'Generato automaticamente dal nome della Regione. Bloccato dopo il primo salvataggio per mantenere gli URL stabili.',
+      ),
       validation: (r) => r.required(),
     }),
 
@@ -125,9 +154,10 @@ export default defineType({
       initialValue: 'region',
       readOnly: ({ document }) => Boolean(getKind(document)),
       hidden: ({ document }) => !hasCountry(document),
-      description:
-        'Helps disambiguate what this area represents (region vs island vs city). ' +
-        'Leave as "Region" unless you have a good reason to change it.',
+      description: biDesc(
+        'Helps disambiguate what this area represents (region vs island vs city). Leave as “Region” unless you have a good reason to change it.',
+        'Aiuta a chiarire cosa rappresenta quest’area (regione vs isola vs città). Lascia “Region” salvo motivi validi per cambiarlo.',
+      ),
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -142,9 +172,10 @@ export default defineType({
       // Prevent accidental "moving" of a region to another country
       readOnly: ({ document }) => Boolean(getCountryRef(document)),
       validation: (r) => r.required(),
-      description:
-        'Parent country this region belongs to (e.g. Northern Italy → Italy). ' +
-        'Selecting a country unlocks the rest of the fields.',
+      description: biDesc(
+        'Parent country this region belongs to (e.g. Northern Italy → Italy). Selecting a country unlocks the rest of the fields.',
+        'Paese “parent” a cui appartiene la regione (es. Nord Italia → Italia). Selezionare un Paese sblocca il resto dei campi.',
+      ),
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -153,12 +184,27 @@ export default defineType({
 
     defineField({
       name: 'description',
-      title: 'Short description',
-      type: 'text',
-      rows: 3,
+      title: 'Short description (EN/IT)',
+      type: 'object',
       hidden: ({ document }) => !hasCountry(document),
-      description:
-        'Optional short intro for this area (1–3 lines). Useful for listings or future region pages.',
+      description: biDesc(
+        'Optional short intro for this area (1–3 lines). Used in listings or future region pages.',
+        'Introduzione breve opzionale per quest’area (1–3 righe). Usata in liste o future pagine regione.',
+      ),
+      fields: [
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'text',
+          rows: 3,
+        }),
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'text',
+          rows: 3,
+        }),
+      ],
     }),
 
     defineField({
@@ -167,23 +213,28 @@ export default defineType({
       type: 'number',
       hidden: ({ document }) => !hasCountry(document),
       validation: (r) => r.min(0).integer(),
-      description:
+      description: biDesc(
         'Optional manual ordering for curated lists. Lower values appear first.',
+        'Ordinamento manuale opzionale per liste curate. Valori più bassi = prima posizione.',
+      ),
     }),
   ],
 
   preview: {
     select: {
       title: 'title',
-      country: 'country.title',
+      countryTitle: 'country.title',
+      countryNameEn: 'country.nameI18n.en',
       iso: 'country.isoCode',
       kind: 'kind',
     },
-    prepare({ title, country, iso, kind }) {
+    prepare({ title, countryTitle, countryNameEn, iso, kind }) {
       const flag = iso2ToFlagEmoji(iso);
 
+      const countryLabel = countryNameEn || countryTitle;
+
       const parts = [
-        country ? `${flag ? `${flag} ` : ''}${country}` : undefined,
+        countryLabel ? `${flag ? `${flag} ` : ''}${countryLabel}` : undefined,
         kind ? `Type: ${kind}` : undefined,
       ].filter(Boolean);
 
