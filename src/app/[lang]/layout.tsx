@@ -141,15 +141,15 @@ export const metadata: Metadata = {
 // -----------------------------------------------------------------------------
 // Root layout component wrapping all routes
 // -----------------------------------------------------------------------------
-export default async function RootLayout({
+export default function RootLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ lang: Lang }>;
+  params: { lang: string };
 }) {
-  const { lang } = await params;
-  const effectiveLang: Lang = safeLang(lang);
+  const effectiveLang: Lang = safeLang(params.lang as Lang);
+  void effectiveLang;
 
   return (
     <UIProvider>
