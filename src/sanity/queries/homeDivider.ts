@@ -1,5 +1,6 @@
 // src/sanity/queries/homeDivider.ts
 import { client } from '@/sanity/lib/client';
+import type { PortableTextBlock } from '@portabletext/types';
 
 export type HomeDividerData = {
   media?: {
@@ -28,6 +29,12 @@ export type HomeDividerData = {
   altOverride?: string | null;
   caption?: string | null;
 
+  /** Optional bilingual eyebrow label shown above the divider title */
+  eyebrow?: { it?: string; en?: string } | null;
+
+  /** Optional bilingual rich text shown under the divider image */
+  dividerContent?: { it?: PortableTextBlock[]; en?: PortableTextBlock[] } | null;
+
   link?: string | null;
 } | null;
 
@@ -47,6 +54,8 @@ const HOME_DIVIDER_QUERY = /* groq */ `
     },
     "altOverride": homeDivider.altOverride,
     "caption": homeDivider.caption,
+    "eyebrow": homeDivider.eyebrow,
+    "dividerContent": homeDivider.dividerContent,
     "link": homeDivider.link
   }
 `;

@@ -11,62 +11,73 @@ import { client } from '@/sanity/lib/client';
 import { urlFor } from '@/sanity/lib/image';
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
+import { PortableText } from '@portabletext/react';
+import type { PortableTextBlock } from '@portabletext/types';
+
 type PageProps = {
   params: Promise<{ lang: Lang }>;
 };
 
-// Fetch About image from Site Settings (single source of truth)
-const ABOUT_IMAGE_QUERY = /* groq */ `
+type AboutSettings = {
+  title?: { it?: string; en?: string } | null;
+  subtitle?: { it?: string; en?: string } | null;
+  content?: { it?: PortableTextBlock[]; en?: PortableTextBlock[] } | null;
+  image?: {
+    alt?: string;
+    altI18n?: { it?: string; en?: string } | null;
+    caption?: string;
+    captionI18n?: { it?: string; en?: string } | null;
+    captionResolved?: string | null;
+    altA11yResolved?: string | null;
+    image?: SanityImageSource | null;
+    blurDataURL?: string;
+  } | null;
+} | null;
+
+const ABOUT_SETTINGS_QUERY = /* groq */ `
   *[_type == "siteSettings"][0]{
-    "aboutImage": aboutImage->{
-      alt,
-      caption,
-      "image": image.asset,
-      "blurDataURL": image.asset->metadata.lqip
+    "about": {
+      "title": aboutTitle,
+      "subtitle": aboutSubtitle,
+      "content": aboutContent,
+      "image": aboutImage-> {
+        alt,
+        altI18n,
+        caption,
+        captionI18n,
+        "captionResolved": select(
+          $lang == "en" => coalesce(captionI18n.en, captionI18n.it, caption),
+          coalesce(captionI18n.it, captionI18n.en, caption)
+        ),
+        "altA11yResolved": select(
+          $lang == "en" => coalesce(altI18n.en, altI18n.it, alt),
+          coalesce(altI18n.it, altI18n.en, alt)
+        ),
+        "image": image.asset,
+        "blurDataURL": image.asset->metadata.lqip
+      }
     }
   }
 `;
 
-async function getAboutImageFromSanity(lang: Lang): Promise<{
-  src: string;
-  alt: string;
-  caption?: string;
-  blurDataURL?: string;
-} | null> {
-  const data = await client.fetch<{
-    aboutImage?: {
-      alt?: string;
-      caption?: string;
-      image?: SanityImageSource;
-      blurDataURL?: string;
-    };
-  } | null>(ABOUT_IMAGE_QUERY);
+function pickLang<T>(lang: Lang, it?: T | null, en?: T | null): T | undefined {
+  return lang === 'en' ? ((en ?? it) ?? undefined) : ((it ?? en) ?? undefined);
+}
 
-  const img = data?.aboutImage;
-  if (!img?.image) return null;
-
-  const src =
-    urlFor(img.image).width(1600).height(900).fit('crop').url() ?? null;
-
-  if (!src) return null;
-
-  const fallbackAlt =
-    lang === 'en'
-      ? 'Valentina and Mattia in a natural landscape'
-      : 'Valentina e Mattia in un paesaggio naturale';
-
-  return {
-    src,
-    alt: img.alt ?? fallbackAlt,
-    caption: img.caption,
-    blurDataURL: img.blurDataURL,
-  };
+async function getAboutSettings(lang: Lang): Promise<AboutSettings> {
+  const data = await client.fetch<{ about?: AboutSettings } | null>(
+    ABOUT_SETTINGS_QUERY,
+    { lang },
+  );
+  return data?.about ?? null;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
-  const aboutImage = await getAboutImageFromSanity(effectiveLang);
+
+  const about = await getAboutSettings(effectiveLang);
+  const aboutImage = about?.image;
 
   const meta = {
     it: {
@@ -87,6 +98,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const m = meta[effectiveLang];
 
+  const ogImage =
+    aboutImage?.image
+      ? urlFor(aboutImage.image).width(1200).height(675).fit('crop').url()
+      : null;
+
   return {
     title: m.title,
     description: m.description,
@@ -100,10 +116,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: 'website',
       images: [
         {
-          url: aboutImage?.src ?? '/destinations/images/about/about-pic.jpg',
+          url: ogImage ?? '/destinations/images/about/about-pic.jpg',
           width: 1200,
           height: 675,
-          alt: aboutImage?.alt ?? (effectiveLang === 'en' ? 'Valentina and Mattia in a natural landscape' : 'Valentina e Mattia in un paesaggio naturale'),
+          alt: aboutImage?.altA11yResolved ?? (effectiveLang === 'en' ? 'Valentina and Mattia in a natural landscape' : 'Valentina e Mattia in un paesaggio naturale'),
         },
       ],
     },
@@ -111,7 +127,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title: m.title,
       description: m.ogDescription,
-      images: [aboutImage?.src ?? '/destinations/images/about/about-pic.jpg'],
+      images: [ogImage ?? '/destinations/images/about/about-pic.jpg'],
     },
   };
 }
@@ -120,11 +136,37 @@ export default async function AboutPage({ params }: PageProps) {
   const { lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
 
-  const copy = {
+  const about = await getAboutSettings(effectiveLang);
+
+  const fallback = {
     it: {
       h1: 'Chi siamo',
       subtitle:
         'La storia dietro The Paguro Journey e i valori che guidano il nostro modo di viaggiare.',
+    },
+    en: {
+      h1: 'About',
+      subtitle:
+        'The story behind The Paguro Journey and the values that guide how we travel.',
+    },
+  } as const;
+
+  const title =
+    pickLang(effectiveLang, about?.title?.it, about?.title?.en) ??
+    fallback[effectiveLang].h1;
+
+  const subtitle =
+    pickLang(effectiveLang, about?.subtitle?.it, about?.subtitle?.en) ??
+    fallback[effectiveLang].subtitle;
+
+  const content = pickLang(
+    effectiveLang,
+    about?.content?.it,
+    about?.content?.en,
+  );
+
+  const cta = {
+    it: {
       ctaTitle: 'Continua il viaggio',
       ctaBody:
         'Scopri i racconti, i video e le destinazioni che hanno dato forma a questo progetto.',
@@ -134,9 +176,6 @@ export default async function AboutPage({ params }: PageProps) {
       mediaKitLink: 'Media Kit',
     },
     en: {
-      h1: 'About',
-      subtitle:
-        'The story behind The Paguro Journey and the values that guide how we travel.',
       ctaTitle: 'Keep traveling',
       ctaBody:
         'Discover the stories, videos, and destinations that shaped this project.',
@@ -147,17 +186,19 @@ export default async function AboutPage({ params }: PageProps) {
     },
   } as const;
 
-  const t = copy[effectiveLang];
+  const t = cta[effectiveLang];
 
-  // Source-of-truth image comes from Sanity (fallback keeps the page resilient).
-  const aboutImage = await getAboutImageFromSanity(effectiveLang);
+  const aboutImage = about?.image;
+  const imgSrc = aboutImage?.image
+    ? urlFor(aboutImage.image).width(1600).height(900).fit('crop').url()
+    : '/about-pic.jpg';
 
-  const imgSrc = aboutImage?.src ?? '/about-pic.jpg';
   const imgAlt =
-    aboutImage?.alt ??
+    aboutImage?.altA11yResolved ??
     (effectiveLang === 'en'
       ? 'Valentina and Mattia in a natural landscape'
       : 'Valentina e Mattia in un paesaggio naturale');
+
   const blurDataURL = aboutImage?.blurDataURL;
 
   return (
@@ -165,9 +206,9 @@ export default async function AboutPage({ params }: PageProps) {
       <div className='mx-auto max-w-3xl space-y-10'>
         {/* Header: page title + short value proposition */}
         <header className='space-y-3'>
-          <h1 className='t-page-title'>{t.h1}</h1>
+          <h1 className='t-page-title'>{title}</h1>
           <p className='t-page-subtitle'>
-            {t.subtitle}
+            {subtitle}
           </p>
         </header>
         <figure className='mx-auto max-w-3xl'>
@@ -184,33 +225,24 @@ export default async function AboutPage({ params }: PageProps) {
             />
           </div>
 
-          {aboutImage?.caption && (
+          {aboutImage?.captionResolved && (
             <figcaption className='t-meta mt-3'>
-              {aboutImage.caption}
+              {aboutImage.captionResolved}
             </figcaption>
           )}
         </figure>
 
         {/* Main content: editorial copy (kept as prose for readability) */}
         <section className='prose max-w-none text-[color:var(--paguro-text)] prose-p:text-[color:var(--paguro-text-muted)] prose-li:text-[color:var(--paguro-text-muted)] prose-blockquote:text-[color:var(--paguro-text-muted)] prose-a:text-[color:var(--paguro-deep)] hover:prose-a:text-[color:var(--paguro-coral)]'>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-            lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod
-            malesuada.
-          </p>
-          <br />
-          <p>
-            Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-            accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-            quae ab illo inventore veritatis et quasi architecto beatae vitae
-            dicta sunt explicabo.
-          </p>
-          <br />
-          <p>
-            Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut
-            fugit, sed quia consequuntur magni dolores eos qui ratione
-            voluptatem sequi nesciunt.
-          </p>
+          {Array.isArray(content) && content.length > 0 ? (
+            <PortableText value={content} />
+          ) : (
+            <p className='t-body'>
+              {effectiveLang === 'en'
+                ? 'About content is coming soon.'
+                : 'Contenuto “Chi siamo” in arrivo.'}
+            </p>
+          )}
         </section>
 
         {/* CTA: drive readers to the Blog */}

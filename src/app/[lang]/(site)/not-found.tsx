@@ -31,7 +31,7 @@ export default function NotFound() {
       <HermitCrabLottie className='crab-run translate-x-[20vw]' />
         <div className='relative overflow-hidden'></div>
 
-        <h1 className='t-meta text-3xl'>{t.title}</h1>
+        <h1 className='t-section-title text-3xl'>{t.title}</h1>
         <p className='t-body'>{t.body}</p>
 
         <div className='pt-2'>

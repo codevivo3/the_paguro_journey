@@ -9,7 +9,7 @@ type MediaItem = {
   type?: 'image' | 'video';
   title?: string;
 
-  /** SEO alt (EN-only) */
+  /** SEO alt (single string fallback) */
   alt?: string;
 
   /** Accessibility-only localized alt */
@@ -40,17 +40,31 @@ type PortableTextValue = Array<PortableTextBlock | MediaItem | MediaReference>;
 export type BlogPostBySlug = {
   _id: string;
 
-  /** Resolved fields for requested language */
-  title: string;
-  excerpt?: string;
-
-  /** Raw i18n objects (optional, for future toggle use) */
-  titleI18n?: { it?: string; en?: string };
-  excerptI18n?: { it?: string; en?: string };
+  /** Raw bilingual fields from schema */
+  titleIt: string;
+  titleEn?: string;
+  excerptIt?: string;
+  excerptEn?: string;
 
   slug: string;
   publishedAt?: string;
-  coverImage?: SanityImageSource | null;
+
+  /** Optional English-only SEO object (per schema) */
+  seo?: {
+    title?: string;
+    description?: string;
+  };
+
+  /** Dereferenced mediaItem */
+  coverImage: MediaItem;
+
+  /** Raw content arrays (bilingual) */
+  contentIt?: PortableTextValue;
+  contentEn?: PortableTextValue;
+
+  /** Resolved fields for requested language (with fallback) */
+  title: string;
+  excerpt?: string;
   content: PortableTextValue;
 };
 
@@ -65,19 +79,42 @@ const POST_BY_SLUG_QUERY = /* groq */ `
     slug.current == $slug
   ][0]{
     _id,
-    titleI18n,
-    excerptI18n,
 
-    "title": coalesce(titleI18n[$lang], title),
-    "excerpt": coalesce(excerptI18n[$lang], excerpt),
+    titleIt,
+    titleEn,
+    excerptIt,
+    excerptEn,
+
     "slug": slug.current,
     publishedAt,
-    "coverImage": coverImage->image,
+    seo,
 
-    // ✅ Expand references inside Portable Text
-    "content": content[]{
+    "coverImage": coverImage-> {
+      _id,
+      _type,
+      type,
+      title,
+      alt,
+      altI18n,
+      caption,
+      captionI18n,
+      "captionResolved": select(
+        $lang == "en" => coalesce(captionI18n.en, captionI18n.it, caption),
+        coalesce(captionI18n.it, captionI18n.en, caption)
+      ),
+      "altA11yResolved": select(
+        $lang == "en" => coalesce(altI18n.en, altI18n.it, alt),
+        coalesce(altI18n.it, altI18n.en, alt)
+      ),
+      credit,
+      image,
+      videoUrl
+    },
+
+    // Expand references inside Portable Text (Italian)
+    "contentIt": contentIt[]{
       ...,
-      _type == "reference" => @->{
+      _type == "reference" => @-> {
         _id,
         _type,
         type,
@@ -86,8 +123,65 @@ const POST_BY_SLUG_QUERY = /* groq */ `
         altI18n,
         caption,
         captionI18n,
-        "captionResolved": coalesce(captionI18n[$lang], caption),
-        "altA11yResolved": coalesce(altI18n[$lang], alt),
+        "captionResolved": coalesce(captionI18n.it, captionI18n.en, caption),
+        "altA11yResolved": coalesce(altI18n.it, altI18n.en, alt),
+        credit,
+        image,
+        videoUrl
+      }
+    },
+
+    // Expand references inside Portable Text (English)
+    "contentEn": contentEn[]{
+      ...,
+      _type == "reference" => @-> {
+        _id,
+        _type,
+        type,
+        title,
+        alt,
+        altI18n,
+        caption,
+        captionI18n,
+        "captionResolved": coalesce(captionI18n.en, captionI18n.it, caption),
+        "altA11yResolved": coalesce(altI18n.en, altI18n.it, alt),
+        credit,
+        image,
+        videoUrl
+      }
+    },
+
+    // Resolved fields for requested language (fallback to the other language)
+    "title": select(
+      $lang == "en" => coalesce(titleEn, titleIt),
+      coalesce(titleIt, titleEn)
+    ),
+    "excerpt": select(
+      $lang == "en" => coalesce(excerptEn, excerptIt),
+      coalesce(excerptIt, excerptEn)
+    ),
+    "content": select(
+      $lang == "en" => coalesce(contentEn, contentIt),
+      coalesce(contentIt, contentEn)
+    )[]{
+      ...,
+      _type == "reference" => @-> {
+        _id,
+        _type,
+        type,
+        title,
+        alt,
+        altI18n,
+        caption,
+        captionI18n,
+        "captionResolved": select(
+          $lang == "en" => coalesce(captionI18n.en, captionI18n.it, caption),
+          coalesce(captionI18n.it, captionI18n.en, caption)
+        ),
+        "altA11yResolved": select(
+          $lang == "en" => coalesce(altI18n.en, altI18n.it, alt),
+          coalesce(altI18n.it, altI18n.en, alt)
+        ),
         credit,
         image,
         videoUrl

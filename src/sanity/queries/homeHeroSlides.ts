@@ -26,31 +26,37 @@ export type SanityHomeHeroSlide = {
 const HOME_HERO_SLIDES_QUERY = /* groq */ `
   *[_type == "siteSettings"][0]{
     "desktop": *[
-      _type == "mediaItem" && (hero.enabled == true || heroEnabled == true) && hero.desktopEligible == true
-    ] | order(coalesce(hero.desktopRank, heroRank, 9999) asc) {
+      _type == "mediaItem" &&
+      (hero.enabled == true || heroEnabled == true) &&
+      coalesce(hero.desktopEligible, heroDesktopEligible, desktopEligible, true) == true
+    ]
+    | order(coalesce(hero.desktopRank, heroRank, desktopRank, 9999) asc) {
       _id,
       alt,
       altI18n,
       titleI18n,
       captionI18n,
-      "titleResolved": coalesce(titleI18n[$lang], title),
-      "captionResolved": coalesce(captionI18n[$lang], caption),
-      "altA11yResolved": coalesce(altI18n[$lang], alt),
+      "titleResolved": coalesce(titleI18n[$lang], titleI18n.it, title),
+      "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, caption),
+      "altA11yResolved": coalesce(altI18n[$lang], altI18n.it, alt),
       image,
       "blurDataURL": image.asset->metadata.lqip
     },
 
     "mobile": *[
-      _type == "mediaItem" && (hero.enabled == true || heroEnabled == true) && hero.mobileEligible == true
-    ] | order(coalesce(hero.mobileRank, heroRank, 9999) asc) {
+      _type == "mediaItem" &&
+      (hero.enabled == true || heroEnabled == true) &&
+      coalesce(hero.mobileEligible, heroMobileEligible, mobileEligible, true) == true
+    ]
+    | order(coalesce(hero.mobileRank, heroRank, mobileRank, 9999) asc) {
       _id,
       alt,
       altI18n,
       titleI18n,
       captionI18n,
-      "titleResolved": coalesce(titleI18n[$lang], title),
-      "captionResolved": coalesce(captionI18n[$lang], caption),
-      "altA11yResolved": coalesce(altI18n[$lang], alt),
+      "titleResolved": coalesce(titleI18n[$lang], titleI18n.it, title),
+      "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, caption),
+      "altA11yResolved": coalesce(altI18n[$lang], altI18n.it, alt),
       image,
       "blurDataURL": image.asset->metadata.lqip
     }

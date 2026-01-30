@@ -43,6 +43,54 @@ function biDescText(en: string, it: string): string {
   return `EN — ${en}\n\nIT — ${it}`;
 }
 
+/**
+ * Portable Text (rich text) blocks for editorial content.
+ * Supports headings, lists, basic marks, and links.
+ */
+const RICH_TEXT_BLOCKS = [
+  {
+    type: 'block',
+    styles: [
+      { title: 'Normal', value: 'normal' },
+      { title: 'H2', value: 'h2' },
+      { title: 'H3', value: 'h3' },
+      { title: 'Quote', value: 'blockquote' },
+    ],
+    lists: [
+      { title: 'Bullet', value: 'bullet' },
+      { title: 'Number', value: 'number' },
+    ],
+    marks: {
+      decorators: [
+        { title: 'Strong', value: 'strong' },
+        { title: 'Emphasis', value: 'em' },
+        { title: 'Code', value: 'code' },
+      ],
+      annotations: [
+        {
+          name: 'link',
+          title: 'Link',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'href',
+              title: 'URL',
+              type: 'url',
+              validation: (r) => r.uri({ scheme: ['http', 'https', 'mailto', 'tel'] }),
+            }),
+            defineField({
+              name: 'blank',
+              title: 'Open in new tab',
+              type: 'boolean',
+              initialValue: true,
+            }),
+          ],
+        },
+      ],
+    },
+  },
+];
+
 export default defineType({
   name: 'siteSettings',
   title: 'Site Settings',
@@ -81,10 +129,7 @@ export default defineType({
       name: 'homeHeroHeadline',
       title: 'Home — Hero Headline',
       description: asFieldsetDescription(
-        biDesc(
-          'Hero headline text.',
-          'Testo headline hero.',
-        ),
+        biDesc('Hero headline text.', 'Testo headline hero.'),
       ),
       options: { collapsible: true, collapsed: true },
     },
@@ -180,16 +225,16 @@ export default defineType({
         defineField({
           name: 'en',
           title: 'English',
-          type: 'text',
-          rows: 3,
-          validation: (r) => r.required(),
+          type: 'array',
+          of: RICH_TEXT_BLOCKS,
+          validation: (r) => r.required().min(1),
         }),
         defineField({
           name: 'it',
           title: 'Italiano',
-          type: 'text',
-          rows: 3,
-          validation: (r) => r.required(),
+          type: 'array',
+          of: RICH_TEXT_BLOCKS,
+          validation: (r) => r.required().min(1),
         }),
       ],
     }),
@@ -277,7 +322,10 @@ export default defineType({
             'Select one landscape image from the media library (desktop).',
             'Seleziona una singola immagine landscape dalla media library (desktop).',
           ),
-          options: { filter: 'type == "image" && orientation in ["landscape", "panorama"]' },
+          options: {
+            filter:
+              'type == "image" && orientation in ["landscape", "panorama"]',
+          },
           validation: (r) => r.required(),
         }),
         defineField({
@@ -302,6 +350,42 @@ export default defineType({
           fields: [
             defineField({ name: 'en', title: 'English', type: 'string' }),
             defineField({ name: 'it', title: 'Italiano', type: 'string' }),
+          ],
+        }),
+        defineField({
+          name: 'eyebrow',
+          title: 'Eyebrow label (optional, EN/IT)',
+          type: 'object',
+          description: biDesc(
+            'Optional small label shown below the divider image section title (e.g. “Reflection”).',
+            'Etichetta piccola opzionale mostrata sotto il titolo della sezione immagine divider (es. “Riflessione”).',
+          ),
+          fields: [
+            defineField({ name: 'en', title: 'English', type: 'string' }),
+            defineField({ name: 'it', title: 'Italiano', type: 'string' }),
+          ],
+        }),
+        defineField({
+          name: 'dividerContent',
+          title: 'Divider image content (optional)',
+          type: 'object',
+          description: biDesc(
+            'Optional text shown under the divider image on the homepage. Fill in one or both languages as needed.',
+            'Testo opzionale mostrato sotto l’immagine di separazione in homepage. Compila una o entrambe le lingue se necessario.',
+          ),
+          fields: [
+            defineField({
+              name: 'en',
+              title: 'English',
+              type: 'array',
+              of: RICH_TEXT_BLOCKS,
+            }),
+            defineField({
+              name: 'it',
+              title: 'Italiano',
+              type: 'array',
+              of: RICH_TEXT_BLOCKS,
+            }),
           ],
         }),
         defineField({
@@ -335,6 +419,37 @@ export default defineType({
     /* ---------------------------------------------------------------------- */
 
     defineField({
+      name: 'aboutHeader',
+      title: 'About page header (title & subtitle)',
+      type: 'object',
+      description: biDesc(
+        'Title and optional subtitle shown at the top of the About page, above the image.',
+        'Titolo e sottotitolo opzionale mostrati in cima alla pagina About, sopra l’immagine.',
+      ),
+      fieldset: 'about',
+      fields: [
+        defineField({
+          name: 'title',
+          title: 'Title (EN/IT)',
+          type: 'object',
+          fields: [
+            defineField({ name: 'en', title: 'English', type: 'string' }),
+            defineField({ name: 'it', title: 'Italiano', type: 'string' }),
+          ],
+        }),
+        defineField({
+          name: 'subtitle',
+          title: 'Subtitle (optional, EN/IT)',
+          type: 'object',
+          fields: [
+            defineField({ name: 'en', title: 'English', type: 'string' }),
+            defineField({ name: 'it', title: 'Italiano', type: 'string' }),
+          ],
+        }),
+      ],
+    }),
+
+    defineField({
       name: 'aboutImage',
       title: 'About page image',
       type: 'reference',
@@ -347,6 +462,31 @@ export default defineType({
       options: {
         filter: 'type == "image"',
       },
+    }),
+
+    defineField({
+      name: 'aboutContent',
+      title: 'About page content (optional)',
+      type: 'object',
+      description: biDesc(
+        'Optional text content shown on the About page. Fill in one or both languages as needed.',
+        'Testo opzionale mostrato nella pagina About. Compila una o entrambe le lingue se necessario.',
+      ),
+      fieldset: 'about',
+      fields: [
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'array',
+          of: RICH_TEXT_BLOCKS,
+        }),
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'array',
+          of: RICH_TEXT_BLOCKS,
+        }),
+      ],
     }),
   ],
 

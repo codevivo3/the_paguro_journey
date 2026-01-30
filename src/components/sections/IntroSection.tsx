@@ -1,16 +1,26 @@
+import type { ReactNode } from 'react';
+
+import RichText from '@/components/shared/RichText';
 import { safeLang, type Lang } from '@/lib/route';
+
 type IntroSectionProps = {
   /** Active language (used only for fallback content) */
   lang?: Lang;
 
-  /** If provided, these override the fallback copy (Sanity-wired) */
+  /** If provided, overrides the fallback headline (Sanity-wired: homeHeroHeadline) */
   title?: string;
-  body?: string;
+
+  /**
+   * Sanity-wired intro body (homeIntro) now uses Portable Text.
+   * Pass the localized array of blocks here.
+   */
+  body?: unknown;
 };
 
 export default function IntroSection({ lang, title, body }: IntroSectionProps) {
   const effectiveLang: Lang = safeLang(lang);
-  const content = {
+
+  const fallbackCopy = {
     it: {
       title: 'Racconti di Viaggio',
       body:
@@ -23,9 +33,11 @@ export default function IntroSection({ lang, title, body }: IntroSectionProps) {
     },
   } as const;
 
-  const fallback = content[effectiveLang];
+  const fallback = fallbackCopy[effectiveLang];
   const resolvedTitle = title ?? fallback.title;
-  const resolvedBody = body ?? fallback.body;
+
+  // Portable Text arrays come through as arrays; anything else falls back to plain copy.
+  const isPortableText = Array.isArray(body) && body.length > 0;
 
   return (
     <section className='relative overflow-hidden bg-[color:var(--paguro-bg)] py-10 md:py-16'>
@@ -78,16 +90,23 @@ export default function IntroSection({ lang, title, body }: IntroSectionProps) {
           fill='#d5d9b8'
         />
       </svg>
+
       <div className='relative z-10 mx-auto max-w-3xl space-y-6 px-4 md:px-6'>
         {/* Section title (uses global typography preset) */}
         <h2 className='t-page-title-intro text-4xl md:text-6xl text-center title-divider title-divider-center mt-10 md:mt-12'>
           {resolvedTitle}
         </h2>
 
-        {/* Intro copy (uses global typography preset) */}
-        <p className='t-body text-sm md:text-base text-left md:text-justify'>
-          {resolvedBody}
-        </p>
+        {/* Intro copy */}
+        {isPortableText ? (
+          <div className='t-body text-sm md:text-base text-left md:text-justify'>
+            <RichText value={body} />
+          </div>
+        ) : (
+          <p className='t-body text-sm md:text-base text-left md:text-justify'>
+            {fallback.body}
+          </p>
+        )}
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { safeLang, type Lang } from '@/lib/route';
+import RichText from '@/components/shared/RichText';
 
 type BreakImageSectionProps = {
   lang?: Lang;
@@ -12,6 +13,9 @@ type BreakImageSectionProps = {
   title?: string;
   eyebrow?: string;
   caption?: string;
+
+  /** Optional rich text shown under the image (Sanity: homeDivider.dividerContent) */
+  content?: unknown;
 
   href?: string;
   priority?: boolean;
@@ -33,6 +37,7 @@ export default function BreakImageSection({
   title,
   eyebrow,
   caption,
+  content,
   href,
   priority = false,
   className,
@@ -41,32 +46,30 @@ export default function BreakImageSection({
   const effectiveLang: Lang = safeLang(lang);
   const contentI18n = {
     it: {
-      fallbackTitle: 'Una citazione da un autore famoso…',
-      eyebrow: 'riflessione',
       ariaOpen: 'Apri immagine',
+      eyebrow: 'riflessione',
     },
     en: {
-      fallbackTitle: 'A quote from a famous writer…',
-      eyebrow: 'reflection',
       ariaOpen: 'Open image',
+      eyebrow: 'reflection',
     },
   } as const;
 
   const fallback = contentI18n[effectiveLang];
 
-  const resolvedTitle = title ?? meta?.title ?? fallback.fallbackTitle;
+  const resolvedTitle = title ?? meta?.title;
   const resolvedEyebrow = eyebrow ?? fallback.eyebrow;
 
-  const content = (
+  const contentBlock = (
     <>
-      {meta?.title || meta?.credit ? (
+      {resolvedTitle || resolvedEyebrow || meta?.credit ? (
         <header className="mb-4 md:mb-6 text-center md:text-left">
-          <h3 className="t-section-title title-divider">
-            {resolvedTitle}
-          </h3>
-          <p className="t-meta mt-1">
-            {resolvedEyebrow}
-          </p>
+          {resolvedTitle ? (
+            <h3 className="t-section-title title-divider">{resolvedTitle}</h3>
+          ) : null}
+          {resolvedEyebrow ? (
+            <p className="t-meta mt-1">{resolvedEyebrow}</p>
+          ) : null}
         </header>
       ) : null}
       <figure
@@ -92,6 +95,12 @@ export default function BreakImageSection({
           />
         </div>
 
+        {Array.isArray(content) && content.length > 0 ? (
+          <div className='t-body mt-3 md:mt-4 text-sm md:text-base text-left md:text-justify'>
+            <RichText value={content} />
+          </div>
+        ) : null}
+
         {caption ? (
           <figcaption className='t-meta mt-2 md:mt-3 text-center md:text-left'>
             {caption}
@@ -113,12 +122,12 @@ export default function BreakImageSection({
         <a
           href={href}
           className='block outline-none focus-visible:ring-1 focus-visible:ring-white/50'
-          aria-label={caption ? `${fallback.ariaOpen}: ${caption}` : fallback.ariaOpen}
+          aria-label={caption ? `${fallback.ariaOpen}: ${caption}` : resolvedTitle ? `${fallback.ariaOpen}: ${resolvedTitle}` : fallback.ariaOpen}
         >
-          {content}
+          {contentBlock}
         </a>
       ) : (
-        content
+        contentBlock
       )}
     </section>
   );

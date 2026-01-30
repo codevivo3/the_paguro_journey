@@ -9,7 +9,7 @@ import type {
 import Image from 'next/image';
 
 import { urlFor } from '@/sanity/lib/image';
-import { getPostBySlug } from '@/sanity/queries/postBySlug';
+import { getPostBySlug, type BlogPostBySlug } from '@/sanity/queries/postBySlug';
 
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
@@ -24,7 +24,12 @@ import {
 
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
+
 type PageParams = { slug: string; lang: Lang };
+
+function pickLang<T>(lang: Lang, it?: T, en?: T): T | undefined {
+  return lang === 'en' ? (en ?? it) : (it ?? en);
+}
 
 function ptLabels(lang: Lang) {
   return {
@@ -32,8 +37,8 @@ function ptLabels(lang: Lang) {
     mediaBlockTitle: lang === 'en' ? 'Media block' : 'Blocco media',
     mediaRefHint:
       lang === 'en'
-        ? 'Media reference (not expanded). Update the GROQ query to dereference content[] refs.'
-        : 'Riferimento media (non espanso). Aggiorna la query GROQ per dereferenziare i riferimenti in content[].',
+        ? 'Media reference (not expanded). Update the GROQ query to dereference refs inside contentIt[] / contentEn[] (or the resolved content[]).'
+        : 'Riferimento media (non espanso). Aggiorna la query GROQ per dereferenziare i riferimenti dentro contentIt[] / contentEn[] (o nel content[] risolto).',
   } as const;
 }
 
@@ -49,22 +54,23 @@ type CalloutBlock = {
   body?: PortableTextBlock[];
 };
 
-type SanityBlogPost = {
-  title: string;
-  slug: string;
-  excerpt?: string;
-  publishedAt?: string;
-  coverImage?: SanityImageSource | null;
-  // `content` can include Portable Text blocks plus custom blocks.
-  content?: Array<PortableTextBlock | MediaItem | CalloutBlock | MediaReference>;
-};
-
 type MediaItem = {
   _type: 'mediaItem';
   type?: 'image' | 'video';
   title?: string;
+
+  // Single-string fallbacks
   alt?: string;
   caption?: string;
+
+  // Bilingual fields
+  altI18n?: { it?: string; en?: string };
+  captionI18n?: { it?: string; en?: string };
+
+  // Resolved by GROQ (preferred when present)
+  altA11yResolved?: string;
+  captionResolved?: string;
+
   credit?: string;
   image?: SanityImageSource | null;
   videoUrl?: string;
@@ -91,8 +97,10 @@ const portableTextComponents = (lang: Lang): PortableTextComponents => {
                   allowFullScreen
                 />
               </div>
-              {item.caption && (
-                <p className='mt-2 text-sm opacity-80'>{item.caption}</p>
+              {(item.captionResolved ?? item.caption) && (
+                <p className='mt-2 text-sm opacity-80'>
+                  {item.captionResolved ?? item.caption}
+                </p>
               )}
             </div>
           );
@@ -106,14 +114,16 @@ const portableTextComponents = (lang: Lang): PortableTextComponents => {
                 src={src}
                 width={1600}
                 height={900}
-                alt={item.alt ?? item.title ?? ''}
+                alt={item.altA11yResolved ?? item.alt ?? item.title ?? ''}
                 className='w-full rounded-sm'
                 loading='lazy'
               />
-              {(item.caption || item.credit) && (
+              {((item.captionResolved ?? item.caption) || item.credit) && (
                 <p className='mt-2 text-xs opacity-50 italic'>
-                  {item.caption}
-                  {item.caption && item.credit ? ' · ' : ''}
+                  {item.captionResolved ?? item.caption}
+                  {(item.captionResolved ?? item.caption) && item.credit
+                    ? ' · '
+                    : ''}
                   {item.credit}
                 </p>
               )}
@@ -201,15 +211,15 @@ const portableTextComponents = (lang: Lang): PortableTextComponents => {
   };
 };
 
-function resolveSanityCover(post: SanityBlogPost) {
-  // Prefer a dedicated cover field if you add it later.
-  // For now, reuse coverImage as cover:
-  return post.coverImage
-    ? urlFor(post.coverImage).width(1600).height(900).fit('crop').url()
-    : null;
+function resolveSanityCover(post: BlogPostBySlug) {
+  const m = post.coverImage;
+  if (m?.type === 'image' && m.image) {
+    return urlFor(m.image).width(1600).height(900).fit('crop').url();
+  }
+  return null;
 }
 
-function resolveSanityGallery(post: SanityBlogPost, limit = 6): string[] {
+function resolveSanityGallery(post: BlogPostBySlug, limit = 6): string[] {
   // If later you add a `gallery` field, use it here.
   // For now, just return an empty array (your UI can handle it)
   return [];
@@ -265,21 +275,25 @@ export default async function BlogPostPage({
   const post = await getPostBySlug(slug, { preview: isEnabled });
   if (!post) notFound();
 
+  const title = pickLang(effectiveLang, post.titleIt, post.titleEn) ?? post.titleIt;
+  const excerpt = pickLang(effectiveLang, post.excerptIt, post.excerptEn);
+  const content = pickLang(effectiveLang, post.contentIt, post.contentEn);
+
   const cover = resolveSanityCover(post);
   const gallery = resolveSanityGallery(post, 6);
   return (
     <PageShell className='pb-16 pt-24'>
       <article>
-        <ArticleHeader title={post.title} date={post.publishedAt} />
+        <ArticleHeader title={title} date={post.publishedAt} />
 
-        <CoverMedia src={cover ?? undefined} alt={post.title} priority />
+        <CoverMedia src={cover ?? undefined} alt={title} priority />
 
         {/* keep your Prose blocks exactly as before for now */}
         <Prose className='mt-8'>
-          {Array.isArray(post.content) ? (
+          {Array.isArray(content) ? (
             <PortableText
               value={
-                post.content as Array<
+                content as Array<
                   PortableTextBlock | MediaItem | CalloutBlock | MediaReference
                 >
               }
@@ -290,7 +304,7 @@ export default async function BlogPostPage({
 
         {gallery[0] && (
           <div className='mx-auto max-w-3xl'>
-            <GalleryImage src={gallery[0]} alt={post.title} />
+            <GalleryImage src={gallery[0]} alt={title} />
           </div>
         )}
 

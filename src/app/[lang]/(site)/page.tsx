@@ -122,8 +122,11 @@ export async function renderHome(lang: Lang) {
         {/* Break image: visual pause to reset rhythm before the CTA */}
         {dividerSrc ? (
           <BreakImageSection
+            lang={lang}
             src={dividerSrc}
             alt={dividerAlt}
+            eyebrow={homeDivider?.eyebrow?.[lang] ?? undefined}
+            content={homeDivider?.dividerContent?.[lang] ?? undefined}
             caption={homeDivider?.media?.captionResolved ?? homeDivider?.caption ?? undefined}
             href={homeDivider?.link ?? undefined}
             meta={{
