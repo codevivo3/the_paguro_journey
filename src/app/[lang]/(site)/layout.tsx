@@ -7,14 +7,15 @@ import Navbar from '@/components/sections/NavbarSection';
 import Footer from '@/components/sections/FooterSection';
 import { safeLang, type Lang } from '@/lib/route';
 
-export default function SiteLayout({
+export default async function SiteLayout({
   children,
   params,
 }: {
   children: ReactNode;
-  params: { lang: string };
+  params: Promise<{ lang: string }>;
 }) {
-  const effectiveLang: Lang = safeLang(params.lang as Lang);
+  const { lang } = await params;
+  const effectiveLang: Lang = safeLang(lang);
 
   return (
     <div className='min-h-screen flex flex-col'>
