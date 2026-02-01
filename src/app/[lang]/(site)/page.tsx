@@ -4,7 +4,9 @@ import type { Metadata } from 'next';
 import HeroSection from '@/components/sections/hero/HeroSection';
 import IntroSection from '@/components/sections/IntroSection';
 import LatestVidsSection from '@/components/sections/LatestVideosSection';
-import BreakImageSection from '@/components/sections/BreakImageSection';
+import BreakImageSection, {
+  getBreakImageProps,
+} from '@/components/sections/BreakImageSection';
 import CallToAction from '@/components/sections/CTASection';
 import CollabsSection from '@/components/sections/CollabsSection';
 
@@ -16,19 +18,7 @@ import { getHomeHeroSlides } from '@/sanity/queries/homeHeroSlides';
 import { getHomeDivider } from '@/sanity/queries/homeDivider';
 import { mapSanityHeroSlides } from '@/lib/hero-sanity';
 
-import { safeLang, type Lang } from '@/lib/route';
-
-function withLangPrefix(path: string, lang: Lang) {
-  const clean = path.startsWith('/') ? path : `/${path}`;
-
-  // Home canonical should be `/it` or `/en` (not `/it/`).
-  if (clean === '/') return `/${lang}`;
-
-  // Avoid double-prefixing.
-  if (clean.startsWith('/it') || clean.startsWith('/en')) return clean;
-
-  return `/${lang}${clean}`;
-}
+import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
 export async function generateMetadata({
   params,
@@ -51,7 +41,8 @@ export async function generateMetadata({
       locale: 'it_IT',
     },
     en: {
-      titleDefault: 'The Paguro Journey – Travel stories, destinations & slow travel',
+      titleDefault:
+        'The Paguro Journey – Travel stories, destinations & slow travel',
       description:
         'The Paguro Journey is a travel project focused on slow travel, authentic destinations, and visual storytelling for mindful travelers.',
       ogDescription:
@@ -63,7 +54,7 @@ export async function generateMetadata({
   } as const;
 
   const m = meta[effectiveLang];
-  const canonical = withLangPrefix('/', effectiveLang);
+  const canonical = withLangPrefix(effectiveLang, '/');
 
   return {
     title: {
@@ -89,20 +80,22 @@ export async function generateMetadata({
   };
 }
 
-export async function renderHome(lang: Lang) {
-  const { desktop } = await getHomeHeroSlides(lang);
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ lang: Lang }>;
+}) {
+  const { lang } = await params;
+  const effectiveLang: Lang = safeLang(lang);
+
+  const { desktop } = await getHomeHeroSlides(effectiveLang);
 
   // Server-rendered homepage uses desktop hero by default.
   // Mobile variant can be swapped client-side later if needed.
-  const slides = mapSanityHeroSlides(desktop, lang);
+  const slides = mapSanityHeroSlides(desktop, effectiveLang);
 
-  const homeDivider = await getHomeDivider(lang);
-
-  const dividerSrc = homeDivider?.media?.imageUrl;
-  const dividerAlt =
-    homeDivider?.altOverride?.trim() ||
-    homeDivider?.media?.alt?.trim() ||
-    (lang === 'en' ? 'Homepage divider image' : 'Immagine divisore homepage');
+  const homeDivider = await getHomeDivider(effectiveLang);
+  const breakImageProps = getBreakImageProps(homeDivider, effectiveLang);
 
   return (
     <>
@@ -111,52 +104,26 @@ export async function renderHome(lang: Lang) {
         {/* Main H1 (visually hidden) for SEO semantics and accessibility */}
         <h1 className='sr-only'>The Paguro Journey</h1>
         {/* Hero section: visual entry point and brand positioning */}
-        <HeroSection lang={lang} slides={slides} overlay />
+        <HeroSection lang={effectiveLang} slides={slides} overlay />
 
         {/* Intro section: explains the philosophy and vision of the project */}
-        <IntroSection lang={lang} />
+        <IntroSection lang={effectiveLang} />
 
         {/* Latest videos preview: highlight video storytelling early */}
-        <LatestVidsSection lang={lang} />
+        <LatestVidsSection lang={effectiveLang} />
 
         {/* Break image: visual pause to reset rhythm before the CTA */}
-        {dividerSrc ? (
-          <BreakImageSection
-            lang={lang}
-            src={dividerSrc}
-            alt={dividerAlt}
-            eyebrow={homeDivider?.eyebrow?.[lang] ?? undefined}
-            content={homeDivider?.dividerContent?.[lang] ?? undefined}
-            caption={homeDivider?.media?.captionResolved ?? homeDivider?.caption ?? undefined}
-            href={homeDivider?.link ?? undefined}
-            meta={{
-              id: homeDivider?.media?._id,
-              type: 'mediaItem',
-              title: homeDivider?.media?.title,
-              credit: homeDivider?.media?.credit,
-            }}
-          />
-        ) : null}
+        {breakImageProps ? <BreakImageSection {...breakImageProps} /> : null}
 
         {/* Call to action: invite the user to continue the journey */}
-        <CallToAction lang={lang} />
+        <CallToAction lang={effectiveLang} />
 
         {/* Collaborations: media kit / contact entry point (to be enabled) */}
-        <CollabsSection lang={lang} />
+        <CollabsSection lang={effectiveLang} />
 
         {/* Newsletter signup: long-term audience building */}
-        <NewsletterForm lang={lang} />
+        <NewsletterForm lang={effectiveLang} />
       </main>
     </>
   );
-}
-
-export default async function Home({
-  params,
-}: {
-  params: Promise<{ lang: Lang }>;
-}) {
-  const { lang } = await params;
-  const effectiveLang: Lang = safeLang(lang);
-  return renderHome(effectiveLang);
 }

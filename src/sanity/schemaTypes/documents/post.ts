@@ -99,8 +99,8 @@ export default defineType({
       type: 'reference',
       to: [{ type: 'mediaItem' }],
       description: biDesc(
-        'Card cover image shown on Blog listings and previews. The referenced Media Item should already contain bilingual accessibility/caption info.',
-        'Immagine di copertina mostrata nelle card del Blog e nelle anteprime. Il Media Item collegato dovrebbe già contenere info bilingue (accessibilità/didascalia).',
+        'Card cover image shown on Blog listings and previews. The referenced Media Item should already include bilingual accessibility alt text and bilingual captions (IT/EN).',
+        'Immagine di copertina mostrata nelle card del Blog e nelle anteprime. Il Media Item collegato dovrebbe già includere alt text per accessibilità e didascalie bilingue (IT/EN).',
       ),
       options: {
         filter: 'type == "image"',

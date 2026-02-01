@@ -37,7 +37,7 @@ const HOME_HERO_SLIDES_QUERY = /* groq */ `
       titleI18n,
       captionI18n,
       "titleResolved": coalesce(titleI18n[$lang], titleI18n.it, title),
-      "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, caption),
+      "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, captionI18n.en),
       "altA11yResolved": coalesce(altI18n[$lang], altI18n.it, alt),
       image,
       "blurDataURL": image.asset->metadata.lqip
@@ -55,7 +55,7 @@ const HOME_HERO_SLIDES_QUERY = /* groq */ `
       titleI18n,
       captionI18n,
       "titleResolved": coalesce(titleI18n[$lang], titleI18n.it, title),
-      "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, caption),
+      "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, captionI18n.en),
       "altA11yResolved": coalesce(altI18n[$lang], altI18n.it, alt),
       image,
       "blurDataURL": image.asset->metadata.lqip

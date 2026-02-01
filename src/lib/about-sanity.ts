@@ -1,9 +1,9 @@
 import { urlFor } from '@/sanity/lib/image';
-import type { SanityAboutImage } from '@/sanity/queries/aboutImage';
+import type { AboutImage } from '@/sanity/queries/about';
 
 export function mapSanityAboutImage(
-  item: SanityAboutImage | null,
-  lang: 'it' | 'en' = 'it'
+  item: AboutImage,
+  lang: 'it' | 'en' = 'it',
 ) {
   if (!item?.image) return null;
 
@@ -16,7 +16,7 @@ export function mapSanityAboutImage(
 
   return {
     src,
-    alt: item.alt ?? item.title ?? fallbackAlt,
-    caption: item.caption ?? undefined,
+    alt: item.altA11yResolved ?? item.alt ?? fallbackAlt,
+    caption: item.captionResolved ?? undefined,
   };
 }

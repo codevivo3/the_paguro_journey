@@ -32,7 +32,7 @@ export function mapSanityHeroSlides(
 
       return {
         src,
-        alt: s.alt ?? s.titleResolved ?? s.captionResolved ?? fallbackAlt,
+        alt: s.alt ?? s.titleResolved ?? fallbackAlt,
         blurDataURL: s.blurDataURL,
       };
     })

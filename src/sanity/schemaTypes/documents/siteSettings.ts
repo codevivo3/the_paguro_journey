@@ -389,19 +389,6 @@ export default defineType({
           ],
         }),
         defineField({
-          name: 'caption',
-          title: 'Caption (optional, EN/IT)',
-          type: 'object',
-          description: biDesc(
-            'Optional short caption shown under the image.',
-            'Didascalia breve opzionale mostrata sotto l’immagine.',
-          ),
-          fields: [
-            defineField({ name: 'en', title: 'English', type: 'string' }),
-            defineField({ name: 'it', title: 'Italiano', type: 'string' }),
-          ],
-        }),
-        defineField({
           name: 'link',
           title: 'Optional link',
           type: 'url',

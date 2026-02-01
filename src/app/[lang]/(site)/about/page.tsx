@@ -5,72 +5,16 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
-
-// Sanity (single source of truth for images)
-import { client } from '@/sanity/lib/client';
+import { pickLang } from '@/lib/pickLang';
+import { getAboutSettings } from '@/sanity/queries/about';
 import { urlFor } from '@/sanity/lib/image';
-import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 import { PortableText } from '@portabletext/react';
-import type { PortableTextBlock } from '@portabletext/types';
 
 type PageProps = {
   params: Promise<{ lang: Lang }>;
 };
 
-type AboutSettings = {
-  title?: { it?: string; en?: string } | null;
-  subtitle?: { it?: string; en?: string } | null;
-  content?: { it?: PortableTextBlock[]; en?: PortableTextBlock[] } | null;
-  image?: {
-    alt?: string;
-    altI18n?: { it?: string; en?: string } | null;
-    caption?: string;
-    captionI18n?: { it?: string; en?: string } | null;
-    captionResolved?: string | null;
-    altA11yResolved?: string | null;
-    image?: SanityImageSource | null;
-    blurDataURL?: string;
-  } | null;
-} | null;
-
-const ABOUT_SETTINGS_QUERY = /* groq */ `
-  *[_type == "siteSettings"][0]{
-    "about": {
-      "title": aboutTitle,
-      "subtitle": aboutSubtitle,
-      "content": aboutContent,
-      "image": aboutImage-> {
-        alt,
-        altI18n,
-        caption,
-        captionI18n,
-        "captionResolved": select(
-          $lang == "en" => coalesce(captionI18n.en, captionI18n.it, caption),
-          coalesce(captionI18n.it, captionI18n.en, caption)
-        ),
-        "altA11yResolved": select(
-          $lang == "en" => coalesce(altI18n.en, altI18n.it, alt),
-          coalesce(altI18n.it, altI18n.en, alt)
-        ),
-        "image": image.asset,
-        "blurDataURL": image.asset->metadata.lqip
-      }
-    }
-  }
-`;
-
-function pickLang<T>(lang: Lang, it?: T | null, en?: T | null): T | undefined {
-  return lang === 'en' ? ((en ?? it) ?? undefined) : ((it ?? en) ?? undefined);
-}
-
-async function getAboutSettings(lang: Lang): Promise<AboutSettings> {
-  const data = await client.fetch<{ about?: AboutSettings } | null>(
-    ABOUT_SETTINGS_QUERY,
-    { lang },
-  );
-  return data?.about ?? null;
-}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang } = await params;

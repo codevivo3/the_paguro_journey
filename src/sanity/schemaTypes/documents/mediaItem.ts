@@ -184,15 +184,6 @@ export default defineType({
         }),
     }),
 
-    defineField({
-      name: 'caption',
-      title: 'Caption (optional)',
-      type: 'string',
-      description: biDesc(
-        'Optional. Short caption shown near the media (if used). Keep it short (1 line).',
-        'Opzionale. Didascalia breve mostrata vicino al media (se usata). Mantienila corta (1 riga).',
-      ),
-    }),
 
     defineField({
       name: 'captionI18n',
@@ -213,7 +204,7 @@ export default defineType({
           name: 'en',
           title: 'English',
           type: 'string',
-          description: 'Short caption (EN).',
+          description: 'Caption text in English.',
         }),
       ],
     }),
@@ -466,7 +457,6 @@ export default defineType({
       title: 'title',
       type: 'type',
       media: 'image',
-      caption: 'caption',
       alt: 'alt',
       altIt: 'altI18n.it',
       altEn: 'altI18n.en',
@@ -476,13 +466,13 @@ export default defineType({
       // heroEnabled: 'hero.enabled',
       // heroRank: 'hero.desktopRank',
     },
-    prepare({ title, type, media, caption, alt, altIt, altEn, capIt, capEn }) {
+    prepare({ title, type, media, alt, altIt, altEn, capIt, capEn }) {
       const i18nCaption =
         (capIt as string | undefined) || (capEn as string | undefined);
       const i18nAlt =
         (altIt as string | undefined) || (altEn as string | undefined);
       const mainTitle =
-        title || caption || i18nCaption || alt || i18nAlt || 'Media Item';
+        title || i18nCaption || alt || i18nAlt || 'Media Item';
       const subtitle = type ? `Type: ${type}` : undefined;
 
       return {

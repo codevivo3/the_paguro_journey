@@ -15,10 +15,7 @@ type MediaItem = {
   /** Accessibility-only localized alt */
   altI18n?: { it?: string; en?: string };
 
-  /** Optional caption (legacy single string) */
-  caption?: string;
-
-  /** Optional localized caption */
+  /** Localized caption */
   captionI18n?: { it?: string; en?: string };
 
   /** Resolved caption for requested language */
@@ -96,11 +93,10 @@ const POST_BY_SLUG_QUERY = /* groq */ `
       title,
       alt,
       altI18n,
-      caption,
       captionI18n,
       "captionResolved": select(
-        $lang == "en" => coalesce(captionI18n.en, captionI18n.it, caption),
-        coalesce(captionI18n.it, captionI18n.en, caption)
+        $lang == "en" => coalesce(captionI18n.en, captionI18n.it),
+        coalesce(captionI18n.it, captionI18n.en)
       ),
       "altA11yResolved": select(
         $lang == "en" => coalesce(altI18n.en, altI18n.it, alt),
@@ -121,9 +117,8 @@ const POST_BY_SLUG_QUERY = /* groq */ `
         title,
         alt,
         altI18n,
-        caption,
         captionI18n,
-        "captionResolved": coalesce(captionI18n.it, captionI18n.en, caption),
+        "captionResolved": coalesce(captionI18n.it, captionI18n.en),
         "altA11yResolved": coalesce(altI18n.it, altI18n.en, alt),
         credit,
         image,
@@ -141,9 +136,8 @@ const POST_BY_SLUG_QUERY = /* groq */ `
         title,
         alt,
         altI18n,
-        caption,
         captionI18n,
-        "captionResolved": coalesce(captionI18n.en, captionI18n.it, caption),
+        "captionResolved": coalesce(captionI18n.en, captionI18n.it),
         "altA11yResolved": coalesce(altI18n.en, altI18n.it, alt),
         credit,
         image,
@@ -172,11 +166,10 @@ const POST_BY_SLUG_QUERY = /* groq */ `
         title,
         alt,
         altI18n,
-        caption,
         captionI18n,
         "captionResolved": select(
-          $lang == "en" => coalesce(captionI18n.en, captionI18n.it, caption),
-          coalesce(captionI18n.it, captionI18n.en, caption)
+          $lang == "en" => coalesce(captionI18n.en, captionI18n.it),
+          coalesce(captionI18n.it, captionI18n.en)
         ),
         "altA11yResolved": select(
           $lang == "en" => coalesce(altI18n.en, altI18n.it, alt),

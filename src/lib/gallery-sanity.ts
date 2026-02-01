@@ -39,7 +39,11 @@ export function mapSanityToGalleryImages<TGalleryImage>(
         id: it._id,
         src,
         alt: it.alt ?? it.title ?? fallbackAlt,
-        caption: it.caption ?? undefined,
+        caption:
+          it.captionResolved ??
+          (lang === 'en'
+            ? it.captionI18n?.en ?? it.captionI18n?.it
+            : it.captionI18n?.it ?? it.captionI18n?.en),
         
         // ✅ pick the first country slug (or fallback)
         countrySlug: countries?.[0] ?? 'unknown',

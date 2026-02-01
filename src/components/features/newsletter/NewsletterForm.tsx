@@ -82,7 +82,7 @@ export default function NewsletterForm({
         <h2 className='[font-family:var(--font-ui)] text-xl md:text-2xl font-semibold text-[color:var(--paguro-text-dark)] text-center'>
           {t.title}
         </h2>
-        <p className='mt-2 text-sm md:text-base text-center text-[color:var(--paguro-text-dark)]/80'>
+        <p className='t-card-body text-center'>
           {t.subtitle1}
           <br className='hidden sm:block' />
           {t.subtitle2}
@@ -97,7 +97,7 @@ export default function NewsletterForm({
             type='text'
             autoComplete='given-name'
             placeholder={t.namePlaceholder}
-            className='h-10 w-full rounded-full border border-black/10 bg-white px-4 text-base text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
+            className='h-10 w-full rounded-full border border-black/10 bg-white px-4 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
           />
 
           <label className='sr-only' htmlFor='email'>
@@ -110,7 +110,7 @@ export default function NewsletterForm({
               inputMode='email'
               autoComplete='email'
               placeholder={t.emailPlaceholder}
-              className='h-10 w-full md:flex-1 md:max-w-none rounded-full border border-black/10 bg-white px-4 text-base text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
+              className='h-10 w-full md:flex-1 md:max-w-none rounded-full border border-black/10 bg-white px-4 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
             />
 
             <div className='flex justify-center md:justify-end md:ml-4'>
@@ -119,9 +119,7 @@ export default function NewsletterForm({
           </div>
         </form>
 
-        <p className='mt-4 text-center text-[0.65rem] md:text-xs text-[color:var(--paguro-text-dark)]/60'>
-          {t.privacy}
-        </p>
+        <p className='t-card-body mt-4 text-center'>{t.privacy}</p>
       </section>
     </div>
   );

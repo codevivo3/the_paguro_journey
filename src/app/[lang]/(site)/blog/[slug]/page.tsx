@@ -12,6 +12,7 @@ import { urlFor } from '@/sanity/lib/image';
 import { getPostBySlug, type BlogPostBySlug } from '@/sanity/queries/postBySlug';
 
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
+import { pickLang } from '@/lib/pickLang';
 
 import {
   ArticleHeader,
@@ -26,10 +27,6 @@ import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 
 type PageParams = { slug: string; lang: Lang };
-
-function pickLang<T>(lang: Lang, it?: T, en?: T): T | undefined {
-  return lang === 'en' ? (en ?? it) : (it ?? en);
-}
 
 function ptLabels(lang: Lang) {
   return {
@@ -61,7 +58,6 @@ type MediaItem = {
 
   // Single-string fallbacks
   alt?: string;
-  caption?: string;
 
   // Bilingual fields
   altI18n?: { it?: string; en?: string };
@@ -97,11 +93,14 @@ const portableTextComponents = (lang: Lang): PortableTextComponents => {
                   allowFullScreen
                 />
               </div>
-              {(item.captionResolved ?? item.caption) && (
-                <p className='mt-2 text-sm opacity-80'>
-                  {item.captionResolved ?? item.caption}
-                </p>
-              )}
+              {(() => {
+                const cap =
+                  item.captionResolved ??
+                  pickLang(lang, item.captionI18n?.it, item.captionI18n?.en);
+                return cap ? (
+                  <p className='mt-2 text-sm opacity-80'>{cap}</p>
+                ) : null;
+              })()}
             </div>
           );
         }
@@ -118,15 +117,18 @@ const portableTextComponents = (lang: Lang): PortableTextComponents => {
                 className='w-full rounded-sm'
                 loading='lazy'
               />
-              {((item.captionResolved ?? item.caption) || item.credit) && (
-                <p className='mt-2 text-xs opacity-50 italic'>
-                  {item.captionResolved ?? item.caption}
-                  {(item.captionResolved ?? item.caption) && item.credit
-                    ? ' · '
-                    : ''}
-                  {item.credit}
-                </p>
-              )}
+              {(() => {
+                const cap =
+                  item.captionResolved ??
+                  pickLang(lang, item.captionI18n?.it, item.captionI18n?.en);
+                return cap || item.credit ? (
+                  <p className='mt-2 text-xs opacity-50 italic'>
+                    {cap}
+                    {cap && item.credit ? ' · ' : ''}
+                    {item.credit}
+                  </p>
+                ) : null;
+              })()}
             </div>
           );
         }
