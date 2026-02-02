@@ -104,8 +104,12 @@ export default function HeroSection({
     const hasMobile = Array.isArray(slidesMobile) && slidesMobile.length > 0;
     const hasDesktop = Array.isArray(slidesDesktop) && slidesDesktop.length > 0;
 
-    if (isMobile && hasMobile) return slidesMobile;
-    if (!isMobile && hasDesktop) return slidesDesktop;
+    // If the parent provides dedicated desktop/mobile arrays, use ONLY those.
+    // `slides` is treated as legacy fallback (only when neither array exists).
+    if (hasMobile || hasDesktop) {
+      if (isMobile) return hasMobile ? slidesMobile : slidesDesktop;
+      return hasDesktop ? slidesDesktop : slidesMobile;
+    }
 
     return slides;
   }, [isMobile, slides, slidesDesktop, slidesMobile]);
@@ -118,8 +122,8 @@ export default function HeroSection({
     [rawSlides],
   );
 
-  const slideCount = safeSlides.length;
 
+  const slideCount = safeSlides.length;
 
   const hasSlides = slideCount > 0;
 

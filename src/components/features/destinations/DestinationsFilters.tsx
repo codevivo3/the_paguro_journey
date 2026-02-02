@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 
+import * as Popover from '@radix-ui/react-popover';
+
 import Button from '@/components/ui/Button';
 import PaguroSelect from '@/components/ui/PaguroSelect';
 import { safeLang, type Lang } from '@/lib/route';
@@ -76,7 +78,6 @@ export type DestinationsFilterState = {
   filtered: DestinationItem[];
 };
 
-
 function firstParam(v?: string | string[]) {
   return Array.isArray(v) ? v[0] : v;
 }
@@ -134,9 +135,7 @@ export function getDestinationsFilterState(
 
   const regions = uniqOptions(
     destinations.map((d) =>
-      d.regionSlug && d.region
-        ? { slug: d.regionSlug, label: d.region }
-        : null,
+      d.regionSlug && d.region ? { slug: d.regionSlug, label: d.region } : null,
     ),
   ).sort((a, b) => a.label.localeCompare(b.label, lang));
 
@@ -171,7 +170,9 @@ export function getDestinationsFilterState(
     if (selectedRegion && d.regionSlug !== selectedRegion) return false;
     if (selectedCountry && d.countrySlug !== selectedCountry) return false;
     if (selectedStyle) {
-      const hasStyle = (d.travelStyles ?? []).some((s) => s.slug === selectedStyle);
+      const hasStyle = (d.travelStyles ?? []).some(
+        (s) => s.slug === selectedStyle,
+      );
       if (!hasStyle) return false;
     }
     return true;
@@ -286,9 +287,11 @@ export default function DestinationsFilters({
     );
 
     const countryStillValid =
-      !next.country || nextState.options.countries.some((c) => c.slug === next.country);
+      !next.country ||
+      nextState.options.countries.some((c) => c.slug === next.country);
     const styleStillValid =
-      !next.style || nextState.options.styles.some((s) => s.slug === next.style);
+      !next.style ||
+      nextState.options.styles.some((s) => s.slug === next.style);
 
     setSelected({
       region: next.region,
@@ -310,7 +313,8 @@ export default function DestinationsFilters({
     );
 
     const styleStillValid =
-      !next.style || nextState.options.styles.some((s) => s.slug === next.style);
+      !next.style ||
+      nextState.options.styles.some((s) => s.slug === next.style);
 
     setSelected({
       region: next.region,
@@ -330,94 +334,165 @@ export default function DestinationsFilters({
 
   return (
     <section aria-label={t.sectionAria} className='space-y-4'>
-      {/* Filters (Select + Apply) — URL-driven via GET params */}
-      <form
-        method='get'
-        action={basePath}
-        className='mx-auto w-full max-w-2xl rounded-3xl border border-[color:var(--paguro-sand)]/20 bg-[color:var(--paguro-surface)]/80 p-4 shadow-[0_12px_34px_rgba(0,0,0,0.10)] backdrop-blur-md md:p-5'
-        aria-label={t.formAria}
-      >
-        <div className='grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3'>
-          {/* Region */}
-          <label className='grid gap-1'>
-            <span
-              id='destinations-filter-region'
-              className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
-            >
-              {t.region}
-            </span>
-
-            <PaguroSelect
-              name='region'
-              labelId='destinations-filter-region'
-              value={selected.region}
-              onValueChange={setRegion}
-              placeholder={t.all}
-              options={state.options.regions.map((r) => ({
-                value: r.slug,
-                label: r.label,
-              }))}
-            />
-          </label>
-
-          {/* Country */}
-          <label className='grid gap-1'>
-            <span
-              id='destinations-filter-country'
-              className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
-            >
-              {t.country}
-            </span>
-
-            <PaguroSelect
-              name='country'
-              labelId='destinations-filter-country'
-              value={selected.country}
-              onValueChange={setCountry}
-              placeholder={t.allPlural}
-              options={state.options.countries.map((c) => ({
-                value: c.slug,
-                label: c.label,
-              }))}
-            />
-          </label>
-
-          {/*
-          <label className='grid gap-1'>
-            <span
-              id='destinations-filter-style'
-              className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
-            >
-              Stile
-            </span>
-
-            <PaguroSelect
-              name='style'
-              labelId='destinations-filter-style'
-              value={selected.style}
-              onValueChange={setStyle}
-              placeholder='Tutti'
-              options={state.options.styles.map((s) => ({
-                value: s.slug,
-                label: s.label,
-              }))}
-            />
-          </label>
-          */}
-        </div>
-
-        <div className='mt-5 flex flex-col items-stretch justify-center gap-3 border-t border-[color:var(--paguro-sand)]/20 pt-3 sm:flex-row sm:items-center sm:justify-between'>
-          <a
-            href={basePath}
-            className='t-card-title text-sm text-[color:var(--paguro-text)]/70 underline underline-offset-4 hover:text-[color:var(--paguro-ocean)]'
-            aria-label={t.resetAria}
+      {/* Filters (Select + Apply) — Popover dropdown */}
+      <Popover.Root>
+        <Popover.Trigger asChild>
+          <button
+            type='button'
+            className={[
+              // Centered trigger, intentionally narrower than the Select triggers
+              // NOTE: must be a block-level element for `mx-auto` to work (inline-flex won't center)
+              'mx-auto flex w-fit',
+              // sensible min/max so it stays compact but not tiny
+              'min-w-[220px] max-w-[260px]',
+              'text-left',
+              // pill trigger style (match PaguroSelect vibe)
+              't-body text-[color:var(--paguro-text)]',
+              'h-10 rounded-full px-6 text-sm font-semibold',
+              'bg-gradient-to-b from-[var(--pill-from)] to-[var(--pill-to)]',
+              'shadow-[0_6px_18px_rgba(0,0,0,0.12)]',
+              'transition',
+              'hover:-translate-y-[1px] hover:shadow-[0_10px_26px_rgba(0,0,0,0.14)]',
+              'focus:outline-none focus-visible:outline-none',
+              'focus:ring-1 focus:ring-[color:var(--paguro-ocean)]/20',
+              'data-[state=open]:from-[var(--pill-from-hover)] data-[state=open]:to-[var(--pill-to-hover)]',
+              // layout
+              'items-center justify-between gap-3',
+              'select-none',
+            ].join(' ')}
+            aria-label={t.sectionAria}
           >
-            {t.reset}
-          </a>
+            <span className='t-section-title text-base'>{t.sectionAria}</span>
 
-          <Button>{t.apply}</Button>
-        </div>
-      </form>
+            <span aria-hidden='true' className='opacity-70'>
+              <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' className='h-5 w-5'>
+                <path
+                  strokeWidth={2}
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='m6 9 6 6 6-6'
+                />
+              </svg>
+            </span>
+          </button>
+        </Popover.Trigger>
+
+        <Popover.Portal>
+          <Popover.Content
+            side='bottom'
+            align='center'
+            sideOffset={10}
+            collisionPadding={16}
+            avoidCollisions
+            // Keep popover open while interacting with Radix Select (its content is portaled)
+            onInteractOutside={(e) => {
+              const target = e.target as HTMLElement | null;
+              if (target?.closest('[data-radix-select-content]')) {
+                e.preventDefault();
+              }
+            }}
+            className={[
+              'z-[70]',
+              // Panel can be wider than the trigger (better UX)
+              'w-[min(560px,calc(100vw-32px))]',
+              'max-w-[calc(100vw-32px)]',
+              'rounded-3xl border border-[color:var(--paguro-sand)]/25',
+              // less glassy
+              'bg-[color:var(--paguro-surface)]',
+              'shadow-[0_18px_60px_rgba(0,0,0,0.22)]',
+              // if too tall: scroll
+              'max-h-[min(70vh,520px)] overflow-auto',
+              'p-4 md:p-5',
+              'outline-none',
+            ].join(' ')}
+            aria-label={t.formAria}
+          >
+            <form method='get' action={basePath} className='space-y-4'>
+              <div className='grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3'>
+                {/* Region */}
+                <label className='grid gap-1'>
+                  <span
+                    id='destinations-filter-region'
+                    className='t-section-title text-base px-4 font-medium text-[color:var(--paguro-text)]'
+                  >
+                    {t.region}
+                  </span>
+
+                  <PaguroSelect
+                    name='region'
+                    labelId='destinations-filter-region'
+                    value={selected.region}
+                    onValueChange={setRegion}
+                    placeholder={t.all}
+                    options={state.options.regions.map((r) => ({
+                      value: r.slug,
+                      label: r.label,
+                    }))}
+                  />
+                </label>
+
+                {/* Country */}
+                <label className='grid gap-1'>
+                  <span
+                    id='destinations-filter-country'
+                    className='t-section-title text-base px-4 font-medium text-[color:var(--paguro-text)]'
+                  >
+                    {t.country}
+                  </span>
+
+                  <PaguroSelect
+                    name='country'
+                    labelId='destinations-filter-country'
+                    value={selected.country}
+                    onValueChange={setCountry}
+                    placeholder={t.allPlural}
+                    options={state.options.countries.map((c) => ({
+                      value: c.slug,
+                      label: c.label,
+                    }))}
+                  />
+                </label>
+
+                {/* Style filter (future) */}
+                {/**
+                <label className='grid gap-1'>
+                  <span
+                    id='destinations-filter-style'
+                    className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
+                  >
+                    {t.style}
+                  </span>
+
+                  <PaguroSelect
+                    name='style'
+                    labelId='destinations-filter-style'
+                    value={selected.style}
+                    onValueChange={setStyle}
+                    placeholder={t.allPlural}
+                    options={state.options.styles.map((s) => ({
+                      value: s.slug,
+                      label: s.label,
+                    }))}
+                  />
+                </label>
+                */}
+              </div>
+
+              <div className='flex flex-col items-stretch justify-center gap-3 border-t border-[color:var(--paguro-sand)]/15 pt-4 sm:flex-row sm:items-center sm:justify-between'>
+                <a
+                  href={basePath}
+                  className='t-card-title text-sm text-[color:var(--paguro-text)]/70 underline underline-offset-4 hover:text-[color:var(--paguro-ocean)]'
+                  aria-label={t.resetAria}
+                >
+                  {t.reset}
+                </a>
+
+                <Button>{t.apply}</Button>
+              </div>
+            </form>
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
 
       {/* Selected summary (derived from URL params) */}
       {anyActive ? (

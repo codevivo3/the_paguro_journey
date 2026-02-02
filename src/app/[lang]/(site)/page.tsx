@@ -4,9 +4,7 @@ import type { Metadata } from 'next';
 import HeroSection from '@/components/sections/hero/HeroSection';
 import IntroSection from '@/components/sections/IntroSection';
 import LatestVidsSection from '@/components/sections/LatestVideosSection';
-import BreakImageSection, {
-  getBreakImageProps,
-} from '@/components/sections/BreakImageSection';
+import BreakImageSection from '@/components/sections/BreakImageSection';
 import CallToAction from '@/components/sections/CTASection';
 import CollabsSection from '@/components/sections/CollabsSection';
 
@@ -14,9 +12,7 @@ import CollabsSection from '@/components/sections/CollabsSection';
 import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 
 // Sanity / data
-import { getHomeHeroSlides } from '@/sanity/queries/homeHeroSlides';
-import { getHomeDivider } from '@/sanity/queries/homeDivider';
-import { mapSanityHeroSlides } from '@/lib/hero-sanity';
+import { getHomePageData } from '@/sanity/queries/home';
 
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
@@ -88,14 +84,7 @@ export default async function Home({
   const { lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
 
-  const { desktop } = await getHomeHeroSlides(effectiveLang);
-
-  // Server-rendered homepage uses desktop hero by default.
-  // Mobile variant can be swapped client-side later if needed.
-  const slides = mapSanityHeroSlides(desktop, effectiveLang);
-
-  const homeDivider = await getHomeDivider(effectiveLang);
-  const breakImageProps = getBreakImageProps(homeDivider, effectiveLang);
+  const data = await getHomePageData(effectiveLang);
 
   return (
     <>
@@ -104,7 +93,12 @@ export default async function Home({
         {/* Main H1 (visually hidden) for SEO semantics and accessibility */}
         <h1 className='sr-only'>The Paguro Journey</h1>
         {/* Hero section: visual entry point and brand positioning */}
-        <HeroSection lang={effectiveLang} slides={slides} overlay />
+        <HeroSection
+          lang={effectiveLang}
+          slidesDesktop={data.hero.slidesDesktop}
+          slidesMobile={data.hero.slidesMobile}
+          overlay
+        />
 
         {/* Intro section: explains the philosophy and vision of the project */}
         <IntroSection lang={effectiveLang} />
@@ -113,7 +107,7 @@ export default async function Home({
         <LatestVidsSection lang={effectiveLang} />
 
         {/* Break image: visual pause to reset rhythm before the CTA */}
-        {breakImageProps ? <BreakImageSection {...breakImageProps} /> : null}
+        {data.breakImageProps ? <BreakImageSection {...data.breakImageProps} /> : null}
 
         {/* Call to action: invite the user to continue the journey */}
         <CallToAction lang={effectiveLang} />

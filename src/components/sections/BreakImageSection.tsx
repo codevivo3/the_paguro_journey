@@ -1,42 +1,64 @@
+import Image from 'next/image';
+
 import type { HomeDividerData } from '@/sanity/queries/homeDivider';
 import { pickLang } from '@/lib/pickLang';
+import { safeLang, type Lang } from '@/lib/route';
 
-export function getBreakImageProps(
-  homeDivider: HomeDividerData,
-  lang: Lang,
-) {
-  if (!homeDivider?.media?.imageUrl) return null;
+import RichText from '@/components/shared/RichText';
+
+
+export function getBreakImageProps(homeDivider: HomeDividerData, lang: Lang) {
+  // Preferred: siteSettings.homeDivider.mediaDesktop / mediaMobile
+  // Back-compat: siteSettings.homeDivider.media
+  const desktop = homeDivider?.mediaDesktop ?? homeDivider?.media;
+  const mobile = homeDivider?.mediaMobile;
+
+  if (!desktop?.imageUrl) return null;
+
+  const toTrimmedString = (v: unknown): string | undefined =>
+    typeof v === 'string' ? v.trim() : undefined;
+
+  // altOverride is bilingual in Site Settings (EN/IT).
+  // Be defensive in case older data is still a string.
+  const overrideAlt =
+    toTrimmedString(homeDivider?.altOverride) ??
+    toTrimmedString(
+      pickLang(
+        homeDivider?.altOverride as { it?: string; en?: string } | null | undefined,
+        lang,
+      ),
+    );
 
   const dividerAlt =
-    homeDivider.altOverride?.trim() ||
-    homeDivider.media.alt?.trim() ||
+    overrideAlt ||
+    desktop.altA11yResolved?.trim() ||
+    desktop.alt?.trim() ||
     (lang === 'en' ? 'Homepage divider image' : 'Immagine divisore homepage');
 
   return {
     lang,
-    src: homeDivider.media.imageUrl,
+    srcDesktop: desktop.imageUrl,
+    srcMobile: mobile?.imageUrl,
     alt: dividerAlt,
-    title: homeDivider.media.titleResolved,
-    eyebrow: pickLang(homeDivider.eyebrow, lang),
-    content: pickLang(homeDivider.dividerContent, lang),
-    href: homeDivider.link ?? undefined,
+    title: desktop.titleResolved,
+    eyebrow: pickLang(homeDivider?.eyebrow, lang),
+    content: pickLang(homeDivider?.dividerContent, lang),
+    href: homeDivider?.link ?? undefined,
     meta: {
-      id: homeDivider.media._id,
+      id: desktop._id,
       type: 'mediaItem' as const,
-      title: homeDivider.media.title,
-      credit: homeDivider.media.credit,
+      title: desktop.title,
+      credit: desktop.credit,
     },
   };
 }
-import Image from 'next/image';
-import { safeLang, type Lang } from '@/lib/route';
-import RichText from '@/components/shared/RichText';
 
 type BreakImageSectionProps = {
   lang: Lang;
 
   /** Image */
-  src: string;
+  srcDesktop: string;
+  srcMobile?: string;
   alt: string;
 
   /** Optional Sanity‑resolved copy */
@@ -62,7 +84,8 @@ type BreakImageSectionProps = {
 
 export default function BreakImageSection({
   lang,
-  src,
+  srcDesktop,
+  srcMobile,
   alt,
   title,
   eyebrow,
@@ -87,6 +110,7 @@ export default function BreakImageSection({
 
   const fallback = contentI18n[effectiveLang];
 
+
   const resolvedEyebrow = eyebrow ?? fallback.eyebrow;
   const resolvedCaption =
     typeof caption === 'string'
@@ -107,7 +131,17 @@ export default function BreakImageSection({
       {resolvedTitle || resolvedEyebrow || meta?.credit ? (
         <header className='mb-4 md:mb-6 text-center md:text-left'>
           {resolvedTitle ? (
-            <h3 className='t-section-title title-divider'>{resolvedTitle}</h3>
+            <>
+              {/* Mobile: center the decorative divider */}
+              <h3 className='t-section-title title-divider title-divider-center md:hidden'>
+                {resolvedTitle}
+              </h3>
+
+              {/* Desktop: keep divider default (left) */}
+              <h3 className='t-section-title title-divider hidden md:block'>
+                {resolvedTitle}
+              </h3>
+            </>
           ) : null}
           {resolvedEyebrow ? <p className='t-meta mt-1'>{resolvedEyebrow}</p> : null}
         </header>
@@ -117,19 +151,34 @@ export default function BreakImageSection({
         data-type={meta?.type}
         data-title={meta?.title}
         data-credit={meta?.credit}
-        className={['relative overflow-hidden rounded-sm', className]
+        className={['relative overflow-hidden rounded-sm max-w-3xl px-4 md:px-6', className]
           .filter(Boolean)
           .join(' ')}
       >
-        <div className='relative aspect-[4/5] md:aspect-[16/9] overflow-hidden rounded-sm'>
-          <Image
-            src={src}
-            alt={alt}
-            fill
-            priority={priority}
-            className='object-cover'
-            sizes='(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 768px'
-          />
+        <div className='relative overflow-hidden rounded-sm'>
+          {/* Mobile image (if provided). Fallback to desktop image when missing. */}
+          <div className='relative aspect-[4/5] overflow-hidden md:hidden'>
+            <Image
+              src={srcMobile ?? srcDesktop}
+              alt={alt}
+              fill
+              priority={priority}
+              className='object-cover'
+              sizes='100vw'
+            />
+          </div>
+
+          {/* Desktop image */}
+          <div className='relative hidden aspect-[16/9] overflow-hidden md:block'>
+            <Image
+              src={srcDesktop}
+              alt={alt}
+              fill
+              priority={priority}
+              className='object-cover'
+              sizes='(max-width: 1024px) 90vw, 768px'
+            />
+          </div>
         </div>
 
         {Array.isArray(content) && content.length > 0 ? (

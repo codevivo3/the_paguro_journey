@@ -248,8 +248,8 @@ export default defineType({
       title: 'Home Hero Slideshow',
       type: 'array',
       description: biDesc(
-        'Curated slideshow for the homepage hero (DESKTOP). Drag to reorder. Uses Media Items (images only). Select only Desktop-eligible Media Items.',
-        'Slideshow curato per l’hero della homepage (DESKTOP). Trascina per riordinare. Usa i Media Item (solo immagini). Seleziona solo i Media Item idonei per Desktop.',
+        'Curated slideshow for the homepage hero (DESKTOP). Drag to reorder. Uses Media Items (images only).',
+        'Slideshow curato per l’hero della homepage (DESKTOP). Trascina per riordinare. Usa i Media Item (solo immagini).',
       ),
       fieldset: 'homeHeroSlideshow',
       of: [
@@ -263,7 +263,7 @@ export default defineType({
              * - Only wide formats for better hero UX
              */
             filter:
-              '_type == "mediaItem" && type == "image" && defined(image.asset) && orientation in ["landscape", "panorama"] && (hero.enabled == true || heroEnabled == true) && hero.desktopEligible == true',
+              '_type == "mediaItem" && type == "image" && defined(image.asset)',
           },
         },
       ],
@@ -276,8 +276,8 @@ export default defineType({
       title: 'Home Hero Slideshow (Mobile)',
       type: 'array',
       description: biDesc(
-        'Curated slideshow for the homepage hero (MOBILE). Drag to reorder. Uses Media Items (images only). Select only Mobile-eligible Media Items.',
-        'Slideshow curato per l’hero della homepage (MOBILE). Trascina per riordinare. Usa i Media Item (solo immagini). Seleziona solo i Media Item idonei per Mobile.',
+        'Curated slideshow for the homepage hero (MOBILE). Drag to reorder. Uses Media Items (images only).',
+        'Slideshow curato per l’hero della homepage (MOBILE). Trascina per riordinare. Usa i Media Item (solo immagini).',
       ),
       fieldset: 'homeHeroSlideshow',
       of: [
@@ -291,7 +291,7 @@ export default defineType({
              * - Only portrait formats for mobile hero UX
              */
             filter:
-              '_type == "mediaItem" && type == "image" && defined(image.asset) && (hero.enabled == true || heroEnabled == true) && hero.mobileEligible == true',
+              '_type == "mediaItem" && type == "image" && defined(image.asset)',
           },
         },
       ],
@@ -315,29 +315,29 @@ export default defineType({
       fields: [
         defineField({
           name: 'mediaDesktop',
-          title: 'Desktop image (Landscape)',
+          title: 'Desktop image (recommended: landscape)',
           type: 'reference',
           to: [{ type: 'mediaItem' }],
           description: biDesc(
-            'Select one landscape image from the media library (desktop).',
-            'Seleziona una singola immagine landscape dalla media library (desktop).',
+            'Select one image from the media library for desktop. Landscape orientation is recommended, but not enforced.',
+            'Seleziona un’immagine dalla media library per desktop. L’orientamento landscape è consigliato, ma non obbligatorio.',
           ),
           options: {
             filter:
-              'type == "image" && orientation in ["landscape", "panorama"]',
+              'type == "image" && defined(image.asset)',
           },
           validation: (r) => r.required(),
         }),
         defineField({
           name: 'mediaMobile',
-          title: 'Mobile image (Portrait)',
+          title: 'Mobile image (recommended: portrait)',
           type: 'reference',
           to: [{ type: 'mediaItem' }],
           description: biDesc(
-            'Optional. Select a portrait image for mobile. If empty, the desktop image can be reused.',
-            'Opzionale. Seleziona un’immagine portrait per mobile. Se vuoto, si può riusare l’immagine desktop.',
+            'Optional. Select an image for mobile. Portrait orientation is recommended, but not enforced. If empty, the desktop image can be reused.',
+            'Opzionale. Seleziona un’immagine per mobile. L’orientamento portrait è consigliato, ma non obbligatorio. Se vuoto, verrà riutilizzata l’immagine desktop.',
           ),
-          options: { filter: 'type == "image" && orientation == "portrait"' },
+          options: { filter: 'type == "image" && defined(image.asset)' },
         }),
         defineField({
           name: 'altOverride',

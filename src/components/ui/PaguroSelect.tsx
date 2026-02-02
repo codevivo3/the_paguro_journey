@@ -1,9 +1,9 @@
 'use client';
 
-const CLEAR_VALUE = '__paguro_clear__';
-
 import * as React from 'react';
 import * as Select from '@radix-ui/react-select';
+
+const CLEAR_VALUE = '__paguro_clear__';
 
 type Option = { value: string; label: string };
 
@@ -59,6 +59,23 @@ export default function PaguroSelect({
   labelId,
   className = '',
 }: PaguroSelectProps) {
+  const filteredOptions = React.useMemo(() => {
+    const ph = (placeholder ?? '').trim().toLowerCase();
+    return (options ?? []).filter((opt) => {
+      const v = (opt?.value ?? '').trim();
+      const l = (opt?.label ?? '').trim().toLowerCase();
+
+      // Never allow empty or CLEAR_VALUE in the options list (handled separately).
+      if (!v) return false;
+      if (v === CLEAR_VALUE) return false;
+
+      // If someone included an “All/Tutte” option, hide it (placeholder already covers it).
+      if (ph && l === ph) return false;
+
+      return true;
+    });
+  }, [options, placeholder]);
+
   // Hidden input keeps your existing GET form flow working.
   // Radix Select itself does NOT submit like a native <select>.
   return (
@@ -74,18 +91,17 @@ export default function PaguroSelect({
         <Select.Trigger
           aria-labelledby={labelId}
           className={[
-            // Same “pill” look you already liked
-            't-body text-[color:var(--paguro-text)]',
-            'h-11 w-full rounded-full px-4 text-sm font-semibold',
-            'bg-gradient-to-b from-[var(--pill-from)] to-[var(--pill-to)]',
-            'shadow-[0_6px_18px_rgba(0,0,0,0.12)]',
-            'transition',
-            'hover:-translate-y-[1px] hover:shadow-[0_10px_26px_rgba(0,0,0,0.14)]',
-            'focus:outline-none focus-visible:outline-none',
-            'focus:ring-1 focus:ring-[color:var(--paguro-ocean)]/20',
-            'data-[state=open]:from-[var(--pill-from-hover)] data-[state=open]:to-[var(--pill-to-hover)]',
-            // layout
+            't-body font-semibold tracking-wide',
+            'h-10 w-full rounded-full px-4 text-sm',
             'inline-flex items-center justify-between gap-3',
+            'border border-[color:var(--paguro-sand)]/20',
+            'bg-[color:var(--paguro-surface)]',
+            'shadow-[0_8px_22px_rgba(0,0,0,0.14)]',
+            'transition',
+            'hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.16)]',
+            'focus:outline-none focus-visible:outline-none',
+            'focus:ring-1 focus:ring-[color:var(--paguro-ocean)]/25',
+            'data-[state=open]:shadow-[0_12px_30px_rgba(0,0,0,0.18)]',
             className,
           ].join(' ')}
         >
@@ -98,54 +114,66 @@ export default function PaguroSelect({
         <Select.Portal>
           <Select.Content
             position='popper'
-            sideOffset={10}
+            side='bottom'
+            sideOffset={8}
+            align='start'
+            avoidCollisions
+            collisionPadding={{ top: 96, bottom: 24, left: 16, right: 16 }}
             className={[
-              'z-[60]',
-              'min-w-[var(--radix-select-trigger-width)]',
-              'overflow-hidden rounded-3xl',
+              'z-[70]',
+              // Match trigger width (and clamp to viewport)
+              'w-[var(--radix-select-trigger-width)]',
+              'max-w-[calc(100vw-32px)]',
+              'overflow-hidden rounded-2xl',
               'border border-[color:var(--paguro-sand)]/25',
-              'bg-[color:var(--paguro-surface)]/95 backdrop-blur-md',
-              'shadow-[0_18px_60px_rgba(0,0,0,0.20)]',
+              // Less "glassy": solid surface, no blur
+              'bg-[color:var(--paguro-surface)]',
+              'shadow-[0_12px_40px_rgba(0,0,0,0.16)]',
+              // Cap the menu to the available viewport height Radix computes.
+              'max-h-[var(--radix-select-content-available-height)]',
             ].join(' ')}
           >
-            <Select.Viewport className='p-2'>
-              {/* “All” option if you want blank to mean “all” */}
-              <Select.Item
-                value={CLEAR_VALUE}
-                className={[
-                  'relative flex cursor-pointer select-none items-center gap-2 rounded-xl px-3 py-2',
-                  'text-sm text-[color:var(--paguro-text)]',
-                  'outline-none',
-                  'data-[highlighted]:bg-[color:var(--paguro-ocean)]/10',
-                  'data-[state=checked]:bg-[color:var(--paguro-ocean)]/12',
-                ].join(' ')}
-              >
-                <Select.ItemIndicator className='absolute left-3 inline-flex items-center'>
-                  <CheckIcon className='h-4 w-4' />
-                </Select.ItemIndicator>
-                <span className='pl-6'>{placeholder}</span>
-              </Select.Item>
+            <Select.Viewport className='max-h-[var(--radix-select-content-available-height)] overflow-y-auto p-1'>
+              {value !== '' ? (
+                <Select.Item
+                  value={CLEAR_VALUE}
+                  className={[
+                    'group relative flex w-full cursor-pointer select-none items-center justify-between',
+                    'rounded-xl px-4 py-2',
+                    'text-sm text-[color:var(--paguro-text)]',
+                    'outline-none',
+                    'data-[highlighted]:bg-[color:var(--paguro-ocean)]/10',
+                    // keep checked styling subtle (no big background pill)
+                    'data-[state=checked]:font-semibold',
+                  ].join(' ')}
+                >
+                  <Select.ItemText>
+                    <span className='truncate'>{placeholder}</span>
+                  </Select.ItemText>
+                  <Select.ItemIndicator className='inline-flex items-center opacity-70'>
+                    <CheckIcon className='h-4 w-4' />
+                  </Select.ItemIndicator>
+                </Select.Item>
+              ) : null}
 
-              <div className='my-2 h-px bg-[color:var(--paguro-sand)]/15' />
-
-              {options.map((opt) => (
+              {filteredOptions.map((opt) => (
                 <Select.Item
                   key={opt.value}
                   value={opt.value}
                   className={[
-                    'relative flex cursor-pointer select-none items-center gap-2 rounded-xl px-3 py-2',
+                    'group relative flex w-full cursor-pointer select-none items-center justify-between rounded-xl px-4 py-2',
                     'text-sm text-[color:var(--paguro-text)]',
                     'outline-none',
                     'data-[highlighted]:bg-[color:var(--paguro-ocean)]/10',
-                    'data-[state=checked]:bg-[color:var(--paguro-ocean)]/12',
+                    'data-[state=checked]:font-semibold',
                   ].join(' ')}
                 >
-                  <Select.ItemIndicator className='absolute left-3 inline-flex items-center'>
+                  <Select.ItemText>
+                    <span className='truncate'>{opt.label}</span>
+                  </Select.ItemText>
+                  <Select.ItemIndicator className='inline-flex items-center opacity-70'>
                     <CheckIcon className='h-4 w-4' />
                   </Select.ItemIndicator>
-                  <Select.ItemText>
-                    <span className='pl-6'>{opt.label}</span>
-                  </Select.ItemText>
                 </Select.Item>
               ))}
             </Select.Viewport>
