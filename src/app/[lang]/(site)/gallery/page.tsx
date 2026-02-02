@@ -82,7 +82,7 @@ export default async function GalleryPage({ params }: PageProps) {
   const { lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
 
-  const sanityItems = await getGalleryItems();
+  const sanityItems = await getGalleryItems({ lang: effectiveLang });
   // Map Sanity docs -> UI GalleryImage type
   const items: GalleryImage[] = mapSanityToGalleryImages(sanityItems, effectiveLang, (x) => ({
     src: x.src,
@@ -90,7 +90,11 @@ export default async function GalleryPage({ params }: PageProps) {
     // ✅ required by your UI type
     countrySlug: x.countrySlug ?? 'unknown',
 
+    // `mapSanityToGalleryImages` already resolves alt/caption by language.
     alt: x.alt ?? undefined,
+
+    // Modal-only caption
+    caption: x.caption ?? null,
 
     // ✅ normalize to match GalleryImage orientation type
     // UI allows only: 'portrait' | 'landscape' | undefined

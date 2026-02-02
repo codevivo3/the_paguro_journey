@@ -35,21 +35,38 @@ export function mapSanityToGalleryImages<TGalleryImage>(
 
       const fallbackAlt = lang === 'en' ? 'Gallery image' : 'Immagine della galleria';
 
+      const clean = (v?: string | null) => {
+        const s = (v ?? '').trim();
+        return s.length ? s : undefined;
+      };
+
+      const getPlainCaption = (item: SanityGalleryItem): string | undefined => {
+        return 'caption' in item && typeof (item as { caption?: unknown }).caption === 'string'
+          ? (item as { caption?: string }).caption
+          : undefined;
+      };
+
       return map({
         id: it._id,
         src,
-        alt: it.alt ?? it.title ?? fallbackAlt,
-        caption:
+        // Prefer localized accessibility alt if provided by the query
+        alt: it.altA11yResolved ?? it.alt ?? it.title ?? fallbackAlt,
+        caption: clean(
           it.captionResolved ??
-          (lang === 'en'
-            ? it.captionI18n?.en ?? it.captionI18n?.it
-            : it.captionI18n?.it ?? it.captionI18n?.en),
+            getPlainCaption(it) ??
+            (lang === 'en'
+              ? it.captionI18n?.en ?? it.captionI18n?.it
+              : it.captionI18n?.it ?? it.captionI18n?.en)
+        ),
         
         // ✅ pick the first country slug (or fallback)
         countrySlug: countries?.[0] ?? 'unknown',
 
-        // optional: you currently don't have it in Sanity, so leave undefined
-        orientation: undefined,
+        // Normalize to UI-supported values
+        orientation:
+          it.orientation === 'portrait' || it.orientation === 'landscape'
+            ? it.orientation
+            : undefined,
 
         countries,
         regions: it.regions

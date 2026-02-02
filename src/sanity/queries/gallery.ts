@@ -18,6 +18,9 @@ export type SanityGalleryItem = {
   /** Optional localized caption */
   captionI18n?: { it?: string; en?: string };
 
+  /** Optional plain caption (non-localized) */
+  caption?: string;
+
   /** Resolved fields for requested language */
   captionResolved?: string;
   altA11yResolved?: string;
@@ -49,10 +52,11 @@ const GALLERY_QUERY = /* groq */ `
     alt,
     altI18n,
     captionI18n,
+    caption,
     orientation,
 
     // Resolved i18n helpers
-    "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, captionI18n.en),
+    "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, captionI18n.en, caption),
     "altA11yResolved": coalesce(altI18n[$lang], alt),
 
     // Keep a stable key name for the frontend mapper

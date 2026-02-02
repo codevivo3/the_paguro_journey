@@ -205,7 +205,7 @@ export default function DestinationsFilters({
   lang,
   destinations,
   searchParams,
-  basePath = '/destinations',
+  basePath,
 }: {
   lang?: Lang;
   destinations: DestinationItem[];
@@ -246,6 +246,10 @@ export default function DestinationsFilters({
   } as const;
 
   const t = i18n[effectiveLang];
+
+  // In App Router we usually have a lang-prefixed route (e.g. /it/destinations).
+  // If the parent doesn’t pass a basePath, default to the lang-prefixed one.
+  const effectiveBasePath = basePath ?? `/${effectiveLang}/destinations`;
 
   // Initial state comes from the URL (searchParams), but the UI is controlled client-side.
   const initial = useMemo(
@@ -407,7 +411,7 @@ export default function DestinationsFilters({
             ].join(' ')}
             aria-label={t.formAria}
           >
-            <form method='get' action={basePath} className='space-y-4'>
+            <form method='get' action={effectiveBasePath} className='space-y-4'>
               <div className='grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3'>
                 {/* Region */}
                 <label className='grid gap-1'>
@@ -480,14 +484,14 @@ export default function DestinationsFilters({
 
               <div className='flex flex-col items-stretch justify-center gap-3 border-t border-[color:var(--paguro-sand)]/15 pt-4 sm:flex-row sm:items-center sm:justify-between'>
                 <a
-                  href={basePath}
+                  href={effectiveBasePath}
                   className='t-card-title text-sm text-[color:var(--paguro-text)]/70 underline underline-offset-4 hover:text-[color:var(--paguro-ocean)]'
                   aria-label={t.resetAria}
                 >
                   {t.reset}
                 </a>
 
-                <Button>{t.apply}</Button>
+                <Button type='submit'>{t.apply}</Button>
               </div>
             </form>
           </Popover.Content>

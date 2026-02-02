@@ -96,18 +96,13 @@ export default function GalleryModal({
       >
         <div className='relative w-full max-w-5xl overflow-hidden rounded-sm border border-white/10 bg-black shadow-2xl'>
           {/* Top bar */}
-          <div className='relative grid grid-cols-3 items-center gap-3 border-b border-white/10 bg-black/70 px-4 py-3'>
-            <div className='text-sm text-white/80 [font-family:var(--font-ui)]'>
-              {openIndex + 1} / {total}
-            </div>
-
-            {/* Open original (kept as-is: new tab) */}
-            <div className='flex items-center justify-center'>
+          <div className='relative grid grid-cols-3 items-center gap-3 border-b border-white/10 bg-black/70 px-4 py-1.5'>
+            <div className='flex items-center justify-start pl-1'>
               <a
                 href={current.src}
                 target='_blank'
                 rel='noreferrer'
-                className='rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
+                className='inline-flex h-8 w-8 items-center justify-center rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
                 aria-label={t.openOriginal}
               >
                 <svg
@@ -127,12 +122,24 @@ export default function GalleryModal({
               </a>
             </div>
 
+            <div className='flex flex-col items-center justify-center text-sm text-white/80 [font-family:var(--font-ui)] text-center'>
+              <div className='flex items-center gap-2'>
+                <span className='shrink-0'>{openIndex + 1} / {total}</span>
+                {current.caption ? (
+                  <span className='flex items-center text-white/70'>
+                    <span className='mr-2'>•</span>
+                    <span>{current.caption}</span>
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
             <div className='flex items-center justify-end'>
               <button
                 type='button'
                 onClick={onClose}
                 aria-label={t.close}
-                className='inline-flex items-center justify-center rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
+                className='inline-flex h-8 w-8 items-center justify-center rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
               >
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
@@ -153,7 +160,7 @@ export default function GalleryModal({
           </div>
 
           {/* Image */}
-          <div className='relative block w-full'>
+          <div className='relative block w-full bg-black p-6'>
             <div className='relative h-[70vh] w-full'>
               <Image
                 src={current.src}

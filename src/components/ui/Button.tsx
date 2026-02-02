@@ -1,11 +1,9 @@
 import Link from 'next/link';
-import { ReactNode } from 'react';
+import { ReactNode, ButtonHTMLAttributes } from 'react';
 
-type ButtonProps = {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
   href?: string;
-  onClick?: () => void;
-  className?: string;
   external?: boolean;
 };
 
@@ -24,9 +22,10 @@ type ButtonProps = {
 export default function Button({
   children,
   href,
-  onClick,
   className = '',
   external = false,
+  type = 'button',
+  ...rest
 }: ButtonProps) {
   const baseClass =
     'group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ' +
@@ -43,7 +42,7 @@ export default function Button({
   // Button element (action)
   if (!href) {
     return (
-      <button onClick={onClick} className={`${baseClass} ${className}`}>
+      <button type={type} {...rest} className={`${baseClass} ${className}`}>
         <span className='relative z-10'>{children}</span>
       </button>
     );

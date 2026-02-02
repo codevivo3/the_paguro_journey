@@ -59,13 +59,14 @@ export default function CollabsSection({
         {/* CTAs */}
         <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
           <Button className='min-w-[200px]'>
-            <Link
-              href={withLangPrefix(effectiveLang, '/media-kit')}
-              className="flex w-full items-center justify-around px-4 text-center"
+            <a
+              href='/media-kit.pdf'
+              download
+              className='flex w-full items-center justify-around px-4 text-center'
             >
               <span>{resolvedCtaMediaKit}</span>
-              <span aria-hidden className="ml-3">➜</span>
-            </Link>
+              <span aria-hidden className='ml-3'>➜</span>
+            </a>
           </Button>
 
           <Button className='min-w-[200px] bg-white'>

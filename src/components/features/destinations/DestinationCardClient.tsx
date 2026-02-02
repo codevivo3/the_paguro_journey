@@ -37,6 +37,22 @@ export function DestinationCardClient({
 }) {
   const effectiveLang: Lang = safeLang(lang);
 
+  // Ensure internal routes are lang-prefixed (e.g. /it/regions/..., /en/regions/...).
+  const ensureLangPath = React.useCallback(
+    (path: string) => {
+      if (!path) return path;
+      // If already prefixed with /it/... or /en/... keep it.
+      if (path.startsWith(`/${effectiveLang}/`)) return path;
+      // If it's an absolute path like /regions/..., prefix it.
+      if (path.startsWith('/')) return `/${effectiveLang}${path}`;
+      // Otherwise treat it as a relative segment and prefix it.
+      return `/${effectiveLang}/${path}`;
+    },
+    [effectiveLang]
+  );
+
+  const effectiveRegionHref = ensureLangPath(regionHref);
+
   const [ready, setReady] = React.useState(false);
 
   // keep skeleton visible even if the image loads instantly (cache)
@@ -116,7 +132,7 @@ export function DestinationCardClient({
               <p className='t-meta'>{labels.videos}: {count}</p>
 
               <CardPill
-                href={regionHref}
+                href={effectiveRegionHref}
                 className='shrink-0'
                 ariaLabel={`${labels.filter}: ${region}`}
               >

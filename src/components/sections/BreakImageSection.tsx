@@ -129,7 +129,7 @@ export default function BreakImageSection({
   const contentBlock = (
     <>
       {resolvedTitle || resolvedEyebrow || meta?.credit ? (
-        <header className='mb-4 md:mb-6 text-center md:text-left'>
+        <header className='px-6 mb-4 md:mb-6 text-center md:text-left'>
           {resolvedTitle ? (
             <>
               {/* Mobile: center the decorative divider */}

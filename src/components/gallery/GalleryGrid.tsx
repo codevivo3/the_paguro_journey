@@ -14,6 +14,7 @@ export type GalleryImage = {
   src: string;
   countrySlug: string;
   alt?: string;
+  caption?: string | null;
   orientation?: 'portrait' | 'landscape';
 };
 

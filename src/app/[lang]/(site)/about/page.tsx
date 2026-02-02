@@ -151,9 +151,7 @@ export default async function AboutPage({ params }: PageProps) {
         {/* Header: page title + short value proposition */}
         <header className='space-y-3'>
           <h1 className='t-page-title'>{title}</h1>
-          <p className='t-page-subtitle'>
-            {subtitle}
-          </p>
+          <p className='t-page-subtitle'>{subtitle}</p>
         </header>
         <figure className='mx-auto max-w-3xl'>
           <div className='relative aspect-[16/9] overflow-hidden rounded-sm '>
@@ -189,31 +187,32 @@ export default async function AboutPage({ params }: PageProps) {
           )}
         </section>
 
-        {/* CTA: drive readers to the Blog */}
+        {/* CTA: drive readers to the Blog + Media Kit */}
         <section className='mt-16 rounded-sm bg-[color:var(--paguro-surface)] p-8 text-center'>
           <h2 className='[font-family:var(--font-ui)] text-2xl font-semibold text-[color:var(--paguro-text-dark)]'>
             {t.ctaTitle}
           </h2>
-          <p className='mt-2 t-body'>
-            {t.ctaBody}
-          </p>
+          <p className='mt-2 t-body'>{t.ctaBody}</p>
+
           <div className='mt-6'>
-            <Button href={withLangPrefix(effectiveLang, '/blog')} className='text-white'>
+            <Button
+              href={withLangPrefix(effectiveLang, '/blog')}
+              className='text-white'
+            >
               {t.ctaButton} <span aria-hidden='true'>➜</span>
             </Button>
           </div>
-        </section>
 
-        {/* Secondary CTA: Media Kit for collaborations */}
-        <section className='text-center'>
-          <p className='t-body'>
+          <p className='mt-5 text-sm text-[color:var(--paguro-text-muted)]'>
             {t.mediaKitPrefix}{' '}
-            <Link
-              href={withLangPrefix(effectiveLang, '/media-kit')}
-              className='font-semibold transition-colors hover:text-[color:var(--paguro-coral)]'
+            <a
+              href='/media-kit.pdf'
+              download
+              className='font-medium text-[color:var(--paguro-deep)] underline-offset-4 hover:underline'
             >
-              {t.mediaKitLink} ➜
-            </Link>
+              {t.mediaKitLink}
+            </a>
+            .
           </p>
         </section>
       </div>
