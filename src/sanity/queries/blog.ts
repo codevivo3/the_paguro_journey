@@ -10,9 +10,11 @@ export type BlogPostForIndex = {
   title: string;
   excerpt?: string;
 
-  /** Raw i18n objects (for future toggle or fallback use) */
-  titleI18n?: { it?: string; en?: string };
-  excerptI18n?: { it?: string; en?: string };
+  /** Explicit EN/IT fields for blog cards */
+  titleIt?: string | null;
+  titleEn?: string | null;
+  excerptIt?: string | null;
+  excerptEn?: string | null;
 
   slug: string;
   publishedAt?: string;
@@ -24,15 +26,26 @@ const BLOG_INDEX_QUERY = /* groq */ `
   | order(publishedAt desc, _createdAt desc) {
     _id,
 
-    titleI18n,
-    excerptI18n,
+    titleIt,
+    titleEn,
+    excerptIt,
+    excerptEn,
 
-    "title": coalesce(titleI18n[$lang], title),
-    "excerpt": coalesce(excerptI18n[$lang], excerpt),
+    "title": select(
+      $lang == "en" => coalesce(titleEn, titleIt),
+      coalesce(titleIt, titleEn)
+    ),
+    "excerpt": select(
+      $lang == "en" => coalesce(excerptEn, excerptIt),
+      coalesce(excerptIt, excerptEn)
+    ),
 
     "slug": slug.current,
     publishedAt,
-    "coverImage": coverImage->image
+
+    // Support coverImage as a mediaItem ref (coverImage->image),
+    // an inline object (coverImage.image), or a direct image field (coverImage)
+    "coverImage": coalesce(coverImage->image, coverImage.image, coverImage)
   }
 `;
 

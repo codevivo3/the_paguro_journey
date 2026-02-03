@@ -169,6 +169,23 @@ export default defineType({
             { title: 'Quote', value: 'blockquote' },
           ],
         },
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            {
+              name: 'alt',
+              title: 'Alt text (accessibility)',
+              type: 'string',
+              description: 'Short description for screen readers.',
+            },
+            {
+              name: 'caption',
+              title: 'Caption (optional)',
+              type: 'string',
+            },
+          ],
+        },
 
         // Media blocks (reuse Media bucket)
         {
@@ -231,6 +248,23 @@ export default defineType({
             { title: 'H5', value: 'h5' },
             { title: 'H6', value: 'h6' },
             { title: 'Quote', value: 'blockquote' },
+          ],
+        },
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            {
+              name: 'alt',
+              title: 'Alt text (accessibility)',
+              type: 'string',
+              description: 'Short description for screen readers.',
+            },
+            {
+              name: 'caption',
+              title: 'Caption (optional)',
+              type: 'string',
+            },
           ],
         },
         {
@@ -441,16 +475,22 @@ export default defineType({
       seoTitle: 'seo.title',
       status: 'status',
       publishedAt: 'publishedAt',
+      // For Studio list thumbnail: follow the coverImage reference and grab its image
+      coverImage: 'coverImage.image',
     },
-    prepare({ title, seoTitle, status, publishedAt }) {
+    prepare({ title, seoTitle, status, publishedAt, coverImage }) {
+      const baseSubtitle =
+        status === 'published'
+          ? `Published · ${publishedAt ? new Date(publishedAt).toLocaleDateString() : ''}`
+          : 'Draft';
+
+      // Show SEO title only as an internal hint (do NOT use it as the main title)
+      const seoHint = seoTitle ? ` · SEO: ${seoTitle}` : '';
+
       return {
-        title: seoTitle || title,
-        subtitle:
-          status === 'published'
-            ? `Published · ${
-                publishedAt ? new Date(publishedAt).toLocaleDateString() : ''
-              }`
-            : 'Draft',
+        title: title || 'Untitled',
+        subtitle: `${baseSubtitle}${seoHint}`,
+        media: coverImage,
       };
     },
   },

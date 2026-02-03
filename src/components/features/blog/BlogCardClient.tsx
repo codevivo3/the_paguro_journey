@@ -12,6 +12,7 @@ import {
   CardPill,
 } from '@/components/ui/Card';
 import MediaImage from '@/components/features/media/MediaImage';
+import { pickLang } from '@/lib/pickLang';
 import { safeLang, type Lang } from '@/lib/route';
 
 type BlogCardClientProps = {
@@ -23,8 +24,14 @@ type BlogCardClientProps = {
   coverSrc: string;
   /** Title shown on card */
   title: string;
+  /** Optional bilingual title fields (if provided, can override empty `title`) */
+  titleIt?: string | null;
+  titleEn?: string | null;
   /** Optional short excerpt */
   excerpt?: string;
+  /** Optional bilingual excerpt fields (if provided, can override empty `excerpt`) */
+  excerptIt?: string | null;
+  excerptEn?: string | null;
   /** Optional date/meta string (already formatted upstream) */
   meta?: string;
   /** Optional pill label (e.g. category/region/tag) */
@@ -35,8 +42,8 @@ type BlogCardClientProps = {
   pillAriaLabel?: string;
   /** Aspect utility, e.g. 'aspect-video' or 'aspect-[3/4]' */
   mediaAspect?: string;
-  /** Current language */
-  lang?: Lang;
+  /** Current language (required). Prevents accidental IT fallback on /en routes. */
+  lang: Lang;
 };
 
 /**
@@ -49,7 +56,11 @@ export default function BlogCardClient({
   ariaLabel,
   coverSrc,
   title,
+  titleIt,
+  titleEn,
   excerpt,
+  excerptIt,
+  excerptEn,
   meta,
   pill,
   pillHref,
@@ -75,18 +86,27 @@ export default function BlogCardClient({
 
   const t = labels[effectiveLang];
 
+  const resolvedTitle =
+    (title?.trim() || undefined) ??
+    pickLang(effectiveLang, titleIt ?? undefined, titleEn ?? undefined) ??
+    '';
+
+  const resolvedExcerpt =
+    (excerpt?.trim() || undefined) ??
+    pickLang(effectiveLang, excerptIt ?? undefined, excerptEn ?? undefined);
+
   return (
     <Card>
       {/* Media */}
       <Link
         href={href}
-        aria-label={ariaLabel ?? t.openAria(title)}
+        aria-label={ariaLabel ?? t.openAria(resolvedTitle)}
         className='block'
       >
         <CardMedia className={`${mediaAspect} relative`}>
           <MediaImage
             src={coverSrc}
-            alt={title}
+            alt={resolvedTitle}
             fill
             sizes='(max-width: 1024px) 100vw, 33vw'
             className='object-cover transition-transform duration-300 hover:scale-[1.02]'
@@ -112,12 +132,12 @@ export default function BlogCardClient({
           <div className='opacity-100 transition-opacity duration-300'>
             <CardMetaRow className='mb-2'>
               <CardTitle className='text-[1.15rem] leading-tight'>
-                {title}
+                {resolvedTitle}
               </CardTitle>
             </CardMetaRow>
 
-            {excerpt ? (
-              <p className='t-card-body clamp-4 mt-2'>{excerpt}</p>
+            {resolvedExcerpt ? (
+              <p className='t-card-body clamp-4 mt-2'>{resolvedExcerpt}</p>
             ) : null}
 
             <div className='mt-3 flex items-center justify-between'>

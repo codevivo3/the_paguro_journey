@@ -72,11 +72,46 @@ type MediaItem = {
   videoUrl?: string;
 };
 
+type InlineImageBlock = {
+  _type: 'image';
+  asset?: unknown;
+  alt?: string;
+  caption?: string;
+};
+
 const portableTextComponents = (lang: Lang): PortableTextComponents => {
   const t = ptLabels(lang);
 
   return {
     types: {
+      image: ({ value }) => {
+        const v = value as InlineImageBlock;
+        if (!v?.asset) return null;
+
+        const src = urlFor(v)
+          .width(1600)
+          .fit('max')
+          .url();
+
+        const alt = (v.alt ?? '').trim();
+        const caption = (v.caption ?? '').trim();
+
+        return (
+          <div className='my-8'>
+            <Image
+              src={src}
+              width={1600}
+              height={900}
+              alt={alt || ''}
+              className='w-full rounded-sm'
+              loading='lazy'
+            />
+            {caption ? (
+              <p className='mt-2 text-xs opacity-50 italic'>{caption}</p>
+            ) : null}
+          </div>
+        );
+      },
       // When you dereference `content[]` refs in GROQ, media blocks will arrive as full `mediaItem` objects.
       mediaItem: ({ value }) => {
         const item = value as MediaItem;

@@ -111,7 +111,7 @@ export default defineType({
    */
 
   // Sanity Studio UI tweak (not crucial, but harmless)
-  __experimental_formPreviewTitle: false,
+  __experimental_formPreviewTitle: true,
 
   fieldsets: [
     {
@@ -194,6 +194,21 @@ export default defineType({
       ),
       fieldset: 'global',
       validation: (r) => r.required(),
+    }),
+
+    defineField({
+      name: 'thumbnail',
+      title: 'Studio thumbnail (internal)',
+      type: 'reference',
+      to: [{ type: 'mediaItem' }],
+      description: biDesc(
+        'Optional. Small image used only inside Sanity Studio as the list thumbnail for Site Settings (does not affect the website).',
+        'Opzionale. Piccola immagine usata SOLO dentro Sanity Studio come miniatura nella lista di Site Settings (non influisce sul sito).',
+      ),
+      fieldset: 'global',
+      options: {
+        filter: 'type == "image" && defined(image.asset)',
+      },
     }),
 
     defineField({
@@ -477,14 +492,31 @@ export default defineType({
     }),
   ],
 
+  /**
+   * Studio preview (internal only)
+   *
+   * Purpose:
+   * - Controls how the Site Settings document appears in Sanity Studio lists.
+   * - Has NO effect on the frontend website.
+   *
+   * Rules (keep this simple):
+   * - `title` must always be a plain string.
+   * - `media` should be a Sanity image object (e.g. reference->image).
+   * - Avoid fallbacks, helpers, or derived logic here — Studio previews fail silently.
+   *
+   * This intentionally mirrors the same simple preview pattern
+   * used across other taxonomies (e.g. Region).
+   */
   preview: {
     select: {
       title: 'siteTitle',
+      media: 'thumbnail.image',
     },
-    prepare({ title }) {
+    prepare({ title, media }) {
       return {
-        title: title || 'Site Settings',
+        title: title ?? 'Site Settings',
         subtitle: 'Global configuration',
+        media,
       };
     },
   },

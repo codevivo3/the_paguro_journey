@@ -24,6 +24,8 @@ type MediaItem = {
   /** Resolved a11y alt for requested language (falls back to SEO alt) */
   altA11yResolved?: string;
 
+  credit?: string;
+
   image?: SanityImageSource | null;
   videoUrl?: string;
 };
@@ -52,8 +54,8 @@ export type BlogPostBySlug = {
     description?: string;
   };
 
-  /** Dereferenced mediaItem */
-  coverImage: MediaItem;
+  /** Dereferenced mediaItem (may be null if not set) */
+  coverImage?: MediaItem | null;
 
   /** Raw content arrays (bilingual) */
   contentIt?: PortableTextValue;
@@ -108,7 +110,7 @@ const POST_BY_SLUG_QUERY = /* groq */ `
     },
 
     // Expand references inside Portable Text (Italian)
-    "contentIt": contentIt[]{
+    "contentIt": coalesce(contentIt, [])[]{
       ...,
       _type == "reference" => @-> {
         _id,
@@ -127,7 +129,7 @@ const POST_BY_SLUG_QUERY = /* groq */ `
     },
 
     // Expand references inside Portable Text (English)
-    "contentEn": contentEn[]{
+    "contentEn": coalesce(contentEn, [])[]{
       ...,
       _type == "reference" => @-> {
         _id,
@@ -154,9 +156,12 @@ const POST_BY_SLUG_QUERY = /* groq */ `
       $lang == "en" => coalesce(excerptEn, excerptIt),
       coalesce(excerptIt, excerptEn)
     ),
-    "content": select(
-      $lang == "en" => coalesce(contentEn, contentIt),
-      coalesce(contentIt, contentEn)
+    "content": coalesce(
+      select(
+        $lang == "en" => coalesce(contentEn, contentIt),
+        coalesce(contentIt, contentEn)
+      ),
+      []
     )[]{
       ...,
       _type == "reference" => @-> {

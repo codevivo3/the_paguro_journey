@@ -12,7 +12,7 @@
  */
 
 import React, { type ReactElement } from 'react';
-import { defineType, defineField } from 'sanity';
+import { defineType, defineField, type PreviewValue } from 'sanity';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -64,25 +64,6 @@ function getCountryRef(document: unknown): string | undefined {
 }
 
 /**
- * Convert ISO-2 country code (e.g. "IT") into a flag emoji (🇮🇹).
- * Used ONLY for Studio previews (visual clarity), never for logic.
- */
-function iso2ToFlagEmoji(iso2?: string): string {
-  if (!iso2) return '';
-  const code = iso2.trim().toUpperCase();
-  if (code.length !== 2) return '';
-
-  const A = 0x41;
-  const FLAG_OFFSET = 0x1f1e6;
-
-  const c1 = code.charCodeAt(0);
-  const c2 = code.charCodeAt(1);
-  if (c1 < A || c1 > A + 25 || c2 < A || c2 > A + 25) return '';
-
-  return String.fromCodePoint(FLAG_OFFSET + (c1 - A), FLAG_OFFSET + (c2 - A));
-}
-
-/**
  * Editor UX:
  * We hide some fields until the parent Country is chosen.
  * This prevents creating "floating" regions with no country.
@@ -95,6 +76,7 @@ export default defineType({
   name: 'region',
   title: 'Region',
   type: 'document',
+  __experimental_formPreviewTitle: true,
 
   // @ts-expect-error Sanity supports this, but the TS types don’t include it
   __experimental_actions: ['create', 'update', 'publish'],
@@ -105,7 +87,7 @@ export default defineType({
     /* ---------------------------------------------------------------------- */
 
     defineField({
-      name: 'title',
+      name: 'titleRegion',
       title: 'Region / Area name',
       type: 'string',
       description: biDesc(
@@ -120,7 +102,7 @@ export default defineType({
       title: 'Slug',
       type: 'slug',
       options: {
-        source: 'title',
+        source: 'titleRegion',
         maxLength: 96,
       },
       // Keep URLs stable once created (avoid breaking references/links)
@@ -179,6 +161,25 @@ export default defineType({
     }),
 
     /* ---------------------------------------------------------------------- */
+    /* Studio thumbnail (optional)                                             */
+    /* ---------------------------------------------------------------------- */
+
+    defineField({
+      name: 'coverImage',
+      title: 'Cover image (Studio thumbnail)',
+      type: 'reference',
+      to: [{ type: 'mediaItem' }],
+      options: {
+        filter: 'type == "image" && defined(image.asset)',
+      },
+      hidden: ({ document }) => !hasCountry(document),
+      description: biDesc(
+        'Optional. Picks an image from the Media library to use as a thumbnail in Studio lists/previews. This is for editorial clarity only.',
+        'Opzionale. Seleziona un’immagine dalla Media library per usarla come miniatura nelle liste/anteprime dello Studio. Serve solo per chiarezza editoriale.',
+      ),
+    }),
+
+    /* ---------------------------------------------------------------------- */
     /* Optional metadata                                                      */
     /* ---------------------------------------------------------------------- */
 
@@ -221,26 +222,27 @@ export default defineType({
   ],
 
   preview: {
+    /**
+     * Studio list / preview configuration
+     *
+     * IMPORTANT:
+     * - Use the real editorial title field (`titleRegion`) as the preview title.
+     * - Do NOT use fallbacks here: the field is required and must always exist.
+     * - Use `coverImage.image` (not `->image`) to match the same pattern used
+     *   in `siteSettings.ts`. This avoids preview resolution issues in Studio.
+     *
+     * This preview is for Studio UX only and has NO impact on the website.
+     */
     select: {
-      title: 'title',
-      countryTitle: 'country.title',
-      countryNameEn: 'country.nameI18n.en',
-      iso: 'country.isoCode',
-      kind: 'kind',
+      title: 'titleRegion',
+      media: 'coverImage.image',
     },
-    prepare({ title, countryTitle, countryNameEn, iso, kind }) {
-      const flag = iso2ToFlagEmoji(iso);
-
-      const countryLabel = countryNameEn || countryTitle;
-
-      const parts = [
-        countryLabel ? `${flag ? `${flag} ` : ''}${countryLabel}` : undefined,
-        kind ? `Type: ${kind}` : undefined,
-      ].filter(Boolean);
-
+    prepare(
+      { title, media }: { title?: string; media?: unknown },
+    ): PreviewValue {
       return {
-        title,
-        subtitle: parts.length ? parts.join(' • ') : undefined,
+        title: title ?? '',
+        media: media as PreviewValue['media'],
       };
     },
   },

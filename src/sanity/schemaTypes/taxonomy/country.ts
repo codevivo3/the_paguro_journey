@@ -217,8 +217,26 @@ export default defineType({
       ].filter(Boolean);
 
       return {
-        title: `${flag} ${nameEn || title}`,
+        title: nameEn || title,
         subtitle: parts.length ? parts.join(' • ') : undefined,
+        // Use the flag emoji as the Studio list thumbnail.
+        // Sanity accepts a ReactElement here.
+        media: React.createElement(
+          'span',
+          {
+            style: {
+              display: 'inline-flex',
+              width: '100%',
+              height: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.4rem',
+              lineHeight: 1,
+            },
+            'aria-label': iso ? `Flag ${iso}` : 'Flag',
+          },
+          flag,
+        ),
       };
     },
   },

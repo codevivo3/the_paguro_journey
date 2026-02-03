@@ -508,7 +508,12 @@ export default async function DestinationsPage({
           <div className='flex items-baseline justify-between'>
             <h2 className='t-section-title'>{effectiveLang === 'en' ? 'Explore' : 'Esplora'}</h2>
             <span className='t-meta'>
-              {filteredDestinations.length} {effectiveLang === 'en' ? 'destinations' : 'destinazioni'}
+              {filteredDestinations.length}{' '}
+              {(() => {
+                const n = filteredDestinations.length;
+                if (effectiveLang === 'en') return n === 1 ? 'destination' : 'destinations';
+                return n === 1 ? 'destinazione' : 'destinazioni';
+              })()}
             </span>
           </div>
 
