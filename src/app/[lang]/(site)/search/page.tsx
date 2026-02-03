@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import Link from 'next/link';
 import { urlFor } from '@/sanity/lib/image';
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
-import { safeLang, type Lang } from '@/lib/route';
+import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
 // Force dynamic rendering so querystring toggles (e.g. yt=all) update without full refresh.
 export const dynamic = 'force-dynamic';
@@ -21,10 +21,6 @@ type PageProps = {
   searchParams: SearchParams;
 };
 
-function withLangPrefix(path: string, lang: Lang) {
-  if (lang === 'en') return path.startsWith('/en') ? path : `/en${path}`;
-  return path;
-}
 
 type SearchApiResponse = {
   q: string;
@@ -91,7 +87,7 @@ export async function generateMetadata({
   const description = q ? t.descWithQuery(q) : t.descNoQuery;
 
   const canonicalBase = q ? `/search?q=${encodeURIComponent(q)}` : '/search';
-  const canonical = withLangPrefix(canonicalBase, effectiveLang);
+  const canonical = withLangPrefix(effectiveLang, canonicalBase);
 
   return {
     title,
@@ -130,6 +126,17 @@ export default async function SearchPage({ searchParams, params }: PageProps) {
   const q = (sp.q ?? '').trim();
   const page = Number(sp.page ?? '1') || 1;
   const showAllVideos = sp.yt === 'all';
+
+  // Build stable search hrefs (preserve q + page, toggle yt=all)
+  const baseParams = new URLSearchParams();
+  if (q) baseParams.set('q', q);
+  if (page > 1) baseParams.set('page', String(page));
+
+  const hrefNoYt = `/search${baseParams.toString() ? `?${baseParams.toString()}` : ''}#videos`;
+
+  const paramsYtAll = new URLSearchParams(baseParams);
+  paramsYtAll.set('yt', 'all');
+  const hrefYtAll = `/search?${paramsYtAll.toString()}#videos`;
 
   const copy = {
     it: {
@@ -211,7 +218,7 @@ export default async function SearchPage({ searchParams, params }: PageProps) {
                 >
                   {item._type === 'post' && item.slug ? (
                     <Link
-                      href={withLangPrefix(`/blog/${item.slug}`, effectiveLang)}
+                      href={withLangPrefix(effectiveLang, `/blog/${item.slug}`)}
                       className='block rounded-md p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20'
                     >
                       <div className='flex gap-4'>
@@ -321,7 +328,7 @@ export default async function SearchPage({ searchParams, params }: PageProps) {
 
         {/* YouTube results */}
         {ytItems.length ? (
-          <section className='space-y-4'>
+          <section id='videos' className='space-y-4'>
             <div className='flex items-baseline justify-between gap-6'>
               <h2 className='t-section-title [font-family:var(--font-ui)]'>
                 {t.videos}
@@ -368,7 +375,8 @@ export default async function SearchPage({ searchParams, params }: PageProps) {
               <div className='pt-2'>
                 {showAllVideos ? (
                   <Link
-                    href={withLangPrefix(q ? `/search?q=${encodeURIComponent(q)}` : '/search', effectiveLang)}
+                    href={withLangPrefix(effectiveLang, hrefNoYt)}
+                    scroll={false}
                     className='t-page-title inline-flex items-center gap-2 text-base font-semibold [font-family:var(--font-ui)] text-[color:var(--paguro-deep)] hover:text-[color:var(--paguro-coral)]'
                   >
                     {t.showLess}
@@ -376,10 +384,8 @@ export default async function SearchPage({ searchParams, params }: PageProps) {
                   </Link>
                 ) : (
                   <Link
-                    href={withLangPrefix(
-                      q ? `/search?q=${encodeURIComponent(q)}&yt=all` : '/search?yt=all',
-                      effectiveLang,
-                    )}
+                    href={withLangPrefix(effectiveLang, hrefYtAll)}
+                    scroll={false}
                     className='t-page-title inline-flex items-center gap-2 text-base font-semibold [font-family:var(--font-ui)] text-[color:var(--paguro-deep)] hover:text-[color:var(--paguro-coral)]'
                   >
                     {t.showMoreVideos}

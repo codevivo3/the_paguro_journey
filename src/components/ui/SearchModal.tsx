@@ -41,8 +41,12 @@ function getSanityHref(item: SanitySearchItem): string {
   return item.slug ? `/destinations/${item.slug}` : '/destinations';
 }
 
-function useSearchResults(opts: { isOpen: boolean; submittedQuery: string }) {
-  const { isOpen, submittedQuery } = opts;
+function useSearchResults(opts: {
+  isOpen: boolean;
+  submittedQuery: string;
+  lang: 'it' | 'en';
+}) {
+  const { isOpen, submittedQuery, lang } = opts;
 
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -81,7 +85,11 @@ function useSearchResults(opts: { isOpen: boolean; submittedQuery: string }) {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
+        const qs = new URLSearchParams();
+        qs.set('q', q);
+        qs.set('lang', lang);
+
+        const res = await fetch(`/api/search?${qs.toString()}`, {
           signal: controller.signal,
           cache: 'no-store',
         });
@@ -116,7 +124,7 @@ function useSearchResults(opts: { isOpen: boolean; submittedQuery: string }) {
         // Extremely defensive: abort() should not throw, but we never want this to surface.
       }
     };
-  }, [submittedQuery, isOpen]);
+  }, [submittedQuery, isOpen, lang]);
 
   const reset = () => {
     setData(null);
@@ -220,7 +228,7 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
     loading,
     error,
     reset: resetResults,
-  } = useSearchResults({ isOpen: isSearchOpen, submittedQuery });
+  } = useSearchResults({ isOpen: isSearchOpen, submittedQuery, lang });
 
   // Keep the input synced when URL changes (back/forward, other navigation).
   // This does NOT trigger navigation while typing.
@@ -401,9 +409,11 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
                   onSubmit={() => {
                     const q = value.trim();
                     if (q.length < 3) return;
-                    // Immediate search on submit (skips debounce wait).
-                    setDebouncedValue(q);
-                    setSubmittedQuery(q);
+
+                    // Navigate to the full search page (keeps modal as quick entry UI).
+                    // Query string is the single source of truth.
+                    closeAndRestoreFocus();
+                    router.push(withLangPrefix(`/search?q=${encodeURIComponent(q)}`));
                   }}
                 />
 
@@ -432,6 +442,7 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
                     <p className='text-sm text-red-600'>{error}</p>
                   ) : showResults ? (
                     <SearchResults
+                      lang={lang}
                       totalCount={totalCount}
                       submittedTrimmed={submittedTrimmed}
                       sanityItems={sanityItems}

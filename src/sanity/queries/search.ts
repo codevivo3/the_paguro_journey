@@ -10,9 +10,11 @@ export type SearchItem = {
   title: string;
   excerpt?: string;
 
-  /** Raw i18n objects (optional, for future toggle use) */
-  titleI18n?: { it?: string; en?: string };
-  excerptI18n?: { it?: string; en?: string };
+  /** Raw bilingual fields (optional, for UI-level pickLang / debugging) */
+  titleIt?: string | null;
+  titleEn?: string | null;
+  excerptIt?: string | null;
+  excerptEn?: string | null;
 
   slug?: string;
   coverImage?: SanityImageSource | null;
@@ -31,13 +33,24 @@ const SEARCH_QUERY = /* groq */ `
   "total": count(*[
     _type in $types &&
     (
+      // --- Titles ---
       title match $pattern ||
+      titleIt match $pattern ||
+      titleEn match $pattern ||
       titleI18n.it match $pattern ||
       titleI18n.en match $pattern ||
-      pt::text(content) match $pattern ||
+
+      // --- Excerpts ---
       excerpt match $pattern ||
+      excerptIt match $pattern ||
+      excerptEn match $pattern ||
       excerptI18n.it match $pattern ||
-      excerptI18n.en match $pattern
+      excerptI18n.en match $pattern ||
+
+      // --- Portable text content (both langs + legacy fallback) ---
+      pt::text(contentIt) match $pattern ||
+      pt::text(contentEn) match $pattern ||
+      pt::text(content) match $pattern
     ) &&
     (
       $preview == true ||
@@ -49,13 +62,24 @@ const SEARCH_QUERY = /* groq */ `
   "items": *[
     _type in $types &&
     (
+      // --- Titles ---
       title match $pattern ||
+      titleIt match $pattern ||
+      titleEn match $pattern ||
       titleI18n.it match $pattern ||
       titleI18n.en match $pattern ||
-      pt::text(content) match $pattern ||
+
+      // --- Excerpts ---
       excerpt match $pattern ||
+      excerptIt match $pattern ||
+      excerptEn match $pattern ||
       excerptI18n.it match $pattern ||
-      excerptI18n.en match $pattern
+      excerptI18n.en match $pattern ||
+
+      // --- Portable text content (both langs + legacy fallback) ---
+      pt::text(contentIt) match $pattern ||
+      pt::text(contentEn) match $pattern ||
+      pt::text(content) match $pattern
     ) &&
     (
       $preview == true ||
@@ -64,12 +88,21 @@ const SEARCH_QUERY = /* groq */ `
     )
   ]
   | score(
-      title match $pattern,
+      // Prefer title hits, then excerpt, then body.
+      titleIt match $pattern,
+      titleEn match $pattern,
       titleI18n.it match $pattern,
       titleI18n.en match $pattern,
-      excerpt match $pattern,
+      title match $pattern,
+
+      excerptIt match $pattern,
+      excerptEn match $pattern,
       excerptI18n.it match $pattern,
       excerptI18n.en match $pattern,
+      excerpt match $pattern,
+
+      pt::text(contentIt) match $pattern,
+      pt::text(contentEn) match $pattern,
       pt::text(content) match $pattern
     )
   | order(_score desc, publishedAt desc)
@@ -77,11 +110,27 @@ const SEARCH_QUERY = /* groq */ `
     _id,
     _type,
 
-    titleI18n,
-    excerptI18n,
+    // Raw bilingual fields (so UI can use pickLang if desired)
+    "titleIt": coalesce(titleIt, titleI18n.it),
+    "titleEn": coalesce(titleEn, titleI18n.en),
+    "excerptIt": coalesce(excerptIt, excerptI18n.it),
+    "excerptEn": coalesce(excerptEn, excerptI18n.en),
 
-    "title": coalesce(titleI18n[$lang], title),
-    "excerpt": coalesce(excerptI18n[$lang], excerpt),
+    // Resolved fields (API default)
+    "title": coalesce(
+      select(
+        $lang == "en" => coalesce(titleEn, titleI18n.en),
+        coalesce(titleIt, titleI18n.it)
+      ),
+      title
+    ),
+    "excerpt": coalesce(
+      select(
+        $lang == "en" => coalesce(excerptEn, excerptI18n.en),
+        coalesce(excerptIt, excerptI18n.it)
+      ),
+      excerpt
+    ),
 
     "slug": slug.current,
 

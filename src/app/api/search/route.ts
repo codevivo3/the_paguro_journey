@@ -13,6 +13,7 @@ type YouTubeItem = {
 
 type ApiResponse = {
   q: string;
+  lang: 'it' | 'en';
   sanity: {
     items: Awaited<ReturnType<typeof searchContent>>['items'];
     total: number;
@@ -193,11 +194,15 @@ export async function GET(req: Request) {
   const pageParam = searchParams.get('page');
   const page = Math.max(1, Number(pageParam ?? '1') || 1);
 
+  const langParam = searchParams.get('lang');
+  const lang = langParam === 'en' ? 'en' : 'it';
+
   // Guardrails (your preference): min 3 chars.
   if (q.length > 0 && q.length < 3) {
     return NextResponse.json(
       {
         q,
+        lang,
         sanity: { items: [], total: 0 },
         youtube: { items: [], total: 0 },
       } satisfies ApiResponse,
@@ -216,6 +221,7 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         q: '',
+        lang,
         sanity: { items: [], total: 0 },
         youtube: { items: [], total: 0 },
       } satisfies ApiResponse,
@@ -232,13 +238,14 @@ export async function GET(req: Request) {
 
   try {
     const [sanityRes, ytRes] = await Promise.all([
-      searchContent({ q, page, limit: sanityLimit }),
+      searchContent({ q, page, limit: sanityLimit, lang }),
       searchYouTube({ q, limit: ytLimit }),
     ]);
 
     return NextResponse.json(
       {
         q,
+        lang,
         sanity: {
           items: sanityRes.items,
           total: sanityRes.total,
