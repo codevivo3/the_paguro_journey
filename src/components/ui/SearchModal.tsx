@@ -88,6 +88,8 @@ function useSearchResults(opts: {
         const qs = new URLSearchParams();
         qs.set('q', q);
         qs.set('lang', lang);
+        // Modal typeahead should stay fast (titles/excerpts/taxonomy only)
+        qs.set('mode', 'quick');
 
         const res = await fetch(`/api/search?${qs.toString()}`, {
           signal: controller.signal,
@@ -183,11 +185,19 @@ type SearchModalProps = {
   lang?: 'it' | 'en';
 };
 
-export default function SearchModal({ lang = 'it' }: SearchModalProps) {
+export default function SearchModal({ lang }: SearchModalProps) {
   const { isSearchOpen, openSearch, closeSearch } = useUI();
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const sp = useSearchParams();
+
+  // Follow the active locale from the URL. Your routes live under /[lang]/...
+  const pathLang: 'it' | 'en' = pathname.startsWith('/en') ? 'en' : 'it';
+  const effectiveLang: 'it' | 'en' = lang ?? pathLang;
+
   const withLangPrefix = (href: string) => {
-    if (lang === 'en') return href === '/' ? '/en' : `/en${href}`;
+    if (effectiveLang === 'en') return href === '/' ? '/en' : `/en${href}`;
     return href;
   };
 
@@ -212,11 +222,7 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
     },
   } as const;
 
-  const t = labels[lang];
-
-  const router = useRouter();
-  const pathname = usePathname();
-  const sp = useSearchParams();
+  const t = labels[effectiveLang];
 
   const qFromUrl = sp.get('q') ?? '';
   const [value, setValue] = useState(qFromUrl);
@@ -228,7 +234,7 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
     loading,
     error,
     reset: resetResults,
-  } = useSearchResults({ isOpen: isSearchOpen, submittedQuery, lang });
+  } = useSearchResults({ isOpen: isSearchOpen, submittedQuery, lang: effectiveLang });
 
   // Keep the input synced when URL changes (back/forward, other navigation).
   // This does NOT trigger navigation while typing.
@@ -237,13 +243,19 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
     setDebouncedValue(qFromUrl);
   }, [qFromUrl]);
 
-  // Safety: if a navigation happens while the modal is open, close it so
-  // scroll-lock and focus are reliably restored.
+  // If a navigation happens while the modal is open, close it so scroll-lock and focus
+  // are reliably restored. We only close when the pathname actually changes.
+  const prevPathnameRef = useRef<string>(pathname);
   useEffect(() => {
+    const prev = prevPathnameRef.current;
+    prevPathnameRef.current = pathname;
+
     if (!isSearchOpen) return;
+    if (prev === pathname) return;
+
     closeSearch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, isSearchOpen]);
 
   const currentSearch = useMemo(() => sp.toString(), [sp]);
 
@@ -371,11 +383,21 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
               aria-modal='true'
               aria-label={t.dialog}
               onClick={closeAndRestoreFocus}
-              className='fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4 backdrop-blur-md'
+              className='fixed inset-0 z-[2147483647] flex items-center justify-center bg-black/70 px-4 backdrop-blur-md'
             >
-              <div
+              <form
                 onClick={(e) => e.stopPropagation()}
-                className='w-full max-w-md rounded-md bg-[color:var(--paguro-surface)] p-6 shadow-xl max-h-[85vh] flex flex-col'
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  const q = value.trim();
+                  if (q.length < 3) return;
+
+                  router.push(withLangPrefix(`/search?q=${encodeURIComponent(q)}`));
+                  closeSearch();
+                }}
+                className='relative w-full max-w-md rounded-md bg-[color:var(--paguro-surface)] p-6 shadow-xl max-h-[85vh] flex flex-col'
               >
                 <div className='flex items-center justify-between'>
                   <h2 className='t-section-title font-semibold'>{t.title}</h2>
@@ -402,18 +424,22 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
                   </button>
                 </div>
                 <SearchInput
-                  lang={lang}
+                  lang={effectiveLang}
                   value={value}
                   onChange={setValue}
                   inputRef={searchInputRef}
                   onSubmit={() => {
+                    // Let the form `onSubmit` handle navigation consistently
+                    // (covers Enter key + any explicit submit triggers inside SearchInput).
                     const q = value.trim();
                     if (q.length < 3) return;
 
-                    // Navigate to the full search page (keeps modal as quick entry UI).
-                    // Query string is the single source of truth.
-                    closeAndRestoreFocus();
-                    router.push(withLangPrefix(`/search?q=${encodeURIComponent(q)}`));
+                    router.push(
+                      withLangPrefix(
+                        `/${lang}/search?q=${encodeURIComponent(q)}`,
+                      ),
+                    );
+                    closeSearch();
                   }}
                 />
 
@@ -437,12 +463,12 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
                   ) : !submittedTrimmed ? (
                     <p className='text-sm t-body'>{t.preparing}</p>
                   ) : loading ? (
-                    <LoadingRow lang={lang} />
+                    <LoadingRow lang={effectiveLang} />
                   ) : error ? (
                     <p className='text-sm text-red-600'>{error}</p>
                   ) : showResults ? (
                     <SearchResults
-                      lang={lang}
+                      lang={effectiveLang}
                       totalCount={totalCount}
                       submittedTrimmed={submittedTrimmed}
                       sanityItems={sanityItems}
@@ -453,7 +479,7 @@ export default function SearchModal({ lang = 'it' }: SearchModalProps) {
                     />
                   ) : null}
                 </div>
-              </div>
+              </form>
             </div>,
             document.body,
           )

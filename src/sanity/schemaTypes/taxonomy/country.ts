@@ -1,6 +1,6 @@
 // src/sanity/schemaTypes/taxonomy/country.ts
 import React, { type ReactElement } from 'react';
-import { defineType, defineField } from 'sanity';
+import { defineType, defineField, PatchEvent, set, useFormValue, type StringInputProps } from 'sanity';
 
 /**
  * Bilingual descriptions (EN + IT) for Studio fields.
@@ -69,6 +69,69 @@ function iso2ToFlagEmoji(iso2?: string) {
   return String.fromCodePoint(first, second);
 }
 
+/**
+ * Studio-only helper: derive localized country names from an ISO-2 code.
+ * Uses CLDR data via Intl.DisplayNames (free, no API calls).
+ */
+function countryNameFromIso2(iso2: string, locale: 'en' | 'it') {
+  try {
+    const code = (iso2 ?? '').trim().toUpperCase();
+    if (code.length !== 2) return undefined;
+    // Intl.DisplayNames expects an ISO 3166-1 alpha-2 region code.
+    return new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Custom input for ISO-2 Code:
+ * - Lets editors type the ISO code normally.
+ * - If `nameI18n.en` and/or `nameI18n.it` are empty, auto-fills them from the ISO code.
+ * - Never overwrites existing editor-provided values.
+ */
+function Iso2CodeInput(props: StringInputProps) {
+  const nameI18n = useFormValue(['nameI18n']) as { en?: string; it?: string } | undefined;
+
+  const elementProps = props.elementProps ?? ({} as NonNullable<StringInputProps['elementProps']>);
+  const originalOnChange = elementProps.onChange;
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Let the default input update the isoCode field
+    originalOnChange?.(e);
+
+    const nextIso = String(e?.currentTarget?.value ?? '');
+    const en = countryNameFromIso2(nextIso, 'en');
+    const it = countryNameFromIso2(nextIso, 'it');
+
+    const patches: Array<ReturnType<typeof set>> = [];
+
+    // Fill ONLY when empty (do not overwrite)
+    const hasEn = Boolean((nameI18n?.en ?? '').trim());
+    const hasIt = Boolean((nameI18n?.it ?? '').trim());
+
+    if (!hasEn && en) patches.push(set(en, ['nameI18n', 'en']));
+    if (!hasIt && it) patches.push(set(it, ['nameI18n', 'it']));
+
+    if (patches.length) {
+      // Avoid tuple-spread typing issues by emitting patch events one-by-one.
+      // Sanity will apply them in order.
+      for (const p of patches) {
+        props.onChange(PatchEvent.from(p));
+      }
+    }
+  };
+
+  // Render the default Sanity string input, but inject our onChange
+  return props.renderDefault({
+    ...props,
+    elementProps: {
+      ...elementProps,
+      onChange,
+    },
+  });
+}
+
 export default defineType({
   name: 'country',
   title: 'Country',
@@ -125,6 +188,9 @@ export default defineType({
       name: 'isoCode',
       title: 'ISO-2 Code',
       type: 'string',
+      components: {
+        input: Iso2CodeInput,
+      },
       description: biDesc(
         'Official two-letter ISO‑3166‑1 alpha‑2 code (e.g. IT, TH, JP). Used for flags, stable IDs, seeding scripts, and references. Must always be correct.',
         'Codice ufficiale ISO‑3166‑1 alpha‑2 a due lettere (es. IT, TH, JP). Usato per bandiere, ID stabili, script di seeding e riferimenti. Deve essere sempre corretto.',

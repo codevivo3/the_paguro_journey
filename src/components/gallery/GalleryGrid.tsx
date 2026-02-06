@@ -14,7 +14,13 @@ export type GalleryImage = {
   src: string;
   countrySlug: string;
   alt?: string;
-  caption?: string | null;
+  caption?:
+    | string
+    | null
+    | {
+        it?: string | null;
+        en?: string | null;
+      };
   orientation?: 'portrait' | 'landscape';
 };
 
@@ -224,6 +230,7 @@ export default function GalleryGrid({
 
       {/* Modal (UI extracted) */}
       <GalleryModal
+        lang={effectiveLang}
         isOpen={isOpen}
         current={current}
         openIndex={openIndex}

@@ -43,8 +43,16 @@ export default function SearchInput({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
           // Avoid accidental form submits / default Enter behavior.
+          // Also stop propagation in case a parent <form> or global listener is handling Enter.
           if (e.key === 'Enter' || e.key === 'NumpadEnter') {
+            // If the user is composing text (IME), Enter can be part of composition.
+            // Ignore those to avoid accidental submits.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const isComposing = (e as any).isComposing === true;
+            if (isComposing) return;
+
             e.preventDefault();
+            e.stopPropagation();
             onSubmit();
           }
         }}

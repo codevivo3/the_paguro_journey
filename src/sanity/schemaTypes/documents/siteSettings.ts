@@ -123,14 +123,6 @@ export default defineType({
           'Configurazione globale del sito. Da modificare raramente.',
         ),
       ),
-      options: { collapsible: true, collapsed: false },
-    },
-    {
-      name: 'homeHeroHeadline',
-      title: 'Home — Hero Headline',
-      description: asFieldsetDescription(
-        biDesc('Hero headline text.', 'Testo headline hero.'),
-      ),
       options: { collapsible: true, collapsed: true },
     },
     {
@@ -145,6 +137,14 @@ export default defineType({
       options: { collapsible: true, collapsed: false },
     },
     {
+      name: 'homeHeroHeadline',
+      title: 'Home — Hero Headline',
+      description: asFieldsetDescription(
+        biDesc('Hero headline text.', 'Testo headline hero.'),
+      ),
+      options: { collapsible: true, collapsed: true },
+    },
+    {
       name: 'homeIntro',
       title: 'Home — Intro',
       description: asFieldsetDescription(
@@ -153,7 +153,7 @@ export default defineType({
           'Testo introduttivo mostrato sotto l’hero.',
         ),
       ),
-      options: { collapsible: true, collapsed: false },
+      options: { collapsible: true, collapsed: true },
     },
     {
       name: 'homeDivider',
@@ -209,49 +209,6 @@ export default defineType({
       options: {
         filter: 'type == "image" && defined(image.asset)',
       },
-    }),
-
-    defineField({
-      name: 'homeHeroHeadline',
-      title: 'Home Hero Headline',
-      type: 'object',
-      readOnly: true,
-      description: biDesc(
-        'Developer-managed hero headline. Not editable by content editors.',
-        'Headline hero gestita dallo sviluppatore. Non modificabile dagli editor.',
-      ),
-      fieldset: 'homeHeroHeadline',
-      fields: [
-        defineField({ name: 'en', title: 'English', type: 'string' }),
-        defineField({ name: 'it', title: 'Italiano', type: 'string' }),
-      ],
-    }),
-
-    defineField({
-      name: 'homeIntro',
-      title: 'Homepage Intro',
-      type: 'object',
-      description: biDesc(
-        'Short text shown at the beginning of the homepage. Fill both languages.',
-        'Testo breve mostrato all’inizio della homepage. Compila entrambe le lingue.',
-      ),
-      fieldset: 'homeIntro',
-      fields: [
-        defineField({
-          name: 'en',
-          title: 'English',
-          type: 'array',
-          of: RICH_TEXT_BLOCKS,
-          validation: (r) => r.required().min(1),
-        }),
-        defineField({
-          name: 'it',
-          title: 'Italiano',
-          type: 'array',
-          of: RICH_TEXT_BLOCKS,
-          validation: (r) => r.required().min(1),
-        }),
-      ],
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -312,6 +269,49 @@ export default defineType({
       ],
       validation: (r) =>
         r.min(1).warning('At least one mobile hero slide is recommended.'),
+    }),
+
+    defineField({
+      name: 'homeHeroHeadline',
+      title: 'Home Hero Headline',
+      type: 'object',
+      readOnly: true,
+      description: biDesc(
+        'Developer-managed hero headline. Not editable by content editors.',
+        'Headline hero gestita dallo sviluppatore. Non modificabile dagli editor.',
+      ),
+      fieldset: 'homeHeroHeadline',
+      fields: [
+        defineField({ name: 'en', title: 'English', type: 'string' }),
+        defineField({ name: 'it', title: 'Italiano', type: 'string' }),
+      ],
+    }),
+
+    defineField({
+      name: 'homeIntro',
+      title: 'Homepage Intro',
+      type: 'object',
+      description: biDesc(
+        'Short text shown at the beginning of the homepage. Fill both languages.',
+        'Testo breve mostrato all’inizio della homepage. Compila entrambe le lingue.',
+      ),
+      fieldset: 'homeIntro',
+      fields: [
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'array',
+          of: RICH_TEXT_BLOCKS,
+          validation: (r) => r.required().min(1),
+        }),
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'array',
+          of: RICH_TEXT_BLOCKS,
+          validation: (r) => r.required().min(1),
+        }),
+      ],
     }),
 
     /* ---------------------------------------------------------------------- */

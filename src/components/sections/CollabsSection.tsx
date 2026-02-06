@@ -60,8 +60,9 @@ export default function CollabsSection({
         <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
           <Button className='min-w-[200px]'>
             <a
-              href='/media-kit.pdf'
-              download
+              href='/media-kit/mediakit.pdf'
+              target="_blank"
+              rel="noopener noreferrer"
               className='flex w-full items-center justify-around px-4 text-center'
             >
               <span>{resolvedCtaMediaKit}</span>

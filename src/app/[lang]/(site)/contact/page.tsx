@@ -92,6 +92,9 @@ export default async function ContactPage({ params }: PageProps) {
       ytAria: 'Visita il nostro canale YouTube',
       igAria: 'Visita il nostro profilo Instagram',
       ttAria: 'Visita il nostro profilo TikTok',
+      mediaKitPrefix:
+        'Per collaborazioni, stampa e partnership puoi consultare il nostro',
+      mediaKitLink: 'Media Kit',
     },
     en: {
       h1: 'Contact',
@@ -110,6 +113,9 @@ export default async function ContactPage({ params }: PageProps) {
       ytAria: 'Visit our YouTube channel',
       igAria: 'Visit our Instagram profile',
       ttAria: 'Visit our TikTok profile',
+      mediaKitPrefix:
+        'For collaborations, press, and partnerships you can check our',
+      mediaKitLink: 'Media Kit',
     },
   } as const;
 
@@ -167,8 +173,23 @@ export default async function ContactPage({ params }: PageProps) {
           />
         </section>
 
+
         {/* Newsletter signup: secondary conversion action */}
         <NewsletterForm lang={effectiveLang} />
+        <section className="mt-10 text-center text-sm text-[color:var(--paguro-text-muted)]">
+          <p>
+            {t.mediaKitPrefix}{' '}
+            <a
+              href="/media-kit/mediakit.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-[color:var(--paguro-deep)] underline underline-offset-4 hover:no-underline"
+            >
+              {t.mediaKitLink}
+            </a>
+            .
+          </p>
+        </section>
       </div>
     </main>
   );

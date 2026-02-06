@@ -1,13 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 
 import type { GalleryImage } from '../gallery/GalleryGrid';
+import { safeLang, type Lang } from '@/lib/route';
 
 type GalleryModalProps = {
   /** Whether the modal is visible */
-  lang?: 'it' | 'en';
+  lang?: Lang;
 
   /** Whether the modal is visible */
   isOpen: boolean;
@@ -40,7 +42,7 @@ type GalleryModalProps = {
  * NOTE: Keyboard handling and URL logic live in GalleryGrid.
  */
 export default function GalleryModal({
-  lang = 'it',
+  lang,
   isOpen,
   current,
   openIndex,
@@ -49,7 +51,29 @@ export default function GalleryModal({
   onPrev,
   onNext,
 }: GalleryModalProps) {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (!isOpen || !current || openIndex === null) return null;
+
+  const effectiveLang: Lang = safeLang(lang);
+
+  const resolvedCaption = (() => {
+    const c = current?.caption as
+      | string
+      | null
+      | undefined
+      | { it?: string | null; en?: string | null };
+
+    if (!c) return '';
+    if (typeof c === 'string') return c;
+
+    const byLang = c[effectiveLang];
+    return byLang ?? (c.en ?? c.it ?? '');
+  })();
 
   const labels = {
     it: {
@@ -70,14 +94,14 @@ export default function GalleryModal({
     },
   } as const;
 
-  const t = labels[lang];
+  const t = labels[effectiveLang];
 
-  return (
+  const modal = (
     <div
       role='dialog'
       aria-modal='true'
       aria-label={t.dialog}
-      className='fixed inset-0 z-50'
+      className='fixed inset-0 z-[2147483647]'
     >
       {/* Overlay */}
       <div
@@ -96,13 +120,13 @@ export default function GalleryModal({
       >
         <div className='relative w-full max-w-5xl overflow-hidden rounded-sm border border-white/10 bg-black shadow-2xl'>
           {/* Top bar */}
-          <div className='relative grid grid-cols-3 items-center gap-3 border-b border-white/10 bg-black/70 px-4 py-1.5'>
+          <div className='relative mx-auto flex max-w-full items-center justify-between gap-3 border-b border-white/10 bg-black/70 px-6 py-0.5'>
             <div className='flex items-center justify-start pl-1'>
               <a
                 href={current.src}
                 target='_blank'
                 rel='noreferrer'
-                className='inline-flex h-8 w-8 items-center justify-center rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
+                className='inline-flex h-7 w-7 items-center justify-center rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
                 aria-label={t.openOriginal}
               >
                 <svg
@@ -122,16 +146,16 @@ export default function GalleryModal({
               </a>
             </div>
 
-            <div className='flex flex-col items-center justify-center text-sm text-white/80 [font-family:var(--font-ui)] text-center'>
-              <div className='flex items-center gap-2'>
-                <span className='shrink-0'>{openIndex + 1} / {total}</span>
-                {current.caption ? (
-                  <span className='flex items-center text-white/70'>
-                    <span className='mr-2'>•</span>
-                    <span>{current.caption}</span>
-                  </span>
-                ) : null}
-              </div>
+            <div className='flex items-start gap-3 text-xs text-white/80 [font-family:var(--font-ui)] overflow-hidden'>
+              <span className='shrink-0 whitespace-nowrap'>
+                {openIndex + 1} / {total}
+              </span>
+
+              {resolvedCaption ? (
+                <span className='min-w-0 flex-1 text-white/70 whitespace-normal break-words leading-snug'>
+                  {resolvedCaption}
+                </span>
+              ) : null}
             </div>
 
             <div className='flex items-center justify-end'>
@@ -139,7 +163,7 @@ export default function GalleryModal({
                 type='button'
                 onClick={onClose}
                 aria-label={t.close}
-                className='inline-flex h-8 w-8 items-center justify-center rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
+                className='inline-flex h-7 w-7 items-center justify-center rounded-full text-white/90 transition-transform duration-300 hover:scale-[1.25]'
               >
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
@@ -221,4 +245,7 @@ export default function GalleryModal({
       </div>
     </div>
   );
+
+  // Render into <body> so it can sit above layout/nav regardless of stacking contexts.
+  return mounted ? createPortal(modal, document.body) : null;
 }

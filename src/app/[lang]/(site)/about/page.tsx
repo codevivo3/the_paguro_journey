@@ -15,8 +15,9 @@ type PageProps = {
   params: Promise<{ lang: Lang }>;
 };
 
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
 
@@ -42,10 +43,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const m = meta[effectiveLang];
 
-  const ogImage =
-    aboutImage?.image
-      ? urlFor(aboutImage.image).width(1200).height(675).fit('crop').url()
-      : null;
+  const ogImage = aboutImage?.image
+    ? urlFor(aboutImage.image).width(1200).height(675).fit('crop').url()
+    : null;
 
   return {
     title: m.title,
@@ -63,7 +63,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           url: ogImage ?? '/destinations/images/about/about-pic.jpg',
           width: 1200,
           height: 675,
-          alt: aboutImage?.altA11yResolved ?? (effectiveLang === 'en' ? 'Valentina and Mattia in a natural landscape' : 'Valentina e Mattia in un paesaggio naturale'),
+          alt:
+            aboutImage?.altA11yResolved ??
+            (effectiveLang === 'en'
+              ? 'Valentina and Mattia in a natural landscape'
+              : 'Valentina e Mattia in un paesaggio naturale'),
         },
       ],
     },
@@ -115,18 +119,12 @@ export default async function AboutPage({ params }: PageProps) {
       ctaBody:
         'Scopri i racconti, i video e le destinazioni che hanno dato forma a questo progetto.',
       ctaButton: 'Vai al blog',
-      mediaKitPrefix:
-        'Per collaborazioni, stampa e partnership puoi consultare il nostro',
-      mediaKitLink: 'Media Kit',
     },
     en: {
       ctaTitle: 'Keep traveling',
       ctaBody:
         'Discover the stories, videos, and destinations that shaped this project.',
       ctaButton: 'Go to the blog',
-      mediaKitPrefix:
-        'For collaborations, press, and partnerships you can check our',
-      mediaKitLink: 'Media Kit',
     },
   } as const;
 
@@ -202,18 +200,6 @@ export default async function AboutPage({ params }: PageProps) {
               {t.ctaButton} <span aria-hidden='true'>➜</span>
             </Button>
           </div>
-
-          <p className='mt-5 text-sm text-[color:var(--paguro-text-muted)]'>
-            {t.mediaKitPrefix}{' '}
-            <a
-              href='/media-kit.pdf'
-              download
-              className='font-medium text-[color:var(--paguro-deep)] underline-offset-4 hover:underline'
-            >
-              {t.mediaKitLink}
-            </a>
-            .
-          </p>
         </section>
       </div>
     </main>

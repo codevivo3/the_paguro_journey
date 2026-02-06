@@ -15,8 +15,15 @@ export type WorldRegionRef = {
 
 export type CountryForDestinations = {
   _id: string;
+
+  /** Preferred display name (short/common) for requested language */
+  name: string;
+  nameI18n?: { it?: string; en?: string };
+
+  /** Back-compat (older components may still read `title`) */
   title: string;
   titleI18n?: { it?: string; en?: string };
+
   slug: string;
   worldRegion: WorldRegionRef;
 
@@ -50,13 +57,17 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
   // 4) Cover image priority:
   //    - If Country has destinationCover (a reference to mediaItem), use that.
   //    - Else, fall back to the latest related Post cardImage.
-  *[_type == "country"] | order(coalesce(titleI18n[$lang], title) asc) {
+  *[_type == "country"] | order(coalesce(nameI18n[$lang], titleI18n[$lang], title) asc) {
     _id,
+
+    nameI18n,
+    "name": coalesce(nameI18n[$lang], titleI18n[$lang], title),
+
     titleI18n,
-    "title": coalesce(titleI18n[$lang], title),
+    "title": coalesce(nameI18n[$lang], titleI18n[$lang], title),
+
     "slug": slug.current,
 
-    // Region grouping (World Bank) for UI filters
     worldRegion->{
       titleI18n,
       "title": coalesce(titleI18n[$lang], title),
@@ -64,16 +75,12 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
       order
     },
 
-    // Number of related posts for this country.
-    // We use references(^._id) because Posts store countries[] as references.
     "postCount": count(*[
       _type == "post" &&
       (status == "published" || $preview == true) &&
       references(^._id)
     ]),
 
-    // Travel styles inferred from related posts (Option A).
-    // Distinct + ordered for UI pills.
     "travelStyles": array::unique(*[
       _type == "post" &&
       (status == "published" || $preview == true) &&
@@ -85,12 +92,9 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
       order
     }) | order(order asc, label asc),
 
-    // Card cover image (Sanity image object), with a manual override.
     "coverImage": coalesce(
-      // Manual override set on the Country doc in Studio
       destinationCover->image,
 
-      // Fallback to latest related post's cardImage
       *[
         _type == "post" &&
         (status == "published" || $preview == true) &&

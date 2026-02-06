@@ -37,20 +37,54 @@ const SEARCH_QUERY = /* groq */ `
       title match $pattern ||
       titleIt match $pattern ||
       titleEn match $pattern ||
-      titleI18n.it match $pattern ||
-      titleI18n.en match $pattern ||
 
       // --- Excerpts ---
       excerpt match $pattern ||
       excerptIt match $pattern ||
       excerptEn match $pattern ||
-      excerptI18n.it match $pattern ||
-      excerptI18n.en match $pattern ||
 
-      // --- Portable text content (both langs + legacy fallback) ---
-      pt::text(contentIt) match $pattern ||
-      pt::text(contentEn) match $pattern ||
-      pt::text(content) match $pattern
+      // --- Country labels / taxonomy ---
+      // destination.country (single ref) and post.countries (array)
+      country->title match $pattern ||
+      country->nameI18n.en match $pattern ||
+      country->nameI18n.it match $pattern ||
+
+      countries[]->title match $pattern ||
+      countries[]->nameI18n.en match $pattern ||
+      countries[]->nameI18n.it match $pattern ||
+
+      // --- Cover media text (coverImage is a mediaItem reference in BOTH post + destination) ---
+      coverImage->title match $pattern ||
+      coverImage->alt match $pattern ||
+      coverImage->altI18n.en match $pattern ||
+      coverImage->altI18n.it match $pattern ||
+      coverImage->captionI18n.en match $pattern ||
+      coverImage->captionI18n.it match $pattern ||
+
+      coverImage->countries[]->title match $pattern ||
+      coverImage->countries[]->nameI18n.en match $pattern ||
+      coverImage->countries[]->nameI18n.it match $pattern ||
+
+      // --- Cover image caption fallback (if caption lives on the image field) ---
+      coverImage.caption match $pattern ||
+
+      // --- Portable text content (FULL mode only) ---
+      (
+        $mode == "full" &&
+        (
+          // Search portable-text body.
+          // Prefer current language, but fall back to the other language if missing.
+          pt::text(
+            select(
+              $lang == "en" => coalesce(contentEn, contentIt),
+              coalesce(contentIt, contentEn)
+            )
+          ) match $pattern ||
+
+          // Legacy single-field fallback
+          pt::text(content) match $pattern
+        )
+      )
     ) &&
     (
       $preview == true ||
@@ -66,20 +100,54 @@ const SEARCH_QUERY = /* groq */ `
       title match $pattern ||
       titleIt match $pattern ||
       titleEn match $pattern ||
-      titleI18n.it match $pattern ||
-      titleI18n.en match $pattern ||
 
       // --- Excerpts ---
       excerpt match $pattern ||
       excerptIt match $pattern ||
       excerptEn match $pattern ||
-      excerptI18n.it match $pattern ||
-      excerptI18n.en match $pattern ||
 
-      // --- Portable text content (both langs + legacy fallback) ---
-      pt::text(contentIt) match $pattern ||
-      pt::text(contentEn) match $pattern ||
-      pt::text(content) match $pattern
+      // --- Country labels / taxonomy ---
+      // destination.country (single ref) and post.countries (array)
+      country->title match $pattern ||
+      country->nameI18n.en match $pattern ||
+      country->nameI18n.it match $pattern ||
+
+      countries[]->title match $pattern ||
+      countries[]->nameI18n.en match $pattern ||
+      countries[]->nameI18n.it match $pattern ||
+
+      // --- Cover media text (coverImage is a mediaItem reference in BOTH post + destination) ---
+      coverImage->title match $pattern ||
+      coverImage->alt match $pattern ||
+      coverImage->altI18n.en match $pattern ||
+      coverImage->altI18n.it match $pattern ||
+      coverImage->captionI18n.en match $pattern ||
+      coverImage->captionI18n.it match $pattern ||
+
+      coverImage->countries[]->title match $pattern ||
+      coverImage->countries[]->nameI18n.en match $pattern ||
+      coverImage->countries[]->nameI18n.it match $pattern ||
+
+      // --- Cover image caption fallback (if caption lives on the image field) ---
+      coverImage.caption match $pattern ||
+
+      // --- Portable text content (FULL mode only) ---
+      (
+        $mode == "full" &&
+        (
+          // Search portable-text body.
+          // Prefer current language, but fall back to the other language if missing.
+          pt::text(
+            select(
+              $lang == "en" => coalesce(contentEn, contentIt),
+              coalesce(contentIt, contentEn)
+            )
+          ) match $pattern ||
+
+          // Legacy single-field fallback
+          pt::text(content) match $pattern
+        )
+      )
     ) &&
     (
       $preview == true ||
@@ -87,63 +155,50 @@ const SEARCH_QUERY = /* groq */ `
       status == "published"
     )
   ]
-  | score(
-      // Prefer title hits, then excerpt, then body.
-      titleIt match $pattern,
-      titleEn match $pattern,
-      titleI18n.it match $pattern,
-      titleI18n.en match $pattern,
-      title match $pattern,
-
-      excerptIt match $pattern,
-      excerptEn match $pattern,
-      excerptI18n.it match $pattern,
-      excerptI18n.en match $pattern,
-      excerpt match $pattern,
-
-      pt::text(contentIt) match $pattern,
-      pt::text(contentEn) match $pattern,
-      pt::text(content) match $pattern
-    )
-  | order(_score desc, publishedAt desc)
+  | order(publishedAt desc, _createdAt desc)
   [$start...$end]{
     _id,
     _type,
 
     // Raw bilingual fields (so UI can use pickLang if desired)
-    "titleIt": coalesce(titleIt, titleI18n.it),
-    "titleEn": coalesce(titleEn, titleI18n.en),
-    "excerptIt": coalesce(excerptIt, excerptI18n.it),
-    "excerptEn": coalesce(excerptEn, excerptI18n.en),
+    "titleIt": titleIt,
+    "titleEn": titleEn,
+    "excerptIt": excerptIt,
+    "excerptEn": excerptEn,
 
     // Resolved fields (API default)
     "title": coalesce(
       select(
-        $lang == "en" => coalesce(titleEn, titleI18n.en),
-        coalesce(titleIt, titleI18n.it)
+        $lang == "en" => coalesce(titleEn, titleIt, title),
+        coalesce(titleIt, titleEn, title)
       ),
       title
     ),
     "excerpt": coalesce(
       select(
-        $lang == "en" => coalesce(excerptEn, excerptI18n.en),
-        coalesce(excerptIt, excerptI18n.it)
+        $lang == "en" => coalesce(excerptEn, excerptIt, excerpt),
+        coalesce(excerptIt, excerptEn, excerpt)
       ),
       excerpt
     ),
 
     "slug": slug.current,
 
-    // Cover image (supports direct image fields OR mediaItem references)
+    // Cover image
+    // In your schemas, coverImage is a reference to mediaItem.
+    // Keep a couple of fallbacks for legacy/other doc types.
     "coverImage": coalesce(
-      coverImage,
       coverImage->image,
-      coverImage.image
+      coverImage.image,
+      coverImage
     ),
     "coverImageUrl": coalesce(
-      coverImage.asset->url,
+      // Normal case: coverImage is a mediaItem reference
+      coverImage->image.asset->url,
+      // Fallback: coverImage has nested image
       coverImage.image.asset->url,
-      coverImage->image.asset->url
+      // Fallback: coverImage is a direct image field
+      coverImage.asset->url
     )
   }
 }
@@ -164,6 +219,11 @@ export async function searchContent(args: {
   types?: Array<'post' | 'destination'>;
   preview?: boolean;
   lang?: 'it' | 'en';
+  /**
+   * quick: titles/excerpts/taxonomy/media only (best for SearchModal)
+   * full: also searches portable-text body (best for the /search page)
+   */
+  mode?: 'quick' | 'full';
 }): Promise<SearchResult> {
   const page = Math.max(1, args.page ?? 1);
   const limit = Math.min(24, Math.max(6, args.limit ?? 12));
@@ -182,6 +242,7 @@ export async function searchContent(args: {
       types: args.types ?? ['post', 'destination'],
       preview: args.preview ?? false,
       lang: args.lang ?? 'it',
+      mode: args.mode ?? 'quick',
     },
     { cache: 'no-store' }, // dev-friendly; later you can revalidate
   );

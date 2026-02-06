@@ -63,6 +63,20 @@ export default defineType({
     // -----------------------------------------------------------------------
     // Core switch: image vs video
     // -----------------------------------------------------------------------
+    /**
+     * Optional internal title:
+     * Useful for you/editors to search the library quickly (not necessarily shown on site).
+     */
+    defineField({
+      name: 'title',
+      title: 'Title (internal)',
+      type: 'string',
+      description: biDesc(
+        'Optional. Internal label to help search (e.g. “Bangkok street food night market”).',
+        'Opzionale. Etichetta interna per aiutare la ricerca (es. “Bangkok street food night market”).',
+      ),
+    }),
+
     defineField({
       name: 'type',
       title: 'Type',
@@ -79,20 +93,6 @@ export default defineType({
         layout: 'radio',
       },
       validation: (r) => r.required(),
-    }),
-
-    /**
-     * Optional internal title:
-     * Useful for you/editors to search the library quickly (not necessarily shown on site).
-     */
-    defineField({
-      name: 'title',
-      title: 'Title (internal)',
-      type: 'string',
-      description: biDesc(
-        'Optional. Internal label to help search (e.g. “Bangkok street food night market”).',
-        'Opzionale. Etichetta interna per aiutare la ricerca (es. “Bangkok street food night market”).',
-      ),
     }),
 
     // -----------------------------------------------------------------------
@@ -114,48 +114,6 @@ export default defineType({
           if (docType === 'image' && !val) return 'Image required';
           return true;
         }),
-    }),
-
-    defineField({
-      name: 'alt',
-      title: 'Alt text (EN — SEO)',
-      type: 'string',
-      description: biDesc(
-        'Required for images (SEO + accessibility). Write in ENGLISH only. Describe what’s in the photo, not “image of…”. This is the ONLY alt used for SEO.',
-        'Obbligatorio per le immagini (SEO + accessibilità). Scrivi SOLO in INGLESE. Descrivi cosa c’è nella foto, non “immagine di…”. Questo è l’UNICO alt usato per SEO.',
-      ),
-      hidden: ({ document }) => (document?.type as MediaType) !== 'image',
-      validation: (r) =>
-        r.custom((val, ctx) => {
-          const docType = (ctx.document?.type as MediaType) ?? 'image';
-          if (docType === 'image' && !val) return 'Alt text required';
-          return true;
-        }),
-    }),
-
-    defineField({
-      name: 'altI18n',
-      title: 'Description for Screen Readers — EN/IT',
-      type: 'object',
-      description: biDesc(
-        'Accessibility-only alternative text for screen readers. NOT used for SEO. The site may switch this by language.',
-        'Testo alternativo SOLO per screen reader. NON usato per SEO. Il sito può cambiarlo in base alla lingua.',
-      ),
-      hidden: ({ document }) => (document?.type as MediaType) !== 'image',
-      fields: [
-        defineField({
-          name: 'it',
-          title: 'Italiano',
-          type: 'string',
-          description: 'Descrivi nel dettagio cosa c’è nella foto (IT).',
-        }),
-        defineField({
-          name: 'en',
-          title: 'English',
-          type: 'string',
-          description: 'Detailed description about what’s in the photo (EN).',
-        }),
-      ],
     }),
 
     defineField({
@@ -184,6 +142,22 @@ export default defineType({
         }),
     }),
 
+    defineField({
+      name: 'alt',
+      title: 'Alt text (EN — SEO)',
+      type: 'string',
+      description: biDesc(
+        'Required for images (SEO + accessibility). Write in ENGLISH only. Describe what’s in the photo, not “image of…”. This is the ONLY alt used for SEO.',
+        'Obbligatorio per le immagini (SEO + accessibilità). Scrivi SOLO in INGLESE. Descrivi cosa c’è nella foto, non “immagine di…”. Questo è l’UNICO alt usato per SEO.',
+      ),
+      hidden: ({ document }) => (document?.type as MediaType) !== 'image',
+      validation: (r) =>
+        r.custom((val, ctx) => {
+          const docType = (ctx.document?.type as MediaType) ?? 'image';
+          if (docType === 'image' && !val) return 'Alt text required';
+          return true;
+        }),
+    }),
 
     defineField({
       name: 'captionI18n',
@@ -205,6 +179,31 @@ export default defineType({
           title: 'English',
           type: 'string',
           description: 'Caption text in English.',
+        }),
+      ],
+    }),
+
+    defineField({
+      name: 'altI18n',
+      title: 'Description for Screen Readers — EN/IT',
+      type: 'object',
+      description: biDesc(
+        'Accessibility-only alternative text for screen readers. NOT used for SEO. The site may switch this by language.',
+        'Testo alternativo SOLO per screen reader. NON usato per SEO. Il sito può cambiarlo in base alla lingua.',
+      ),
+      hidden: ({ document }) => (document?.type as MediaType) !== 'image',
+      fields: [
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'string',
+          description: 'Descrivi nel dettagio cosa c’è nella foto (IT).',
+        }),
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'string',
+          description: 'Detailed description about what’s in the photo (EN).',
         }),
       ],
     }),

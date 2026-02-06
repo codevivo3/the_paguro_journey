@@ -1,3 +1,35 @@
+type I18nString = {
+  en?: string;
+  it?: string;
+  [key: string]: string | undefined;
+};
+
+type TravelStyleLite = { slug?: string; label?: string };
+
+type CountryForDestinations = {
+  slug?: string;
+  title?: string;
+  nameI18n?: I18nString;
+  titleI18n?: I18nString;
+  postCount?: number;
+  coverImage?: unknown;
+  travelStyles?: TravelStyleLite[];
+  worldRegion?: RegionLike;
+  region?: RegionLike;
+};
+
+type DestinationLite = {
+  slug: string;
+  title: string;
+  youtubeTitle: string;
+  country: string;
+  countrySlug: string;
+  region: string;
+  regionSlug: string;
+  count?: number;
+  coverImage?: unknown;
+  travelStyles: Array<{ slug: string; label: string }>;
+};
 import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
 
@@ -285,13 +317,26 @@ export default async function DestinationsPage({
   const sp = searchParams ? await searchParams : undefined;
 
   const { isEnabled } = await draftMode();
-  const countries = await getCountriesForDestinations({ preview: isEnabled });
+  const countries: CountryForDestinations[] = await getCountriesForDestinations({
+    preview: isEnabled,
+    lang: effectiveLang,
+  });
 
-  const destinations = countries.map((c) => {
+  const destinations: DestinationLite[] = countries.map((c) => {
     const r = getRegionFromCountry(c);
 
     const slug = (c.slug ?? '').trim();
+
+    // Display title is localized (what we show on cards / filters)
     const title = (c.title ?? '').trim();
+
+    // Matching title is language-agnostic: prefer English common name for YouTube/hashtags.
+    // This avoids cases like IT "Figi" vs hashtag "#fiji".
+    const youtubeTitle = (
+      c.nameI18n?.en ??
+      c.titleI18n?.en ??
+      title
+    ).trim();
 
     const regionSlug =
       (r && (typeof r.slug === 'string' ? r.slug : r.slug?.current)) || 'other';
@@ -312,6 +357,9 @@ export default async function DestinationsPage({
       slug,
       title,
 
+      // YouTube matching helper (do NOT display)
+      youtubeTitle,
+
       // Display fields (used by cards)
       country: title,
       countrySlug: slug,
@@ -326,8 +374,9 @@ export default async function DestinationsPage({
   // Phase 1 (post-launch): video-first Destinations.
   // We show only countries that have tagged (videoTags) videos.
   // Also: avoid Shorts (best-effort) to keep the page consistent.
+  // Language: pass `effectiveLang` so youtube.ts can return localized title/description when available.
   const fetchCount = 50;
-  const latestVideos = await getLatestRegularVideos(fetchCount);
+  const latestVideos = await getLatestRegularVideos(fetchCount, { lang: effectiveLang });
 
   const nonShortVideos = latestVideos.filter((v) => {
     const title = (v.title ?? '').toLowerCase();
@@ -336,7 +385,13 @@ export default async function DestinationsPage({
     return !title.includes('#shorts') && !desc.includes('#shorts');
   });
 
-  const taggedVideos = withVideoTags(nonShortVideos, destinations);
+  const destinationsForMatching = destinations.map((d) => ({
+    slug: d.slug,
+    // Use stable English-ish title for hashtag matching
+    title: d.youtubeTitle || d.title,
+  }));
+
+  const taggedVideos = withVideoTags(nonShortVideos, destinationsForMatching);
 
   // Optional: playlists are the best UX for destination navigation.
   // We keep this resilient: if playlist fetching isn't available yet, we fall back to channel search.
@@ -351,7 +406,7 @@ export default async function DestinationsPage({
     // No-op: playlists remain empty.
   }
 
-  const playlistByCountry = mapPlaylistsToCountries(playlists, destinations);
+  const playlistByCountry = mapPlaylistsToCountries(playlists, destinationsForMatching);
 
   if (process.env.NODE_ENV === 'development') {
     console.log('[Destinations][DEV] fetchedVideos:', latestVideos.length);
@@ -400,6 +455,10 @@ export default async function DestinationsPage({
     );
   }
 
+  type VisibleDestination = Omit<DestinationLite, 'count'> & {
+    count: number;
+    coverImage: unknown | null;
+  };
   // Group tagged videos by country.
   const videoGroups = new Map<
     string,
@@ -423,31 +482,36 @@ export default async function DestinationsPage({
   const destinationsBySlug = new Map(destinations.map((d) => [d.slug, d]));
 
   // Build the list of destinations visible on this page.
-  const visibleDestinations = Array.from(videoGroups.values())
+  const visibleDestinations: VisibleDestination[] = Array.from(videoGroups.values())
     .map((g) => {
       const base = destinationsBySlug.get(g.countrySlug);
       if (!base) {
-        // Fallback (in case a tag exists but the country isn't returned by Sanity yet)
+        const slug = g.countrySlug;
         return {
-          slug: g.countrySlug,
-          title: g.countrySlug,
-          country: g.countrySlug,
-          countrySlug: g.countrySlug,
+          slug,
+          title: slug,
+          youtubeTitle: slug,
+          country: slug,
+          countrySlug: slug,
           region: '—',
           regionSlug: g.regionSlug,
           count: g.count,
           coverImage: null,
           travelStyles: [],
-        };
+        } satisfies VisibleDestination;
       }
 
       return {
         ...base,
+        // Ensure the field exists for TS + downstream links
+        youtubeTitle: base.youtubeTitle ?? base.title ?? base.country,
         // Video-first: card count is video count.
         count: g.count,
         // If Sanity country has no region, fall back to tag.
         regionSlug: base.regionSlug || g.regionSlug,
-      };
+        // Keep nullable for the VisibleDestination type
+        coverImage: (base.coverImage ?? null) as unknown | null,
+      } satisfies VisibleDestination;
     })
     .filter((d) => Boolean(d.slug) && Boolean(d.title));
 
@@ -561,19 +625,19 @@ export default async function DestinationsPage({
 
                 return (
                   <MasonryItem key={d.slug}>
-                    <DestinationCardClient
-                      href={
-                        playlistByCountry.get(d.slug)
-                          ? playlistUrl(playlistByCountry.get(d.slug)!)
-                          : channelSearchUrlForCountry(d.country)
-                      }
-                      regionHref={withLangPrefix(`/destinations?region=${d.regionSlug}`, effectiveLang)}
-                      country={d.country}
-                      region={d.region}
-                      count={d.count ?? 0}
-                      coverSrc={coverSrc}
-                      mediaAspect={mediaAspect}
-                    />
+                <DestinationCardClient
+                  href={
+                    playlistByCountry.get(d.slug)
+                      ? playlistUrl(playlistByCountry.get(d.slug)!)
+                      : channelSearchUrlForCountry(d.youtubeTitle || d.country)
+                  }
+                  regionHref={withLangPrefix(`/destinations?region=${d.regionSlug}`, effectiveLang)}
+                  country={d.country}
+                  region={d.region}
+                  count={d.count ?? 0}
+                  coverSrc={coverSrc}
+                  mediaAspect={mediaAspect}
+                />
                   </MasonryItem>
                 );
               })}

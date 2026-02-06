@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useParams, usePathname } from 'next/navigation';
 
 import {
   Card,
@@ -31,7 +32,18 @@ export default function VideoCardClient({
   video,
   ariaLabel,
 }: VideoCardClientProps) {
-  const effectiveLang = safeLang(lang);
+  const params = useParams() as { lang?: string } | null;
+  const pathname = usePathname();
+
+  const inferred = (() => {
+    const p = params?.lang;
+    if (p === 'it' || p === 'en') return p;
+    if (pathname?.startsWith('/en')) return 'en';
+    if (pathname?.startsWith('/it')) return 'it';
+    return 'it';
+  })();
+
+  const effectiveLang = safeLang(lang ?? (inferred as Lang));
   const [ready, setReady] = React.useState(false);
 
   const labels = {

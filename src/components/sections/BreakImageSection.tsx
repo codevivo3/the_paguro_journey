@@ -8,12 +8,15 @@ import RichText from '@/components/shared/RichText';
 
 
 export function getBreakImageProps(homeDivider: HomeDividerData, lang: Lang) {
-  // Preferred: siteSettings.homeDivider.mediaDesktop / mediaMobile
-  // Back-compat: siteSettings.homeDivider.media
   const desktop = homeDivider?.mediaDesktop ?? homeDivider?.media;
+
   const mobile = homeDivider?.mediaMobile;
 
+  // We always require a desktop image as the baseline.
   if (!desktop?.imageUrl) return null;
+
+  // If mobile is not set, we will fall back to desktop for mobile rendering.
+  const mobileEffective = mobile ?? desktop;
 
   const toTrimmedString = (v: unknown): string | undefined =>
     typeof v === 'string' ? v.trim() : undefined;
@@ -29,18 +32,33 @@ export function getBreakImageProps(homeDivider: HomeDividerData, lang: Lang) {
       ),
     );
 
-  const dividerAlt =
+  const dividerAltDesktop =
     overrideAlt ||
     desktop.altA11yResolved?.trim() ||
     desktop.alt?.trim() ||
     (lang === 'en' ? 'Homepage divider image' : 'Immagine divisore homepage');
 
+  const dividerAltMobile =
+    overrideAlt ||
+    mobileEffective.altA11yResolved?.trim() ||
+    mobileEffective.alt?.trim() ||
+    dividerAltDesktop;
+
   return {
     lang,
     srcDesktop: desktop.imageUrl,
     srcMobile: mobile?.imageUrl,
-    alt: dividerAlt,
-    title: desktop.titleResolved,
+
+    // Keep separate alts/titles/captions so mobile doesn't accidentally show desktop text.
+    altDesktop: dividerAltDesktop,
+    altMobile: dividerAltMobile,
+
+    titleDesktop: desktop.titleResolved,
+    titleMobile: mobileEffective.titleResolved,
+
+    captionDesktop: desktop.captionResolved,
+    captionMobile: mobileEffective.captionResolved,
+
     eyebrow: pickLang(homeDivider?.eyebrow, lang),
     content: pickLang(homeDivider?.dividerContent, lang),
     href: homeDivider?.link ?? undefined,
@@ -59,12 +77,17 @@ type BreakImageSectionProps = {
   /** Image */
   srcDesktop: string;
   srcMobile?: string;
-  alt: string;
 
-  /** Optional Sanity‑resolved copy */
-  title?: string;
+  // Alt can differ if mobile uses different media.
+  altDesktop: string;
+  altMobile: string;
+
+  /** Optional Sanity‑resolved copy (can differ per breakpoint) */
+  titleDesktop?: string;
+  titleMobile?: string;
   eyebrow?: string;
-  caption?: string | { it?: string; en?: string };
+  captionDesktop?: string;
+  captionMobile?: string;
 
   /** Optional rich text shown under the image (Sanity: homeDivider.dividerContent) */
   content?: unknown;
@@ -86,10 +109,13 @@ export default function BreakImageSection({
   lang,
   srcDesktop,
   srcMobile,
-  alt,
-  title,
+  altDesktop,
+  altMobile,
+  titleDesktop,
+  titleMobile,
   eyebrow,
-  caption,
+  captionDesktop,
+  captionMobile,
   content,
   href,
   priority = false,
@@ -112,35 +138,37 @@ export default function BreakImageSection({
 
 
   const resolvedEyebrow = eyebrow ?? fallback.eyebrow;
-  const resolvedCaption =
-    typeof caption === 'string'
-      ? caption
-      : effectiveLang === 'en'
-        ? caption?.en ?? caption?.it
-        : caption?.it ?? caption?.en;
 
-  // We want the visible title to switch by language.
-  // Priority: explicit `title` prop → resolved bilingual caption → meta.title (fallback).
-  const resolvedTitle = title ?? resolvedCaption ?? meta?.title;
+  const resolvedCaptionMobile = captionMobile;
+  const resolvedCaptionDesktop = captionDesktop;
 
-  // If the title is coming from the caption, don't render the same text again as figcaption.
-  const titleIsFromCaption = !title && Boolean(resolvedCaption);
+  // Titles can differ per breakpoint (mobile media vs desktop media).
+  // Priority: explicit titleX → captionX → meta.title
+  const resolvedTitleMobile = titleMobile ?? resolvedCaptionMobile ?? meta?.title;
+  const resolvedTitleDesktop = titleDesktop ?? resolvedCaptionDesktop ?? meta?.title;
+
+  const titleMobileIsFromCaption = !titleMobile && Boolean(resolvedCaptionMobile);
+  const titleDesktopIsFromCaption = !titleDesktop && Boolean(resolvedCaptionDesktop);
 
   const contentBlock = (
     <>
-      {resolvedTitle || resolvedEyebrow || meta?.credit ? (
+      {resolvedTitleMobile || resolvedTitleDesktop || resolvedEyebrow || meta?.credit ? (
         <header className='px-6 mb-4 md:mb-6 text-center md:text-left'>
-          {resolvedTitle ? (
+          {(resolvedTitleMobile || resolvedTitleDesktop) ? (
             <>
-              {/* Mobile: center the decorative divider */}
-              <h3 className='t-section-title title-divider title-divider-center md:hidden'>
-                {resolvedTitle}
-              </h3>
+              {/* Mobile */}
+              {resolvedTitleMobile ? (
+                <h3 className='t-section-title title-divider title-divider-center md:hidden'>
+                  {resolvedTitleMobile}
+                </h3>
+              ) : null}
 
-              {/* Desktop: keep divider default (left) */}
-              <h3 className='t-section-title title-divider hidden md:block'>
-                {resolvedTitle}
-              </h3>
+              {/* Desktop */}
+              {resolvedTitleDesktop ? (
+                <h3 className='t-section-title title-divider hidden md:block'>
+                  {resolvedTitleDesktop}
+                </h3>
+              ) : null}
             </>
           ) : null}
           {resolvedEyebrow ? <p className='t-meta mt-1'>{resolvedEyebrow}</p> : null}
@@ -160,7 +188,7 @@ export default function BreakImageSection({
           <div className='relative aspect-[4/5] overflow-hidden md:hidden'>
             <Image
               src={srcMobile ?? srcDesktop}
-              alt={alt}
+              alt={altMobile}
               fill
               priority={priority}
               className='object-cover'
@@ -172,7 +200,7 @@ export default function BreakImageSection({
           <div className='relative hidden aspect-[16/9] overflow-hidden md:block'>
             <Image
               src={srcDesktop}
-              alt={alt}
+              alt={altDesktop}
               fill
               priority={priority}
               className='object-cover'
@@ -187,9 +215,17 @@ export default function BreakImageSection({
           </div>
         ) : null}
 
-        {resolvedCaption && !titleIsFromCaption && resolvedCaption !== resolvedTitle ? (
-          <figcaption className='t-meta mt-2 md:mt-3 text-center md:text-left'>
-            {resolvedCaption}
+        {/* Mobile caption */}
+        {resolvedCaptionMobile && !titleMobileIsFromCaption && resolvedCaptionMobile !== resolvedTitleMobile ? (
+          <figcaption className='t-meta mt-2 md:mt-3 text-center md:text-left md:hidden'>
+            {resolvedCaptionMobile}
+          </figcaption>
+        ) : null}
+
+        {/* Desktop caption */}
+        {resolvedCaptionDesktop && !titleDesktopIsFromCaption && resolvedCaptionDesktop !== resolvedTitleDesktop ? (
+          <figcaption className='t-meta mt-2 md:mt-3 text-center md:text-left hidden md:block'>
+            {resolvedCaptionDesktop}
           </figcaption>
         ) : null}
 
@@ -207,11 +243,16 @@ export default function BreakImageSection({
           href={href}
           className='block outline-none focus-visible:ring-1 focus-visible:ring-white/50'
           aria-label={
-            resolvedCaption
-              ? `${fallback.ariaOpen}: ${resolvedCaption}`
-              : resolvedTitle
-                ? `${fallback.ariaOpen}: ${resolvedTitle}`
-                : fallback.ariaOpen
+            // Prefer mobile copy first (better match on phones), otherwise fall back to desktop.
+            resolvedCaptionMobile
+              ? `${fallback.ariaOpen}: ${resolvedCaptionMobile}`
+              : resolvedTitleMobile
+                ? `${fallback.ariaOpen}: ${resolvedTitleMobile}`
+                : resolvedCaptionDesktop
+                  ? `${fallback.ariaOpen}: ${resolvedCaptionDesktop}`
+                  : resolvedTitleDesktop
+                    ? `${fallback.ariaOpen}: ${resolvedTitleDesktop}`
+                    : fallback.ariaOpen
           }
         >
           {contentBlock}

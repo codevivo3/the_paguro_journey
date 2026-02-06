@@ -14,6 +14,7 @@ type YouTubeItem = {
 type ApiResponse = {
   q: string;
   lang: 'it' | 'en';
+  mode: 'quick' | 'full';
   sanity: {
     items: Awaited<ReturnType<typeof searchContent>>['items'];
     total: number;
@@ -197,12 +198,16 @@ export async function GET(req: Request) {
   const langParam = searchParams.get('lang');
   const lang = langParam === 'en' ? 'en' : 'it';
 
+  const modeParam = searchParams.get('mode');
+  const mode = modeParam === 'full' ? 'full' : 'quick';
+
   // Guardrails (your preference): min 3 chars.
   if (q.length > 0 && q.length < 3) {
     return NextResponse.json(
       {
         q,
         lang,
+        mode,
         sanity: { items: [], total: 0 },
         youtube: { items: [], total: 0 },
       } satisfies ApiResponse,
@@ -222,6 +227,7 @@ export async function GET(req: Request) {
       {
         q: '',
         lang,
+        mode,
         sanity: { items: [], total: 0 },
         youtube: { items: [], total: 0 },
       } satisfies ApiResponse,
@@ -238,7 +244,7 @@ export async function GET(req: Request) {
 
   try {
     const [sanityRes, ytRes] = await Promise.all([
-      searchContent({ q, page, limit: sanityLimit, lang }),
+      searchContent({ q, page, limit: sanityLimit, lang, mode }),
       searchYouTube({ q, limit: ytLimit }),
     ]);
 
@@ -246,6 +252,7 @@ export async function GET(req: Request) {
       {
         q,
         lang,
+        mode,
         sanity: {
           items: sanityRes.items,
           total: sanityRes.total,
@@ -268,6 +275,38 @@ export async function GET(req: Request) {
     );
   } catch (err) {
     // Hard fail is only for our own search pipeline.
+    // Log the real error so we can fix the underlying GROQ/client issue.
+    console.error('[api/search] Search failed', {
+      q,
+      lang,
+      mode,
+      page,
+      sanityLimit,
+      ytLimit,
+      error: err,
+    });
+
+    // In development, return a more helpful message.
+    if (process.env.NODE_ENV === 'development') {
+      const message =
+        err instanceof Error
+          ? `${err.name}: ${err.message}`
+          : typeof err === 'string'
+            ? err
+            : 'Unknown error';
+
+      return NextResponse.json(
+        {
+          error: 'Search failed',
+          details: message,
+        },
+        {
+          status: 500,
+          headers: { 'cache-control': 'no-store' },
+        },
+      );
+    }
+
     return jsonError('Search failed', 500);
   }
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { urlFor } from '@/sanity/lib/image';
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
+import ProgressLink from '@/components/ui/ProgressLink';
 
 // Force dynamic rendering so querystring toggles (e.g. yt=all) update without full refresh.
 export const dynamic = 'force-dynamic';
@@ -374,23 +375,23 @@ export default async function SearchPage({ searchParams, params }: PageProps) {
             {ytTotal > 6 ? (
               <div className='pt-2'>
                 {showAllVideos ? (
-                  <Link
+                  <ProgressLink
                     href={withLangPrefix(effectiveLang, hrefNoYt)}
                     scroll={false}
                     className='t-page-title inline-flex items-center gap-2 text-base font-semibold [font-family:var(--font-ui)] text-[color:var(--paguro-deep)] hover:text-[color:var(--paguro-coral)]'
                   >
                     {t.showLess}
                     <span aria-hidden>↑</span>
-                  </Link>
+                  </ProgressLink>
                 ) : (
-                  <Link
+                  <ProgressLink
                     href={withLangPrefix(effectiveLang, hrefYtAll)}
                     scroll={false}
                     className='t-page-title inline-flex items-center gap-2 text-base font-semibold [font-family:var(--font-ui)] text-[color:var(--paguro-deep)] hover:text-[color:var(--paguro-coral)]'
                   >
                     {t.showMoreVideos}
                     <span aria-hidden>→</span>
-                  </Link>
+                  </ProgressLink>
                 )}
               </div>
             ) : null}

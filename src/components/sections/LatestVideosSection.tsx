@@ -23,7 +23,7 @@ export default async function LatestVidsSection({
   const effectiveLang: Lang = safeLang(lang);
 
   // Server-side fetch: keeps API keys and quota logic out of the client bundle
-  const latestVideos = await getLatestRegularVideos(15);
+  const latestVideos = await getLatestRegularVideos(15, { lang: effectiveLang });
 
   const copy = {
     it: {
@@ -52,11 +52,8 @@ export default async function LatestVidsSection({
             <h3 className='t-page-title title-divider title-divider-center'>
               {t.title}
             </h3>
-            
           </div>
-          <p className='t-page-subtitle text-sm md:text-base'>
-            {t.subtitle}
-          </p>
+          <p className='t-page-subtitle text-sm md:text-base'>{t.subtitle}</p>
         </header>
 
         {/*
@@ -64,7 +61,7 @@ export default async function LatestVidsSection({
           - scrolling, controls, and fades handled client-side
           - data already resolved server-side
         */}
-        <VideoCarousel videos={latestVideos} />
+        <VideoCarousel lang={effectiveLang} videos={latestVideos} />
       </div>
     </section>
   );

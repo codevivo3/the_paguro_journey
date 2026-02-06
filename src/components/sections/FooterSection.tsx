@@ -43,7 +43,7 @@ export default function Footer({
       destinations: withLangPrefix(effectiveLang, '/destinations'),
       about: withLangPrefix(effectiveLang, '/about'),
       contact: withLangPrefix(effectiveLang, '/contact'),
-      mediaKit: withLangPrefix(effectiveLang, '/media-kit'),
+      mediaKit: '/media-kit/mediakit.pdf',
     }),
     [effectiveLang],
   );
@@ -123,12 +123,14 @@ export default function Footer({
           >
             {t.contact}
           </Link>
-          <Link
+          <a
             href={href.mediaKit}
+            target="_blank"
+            rel="noopener noreferrer"
             className='transition-colors hover:text-[color:var(--paguro-coral)]'
           >
             {t.mediaKit}
-          </Link>
+          </a>
         </nav>
 
         {/* Social */}

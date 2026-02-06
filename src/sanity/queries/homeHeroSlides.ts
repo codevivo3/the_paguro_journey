@@ -19,48 +19,71 @@ export type SanityHomeHeroSlide = {
   captionResolved?: string;
   altA11yResolved?: string;
 
-  image: unknown;
+  image?: SanityImage;
   blurDataURL?: string;
+};
+
+type SanityImage = {
+  asset?: {
+    _ref?: string;
+    _id?: string;
+  };
 };
 
 const HOME_HERO_SLIDES_QUERY = /* groq */ `
   *[_type == "siteSettings"][0]{
-    "desktop": coalesce(homeHeroSlides[]-> {
-      _id,
-      alt,
-      altI18n,
-      titleI18n,
-      captionI18n,
-      "titleResolved": coalesce(titleI18n[$lang], titleI18n.it, titleI18n.en, title),
-      "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, captionI18n.en),
-      "altA11yResolved": coalesce(altI18n[$lang], altI18n.it, altI18n.en, alt),
-      image,
-      "blurDataURL": image.asset->metadata.lqip
-    }, []),
+    "desktop": coalesce(
+      (homeHeroSlides[]-> {
+        _id,
+        alt,
+        altI18n,
+        titleI18n,
+        captionI18n,
+        "titleResolved": coalesce(titleI18n[$lang], titleI18n.it, titleI18n.en, title),
+        "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, captionI18n.en),
+        "altA11yResolved": coalesce(altI18n[$lang], altI18n.it, altI18n.en, alt),
+        image,
+        "blurDataURL": image.asset->metadata.lqip
+      })[defined(image.asset)],
+      []
+    ),
 
-    "mobile": coalesce(homeHeroSlidesMobile[]-> {
-      _id,
-      alt,
-      altI18n,
-      titleI18n,
-      captionI18n,
-      "titleResolved": coalesce(titleI18n[$lang], titleI18n.it, titleI18n.en, title),
-      "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, captionI18n.en),
-      "altA11yResolved": coalesce(altI18n[$lang], altI18n.it, altI18n.en, alt),
-      image,
-      "blurDataURL": image.asset->metadata.lqip
-    }, [])
+    "mobile": coalesce(
+      (homeHeroSlidesMobile[]-> {
+        _id,
+        alt,
+        altI18n,
+        titleI18n,
+        captionI18n,
+        "titleResolved": coalesce(titleI18n[$lang], titleI18n.it, titleI18n.en, title),
+        "captionResolved": coalesce(captionI18n[$lang], captionI18n.it, captionI18n.en),
+        "altA11yResolved": coalesce(altI18n[$lang], altI18n.it, altI18n.en, alt),
+        image,
+        "blurDataURL": image.asset->metadata.lqip
+      })[defined(image.asset)],
+      []
+    )
   }
 `;
 
 export async function getHomeHeroSlides(lang: 'it' | 'en' = 'it') {
+  const isDev = process.env.NODE_ENV === 'development';
+
   const res = await client.fetch<{
     desktop?: SanityHomeHeroSlide[];
     mobile?: SanityHomeHeroSlide[];
-  }>(HOME_HERO_SLIDES_QUERY, { lang }, { next: { revalidate: 60 * 60 } });
+  }>(
+    HOME_HERO_SLIDES_QUERY,
+    { lang },
+    isDev ? ({ cache: 'no-store' } as const) : { next: { revalidate: 60 * 60 } },
+  );
 
-  const desktop = res?.desktop ?? [];
-  const mobile = res?.mobile ?? [];
+  const hasImageAsset = (slide: SanityHomeHeroSlide | null | undefined) => {
+    return Boolean(slide?._id) && Boolean(slide?.image?.asset);
+  };
+
+  const desktop = (res?.desktop ?? []).filter(hasImageAsset);
+  const mobile = (res?.mobile ?? []).filter(hasImageAsset);
 
   return {
     desktop,

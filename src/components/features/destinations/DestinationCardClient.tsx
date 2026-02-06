@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { useParams, usePathname } from 'next/navigation';
+
 import {
   Card,
   CardMedia,
@@ -35,7 +37,18 @@ export function DestinationCardClient({
   coverSrc: string;
   mediaAspect: string;
 }) {
-  const effectiveLang: Lang = safeLang(lang);
+  const params = useParams() as { lang?: string } | null;
+  const pathname = usePathname();
+
+  const inferred = (() => {
+    const p = params?.lang;
+    if (p === 'it' || p === 'en') return p;
+    if (pathname?.startsWith('/en')) return 'en';
+    if (pathname?.startsWith('/it')) return 'it';
+    return 'it';
+  })();
+
+  const effectiveLang: Lang = safeLang(lang ?? (inferred as Lang));
 
   // Ensure internal routes are lang-prefixed (e.g. /it/regions/..., /en/regions/...).
   const ensureLangPath = React.useCallback(
@@ -74,13 +87,15 @@ export function DestinationCardClient({
     it: {
       open: 'Apri destinazione',
       filter: 'Filtra per regione',
-      videos: 'Video',
+      videoSingular: 'Video',
+      videoPlural: 'Video',
       discover: 'Scopri di più',
     },
     en: {
       open: 'Open destination',
       filter: 'Filter by region',
-      videos: 'Videos',
+      videoSingular: 'Video',
+      videoPlural: 'Videos',
       discover: 'Discover more',
     },
   } as const;
@@ -129,7 +144,9 @@ export function DestinationCardClient({
             </CardMetaRow>
 
             <div className='flex items-center justify-between'>
-              <p className='t-meta'>{labels.videos}: {count}</p>
+              <p className='t-meta'>
+                {(count === 1 ? labels.videoSingular : labels.videoPlural)}: {count}
+              </p>
 
               <CardPill
                 href={effectiveRegionHref}

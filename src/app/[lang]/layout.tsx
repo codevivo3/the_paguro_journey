@@ -11,6 +11,7 @@ import {
 } from 'next/font/google';
 
 import { UIProvider } from '@/context/ui-context';
+import RouteTopLoader from '@/components/ui/RouteTopLoader';
 import { safeLang, type Lang } from '@/lib/route';
 
 // -----------------------------------------------------------------------------
@@ -154,6 +155,7 @@ export default async function RootLayout({
 
   return (
     <UIProvider>
+      <RouteTopLoader />
       {/*
         Theme bootstrap: run before hydration to avoid a flash of the wrong theme.
         NOTE: Root <html>/<body> live in `src/app/layout.tsx`.
