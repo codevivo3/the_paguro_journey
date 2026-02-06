@@ -141,6 +141,17 @@ export default defineType({
           return true;
         }),
     }),
+    defineField({
+      name: 'lockOrientation',
+      title: 'Lock orientation',
+      type: 'boolean',
+      initialValue: false,
+      description: biDesc(
+        'If ON, the Gallery will keep this media item in its original orientation only (no layout transforms). Use this for images that do not crop well in square/portrait/landscape variants.',
+        'Se ATTIVO, la Galleria manterrà questo media SOLO nella sua orientazione originale (niente trasformazioni di layout). Usalo per immagini che non rendono bene se ritagliate in varianti square/portrait/landscape.',
+      ),
+      hidden: ({ document }) => (document?.type as MediaType) !== 'image',
+    }),
 
     defineField({
       name: 'alt',
@@ -167,6 +178,7 @@ export default defineType({
         'Optional. Use this when you want captions to switch by site language.',
         'Opzionale. Usa questo campo quando vuoi che le didascalie cambino in base alla lingua del sito.',
       ),
+      hidden: ({ document }) => (document?.type as MediaType) !== 'image',
       fields: [
         defineField({
           name: 'it',
@@ -378,18 +390,21 @@ export default defineType({
       altEn: 'altI18n.en',
       capIt: 'captionI18n.it',
       capEn: 'captionI18n.en',
+      lockOrientation: 'lockOrientation',
       // If heroEnabled or heroRank were present, update here:
       // heroEnabled: 'hero.enabled',
       // heroRank: 'hero.desktopRank',
     },
-    prepare({ title, type, media, alt, altIt, altEn, capIt, capEn }) {
+    prepare({ title, type, media, alt, altIt, altEn, capIt, capEn, lockOrientation }) {
       const i18nCaption =
         (capIt as string | undefined) || (capEn as string | undefined);
       const i18nAlt =
         (altIt as string | undefined) || (altEn as string | undefined);
       const mainTitle =
         title || i18nCaption || alt || i18nAlt || 'Media Item';
-      const subtitle = type ? `Type: ${type}` : undefined;
+      const subtitle = type
+        ? `Type: ${type}${lockOrientation ? ' • Orientation locked' : ''}`
+        : undefined;
 
       return {
         title: mainTitle,

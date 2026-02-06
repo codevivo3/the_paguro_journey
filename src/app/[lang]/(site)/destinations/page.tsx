@@ -1,3 +1,4 @@
+import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 type I18nString = {
   en?: string;
   it?: string;
@@ -6,13 +7,29 @@ type I18nString = {
 
 type TravelStyleLite = { slug?: string; label?: string };
 
+type CoverOrientation = 'portrait' | 'landscape' | 'square' | 'panorama';
+
 type CountryForDestinations = {
   slug?: string;
   title?: string;
   nameI18n?: I18nString;
   titleI18n?: I18nString;
   postCount?: number;
-  coverImage?: unknown;
+
+  // Sanity cover image (mediaItem.image)
+  coverImage?: SanityImageSource | null;
+
+  // Option A: lock orientation + derived orientation helpers (from destinations query)
+  coverLockOrientation?: boolean | null;
+  coverOrientationEditor?: CoverOrientation | null;
+  coverOriginalOrientation?: CoverOrientation | null;
+  coverOrientationEffective?: CoverOrientation | null;
+  coverDimensions?: { width?: number; height?: number; aspectRatio?: number } | null;
+
+  // Optional focal point helpers (only present if your query returns them)
+  coverHotspot?: { x?: number; y?: number; height?: number; width?: number } | null;
+  coverCrop?: { top?: number; bottom?: number; left?: number; right?: number } | null;
+
   travelStyles?: TravelStyleLite[];
   worldRegion?: RegionLike;
   region?: RegionLike;
@@ -27,7 +44,21 @@ type DestinationLite = {
   region: string;
   regionSlug: string;
   count?: number;
-  coverImage?: unknown;
+
+  // Sanity cover image (mediaItem.image)
+  coverImage?: SanityImageSource | null;
+
+  // Option A: lock orientation + derived orientation helpers
+  coverLockOrientation?: boolean | null;
+  coverOrientationEffective?: CoverOrientation | null;
+  coverOrientationEditor?: CoverOrientation | null;
+  coverOriginalOrientation?: CoverOrientation | null;
+  coverDimensions?: { width?: number; height?: number; aspectRatio?: number } | null;
+
+  // Optional focal point helpers
+  coverHotspot?: { x?: number; y?: number; height?: number; width?: number } | null;
+  coverCrop?: { top?: number; bottom?: number; left?: number; right?: number } | null;
+
   travelStyles: Array<{ slug: string; label: string }>;
 };
 import type { Metadata } from 'next';
@@ -46,7 +77,6 @@ import { withVideoTags } from '@/lib/youtube/withVideoTags';
 import { getRegionShortTitle } from '@/domain/worldRegions';
 import { safeLang, type Lang } from '@/lib/route';
 
-
 type PageProps = {
   params: Promise<{ lang: Lang }>;
   searchParams?: Promise<DestinationsSearchParams>;
@@ -61,7 +91,9 @@ function withLangPrefix(path: string, lang: Lang) {
 /* SEO                                                                        */
 /* -------------------------------------------------------------------------- */
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
 
@@ -317,10 +349,12 @@ export default async function DestinationsPage({
   const sp = searchParams ? await searchParams : undefined;
 
   const { isEnabled } = await draftMode();
-  const countries: CountryForDestinations[] = await getCountriesForDestinations({
-    preview: isEnabled,
-    lang: effectiveLang,
-  });
+  const countries: CountryForDestinations[] = await getCountriesForDestinations(
+    {
+      preview: isEnabled,
+      lang: effectiveLang,
+    },
+  );
 
   const destinations: DestinationLite[] = countries.map((c) => {
     const r = getRegionFromCountry(c);
@@ -332,11 +366,7 @@ export default async function DestinationsPage({
 
     // Matching title is language-agnostic: prefer English common name for YouTube/hashtags.
     // This avoids cases like IT "Figi" vs hashtag "#fiji".
-    const youtubeTitle = (
-      c.nameI18n?.en ??
-      c.titleI18n?.en ??
-      title
-    ).trim();
+    const youtubeTitle = (c.nameI18n?.en ?? c.titleI18n?.en ?? title).trim();
 
     const regionSlug =
       (r && (typeof r.slug === 'string' ? r.slug : r.slug?.current)) || 'other';
@@ -366,7 +396,17 @@ export default async function DestinationsPage({
       region: regionName,
       regionSlug: typeof regionSlug === 'string' ? regionSlug : 'other',
       count: c.postCount,
-      coverImage: c.coverImage,
+      coverImage: (c.coverImage ?? null) as SanityImageSource | null,
+
+      // Option A: pass through Sanity-derived cover helpers
+      coverLockOrientation: c.coverLockOrientation ?? null,
+      coverOrientationEffective: c.coverOrientationEffective ?? null,
+      coverOrientationEditor: c.coverOrientationEditor ?? null,
+      coverOriginalOrientation: c.coverOriginalOrientation ?? null,
+      coverDimensions: c.coverDimensions ?? null,
+      coverHotspot: (c as unknown as { coverHotspot?: DestinationLite['coverHotspot'] }).coverHotspot ?? null,
+      coverCrop: (c as unknown as { coverCrop?: DestinationLite['coverCrop'] }).coverCrop ?? null,
+
       travelStyles,
     };
   });
@@ -376,7 +416,9 @@ export default async function DestinationsPage({
   // Also: avoid Shorts (best-effort) to keep the page consistent.
   // Language: pass `effectiveLang` so youtube.ts can return localized title/description when available.
   const fetchCount = 50;
-  const latestVideos = await getLatestRegularVideos(fetchCount, { lang: effectiveLang });
+  const latestVideos = await getLatestRegularVideos(fetchCount, {
+    lang: effectiveLang,
+  });
 
   const nonShortVideos = latestVideos.filter((v) => {
     const title = (v.title ?? '').toLowerCase();
@@ -399,65 +441,33 @@ export default async function DestinationsPage({
   try {
     // If you later add `getChannelPlaylistsLite()` to `@/lib/youtube/youtube`, this will auto-enable.
     const mod = await import('@/lib/youtube/youtube');
-    const maybe = (mod as unknown as { getChannelPlaylistsLite?: () => Promise<PlaylistLite[]> })
-      .getChannelPlaylistsLite;
+    const maybe = (
+      mod as unknown as {
+        getChannelPlaylistsLite?: () => Promise<PlaylistLite[]>;
+      }
+    ).getChannelPlaylistsLite;
     if (maybe) playlists = await maybe();
   } catch {
     // No-op: playlists remain empty.
   }
 
-  const playlistByCountry = mapPlaylistsToCountries(playlists, destinationsForMatching);
+  const playlistByCountry = mapPlaylistsToCountries(
+    playlists,
+    destinationsForMatching,
+  );
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Destinations][DEV] fetchedVideos:', latestVideos.length);
-    console.log('[Destinations][DEV] nonShortVideos:', nonShortVideos.length);
-    console.log('[Destinations][DEV] taggedVideos:', taggedVideos.length);
-    console.log('[Destinations][DEV] playlists:', playlists.length);
-    console.log('[Destinations][DEV] playlistByCountry size:', playlistByCountry.size);
-
-    const sample = nonShortVideos.slice(0, 3).map((v) => ({
-      id: v.id,
-      title: v.title,
-      // Descriptions can be long; show first 220 chars.
-      descriptionPreview: (v.description ?? '').slice(0, 220),
-      hasHashInTitle: (v.title ?? '').includes('#'),
-      hasHashInDescription: (v.description ?? '').includes('#'),
-    }));
-
-    console.log(
-      '[Destinations][DEV] sample raw videos (for hashtag check):',
-      sample,
-    );
-
-    console.log(
-      '[Destinations][DEV] extracted hashtags (desc):',
-      nonShortVideos.slice(0, 3).map((v) => ({
-        id: v.id,
-        hashtags: debugExtractHashtags(v.description ?? '').slice(0, 12),
-      })),
-    );
-
-    console.log(
-      '[Destinations][DEV] last 400 chars (to see hashtags position):',
-      nonShortVideos.slice(0, 2).map((v) => ({
-        id: v.id,
-        tail: (v.description ?? '').slice(-400),
-      })),
-    );
-
-    console.log(
-      '[Destinations][DEV] sample tagged slugs:',
-      taggedVideos.slice(0, 5).map((v) => ({
-        id: v.id,
-        countrySlug: v.countrySlug,
-        regionSlug: v.regionSlug,
-      })),
-    );
-  }
 
   type VisibleDestination = Omit<DestinationLite, 'count'> & {
     count: number;
-    coverImage: unknown | null;
+    coverImage: SanityImageSource | null;
+
+    coverLockOrientation?: boolean | null;
+    coverOrientationEffective?: CoverOrientation | null;
+    coverOrientationEditor?: CoverOrientation | null;
+    coverOriginalOrientation?: CoverOrientation | null;
+    coverDimensions?: { width?: number; height?: number; aspectRatio?: number } | null;
+    coverHotspot?: DestinationLite['coverHotspot'] | null;
+    coverCrop?: DestinationLite['coverCrop'] | null;
   };
   // Group tagged videos by country.
   const videoGroups = new Map<
@@ -482,7 +492,9 @@ export default async function DestinationsPage({
   const destinationsBySlug = new Map(destinations.map((d) => [d.slug, d]));
 
   // Build the list of destinations visible on this page.
-  const visibleDestinations: VisibleDestination[] = Array.from(videoGroups.values())
+  const visibleDestinations: VisibleDestination[] = Array.from(
+    videoGroups.values(),
+  )
     .map((g) => {
       const base = destinationsBySlug.get(g.countrySlug);
       if (!base) {
@@ -510,21 +522,11 @@ export default async function DestinationsPage({
         // If Sanity country has no region, fall back to tag.
         regionSlug: base.regionSlug || g.regionSlug,
         // Keep nullable for the VisibleDestination type
-        coverImage: (base.coverImage ?? null) as unknown | null,
+        coverImage: base.coverImage ?? null,
       } satisfies VisibleDestination;
     })
     .filter((d) => Boolean(d.slug) && Boolean(d.title));
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log(
-      '[Destinations][DEV] visibleDestinations:',
-      visibleDestinations.map((d) => ({
-        slug: d.slug,
-        regionSlug: d.regionSlug,
-        count: d.count,
-      })),
-    );
-  }
 
   // Server-side filtering for the grid (keep it local to avoid importing client-only logic).
   const selectedRegion = (
@@ -541,7 +543,9 @@ export default async function DestinationsPage({
     if (selectedRegion && d.regionSlug !== selectedRegion) return false;
     if (selectedCountry && d.countrySlug !== selectedCountry) return false;
     if (selectedStyle) {
-      const hasStyle = (d.travelStyles ?? []).some((s) => s.slug === selectedStyle);
+      const hasStyle = (d.travelStyles ?? []).some(
+        (s) => s.slug === selectedStyle,
+      );
       if (!hasStyle) return false;
     }
     return true;
@@ -552,7 +556,9 @@ export default async function DestinationsPage({
       <div className='mx-auto max-w-5xl space-y-10'>
         {/* Header */}
         <header className='space-y-3'>
-          <h1 className='t-page-title'>{effectiveLang === 'en' ? 'Destinations' : 'Destinazioni'}</h1>
+          <h1 className='t-page-title'>
+            {effectiveLang === 'en' ? 'Destinations' : 'Destinazioni'}
+          </h1>
           <p className='t-page-subtitle'>
             {effectiveLang === 'en'
               ? 'A simple map of the places we explored — currently video-led, with stories and guides coming soon.'
@@ -568,14 +574,20 @@ export default async function DestinationsPage({
         />
 
         {/* Destinations */}
-        <section aria-label={effectiveLang === 'en' ? 'Destinations' : 'Destinazioni'} className='space-y-5 pb-16'>
+        <section
+          aria-label={effectiveLang === 'en' ? 'Destinations' : 'Destinazioni'}
+          className='space-y-5 pb-16'
+        >
           <div className='flex items-baseline justify-between'>
-            <h2 className='t-section-title'>{effectiveLang === 'en' ? 'Explore' : 'Esplora'}</h2>
+            <h2 className='t-section-title'>
+              {effectiveLang === 'en' ? 'Explore' : 'Esplora'}
+            </h2>
             <span className='t-meta'>
               {filteredDestinations.length}{' '}
               {(() => {
                 const n = filteredDestinations.length;
-                if (effectiveLang === 'en') return n === 1 ? 'destination' : 'destinations';
+                if (effectiveLang === 'en')
+                  return n === 1 ? 'destination' : 'destinations';
                 return n === 1 ? 'destinazione' : 'destinazioni';
               })()}
             </span>
@@ -625,19 +637,31 @@ export default async function DestinationsPage({
 
                 return (
                   <MasonryItem key={d.slug}>
-                <DestinationCardClient
-                  href={
-                    playlistByCountry.get(d.slug)
-                      ? playlistUrl(playlistByCountry.get(d.slug)!)
-                      : channelSearchUrlForCountry(d.youtubeTitle || d.country)
-                  }
-                  regionHref={withLangPrefix(`/destinations?region=${d.regionSlug}`, effectiveLang)}
-                  country={d.country}
-                  region={d.region}
-                  count={d.count ?? 0}
-                  coverSrc={coverSrc}
-                  mediaAspect={mediaAspect}
-                />
+                    <DestinationCardClient
+                      href={
+                        playlistByCountry.get(d.slug)
+                          ? playlistUrl(playlistByCountry.get(d.slug)!)
+                          : channelSearchUrlForCountry(
+                              d.youtubeTitle || d.country,
+                            )
+                      }
+                      regionHref={withLangPrefix(
+                        `/destinations?region=${d.regionSlug}`,
+                        effectiveLang,
+                      )}
+                      country={d.country}
+                      region={d.region}
+                      count={d.count ?? 0}
+                      coverSrc={coverSrc}
+                      mediaAspect={mediaAspect}
+
+                      // Option A: Sanity-aware cover props (lock + focal point)
+                      coverImage={d.coverImage ?? undefined}
+                      coverLockOrientation={d.coverLockOrientation ?? undefined}
+                      coverOrientationEffective={d.coverOrientationEffective ?? undefined}
+                      coverHotspot={d.coverHotspot ?? null}
+                      coverCrop={d.coverCrop ?? null}
+                    />
                   </MasonryItem>
                 );
               })}

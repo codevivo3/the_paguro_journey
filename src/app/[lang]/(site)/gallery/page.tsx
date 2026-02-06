@@ -102,6 +102,14 @@ export default async function GalleryPage({ params }: PageProps) {
       x.orientation === 'portrait' || x.orientation === 'landscape'
         ? x.orientation
         : undefined,
+
+    // ✅ NEW: Sanity-derived helpers used by the client gallery to enforce
+    // original orientation when an editor locks it in Studio.
+    originalOrientation:
+      x.originalOrientation === 'portrait' || x.originalOrientation === 'landscape'
+        ? x.originalOrientation
+        : undefined,
+    lockOrientation: x.lockOrientation ?? undefined,
   }));
 
   return (

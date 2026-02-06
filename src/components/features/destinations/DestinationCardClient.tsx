@@ -14,6 +14,8 @@ import {
 import MediaImage from '@/components/features/media/MediaImage';
 import { safeLang, type Lang } from '@/lib/route';
 
+type CoverOrientation = 'portrait' | 'landscape' | 'square' | 'panorama';
+
 function SkeletonBlock({ className = '' }: { className?: string }) {
   return <div className={`skeleton rounded-[inherit] ${className}`} />;
 }
@@ -27,6 +29,12 @@ export function DestinationCardClient({
   count,
   coverSrc,
   mediaAspect,
+  coverOrientation,
+  coverImage,
+  coverLockOrientation,
+  coverOrientationEffective,
+  coverHotspot,
+  coverCrop,
 }: {
   lang?: Lang;
   href: string;
@@ -35,7 +43,21 @@ export function DestinationCardClient({
   region: string;
   count: number;
   coverSrc: string;
-  mediaAspect: string;
+  /**
+   * Optional: aspect class for the media wrapper (e.g. 'aspect-video', 'aspect-square').
+   * If omitted, we derive it from `coverOrientation`.
+   */
+  mediaAspect?: string;
+  /**
+   * Optional: effective cover orientation (e.g. derived from asset dimensions when lockOrientation is ON).
+   * Used only when `mediaAspect` is not provided.
+   */
+  coverOrientation?: CoverOrientation;
+  coverImage?: import('@sanity/image-url/lib/types/types').SanityImageSource | null;
+  coverLockOrientation?: boolean;
+  coverOrientationEffective?: CoverOrientation;
+  coverHotspot?: { x?: number; y?: number; height?: number; width?: number } | null;
+  coverCrop?: { top?: number; bottom?: number; left?: number; right?: number } | null;
 }) {
   const params = useParams() as { lang?: string } | null;
   const pathname = usePathname();
@@ -102,6 +124,39 @@ export function DestinationCardClient({
 
   const labels = t[effectiveLang];
 
+  const resolvedMediaAspect = React.useMemo(() => {
+    // 1) HARD LOCK — no rhythm allowed
+    if (coverLockOrientation && coverOrientationEffective) {
+      switch (coverOrientationEffective) {
+        case 'panorama':
+          return 'aspect-[21/9]';
+        case 'square':
+          return 'aspect-square';
+        case 'portrait':
+          return 'aspect-[3/4]';
+        case 'landscape':
+        default:
+          return 'aspect-video';
+      }
+    }
+
+    // 2) Editorial rhythm (only if not locked)
+    if (mediaAspect) return mediaAspect;
+
+    // 3) Soft fallback
+    switch (coverOrientation) {
+      case 'panorama':
+        return 'aspect-[21/9]';
+      case 'square':
+        return 'aspect-square';
+      case 'portrait':
+        return 'aspect-[3/4]';
+      case 'landscape':
+      default:
+        return 'aspect-video';
+    }
+  }, [coverLockOrientation, coverOrientationEffective, mediaAspect, coverOrientation]);
+
   return (
     <Card>
       <a
@@ -111,9 +166,12 @@ export function DestinationCardClient({
         target='_blank'
         rel='noopener noreferrer'
       >
-        <CardMedia className={`${mediaAspect} relative`}>
+        <CardMedia className={`${resolvedMediaAspect} relative`}>
           <MediaImage
             src={coverSrc}
+            sanityImage={coverImage ?? undefined}
+            hotspot={coverHotspot ?? null}
+            crop={coverCrop ?? null}
             alt={country}
             fill
             sizes='(max-width: 1024px) 100vw, 33vw'

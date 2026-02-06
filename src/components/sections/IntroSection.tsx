@@ -1,23 +1,29 @@
-import type { ReactNode } from 'react';
+import type { HomeIntroData } from '@/sanity/queries/homeIntro';
+
 
 import RichText from '@/components/shared/RichText';
 import { safeLang, type Lang } from '@/lib/route';
+
+import type { PortableTextBlock } from '@portabletext/types';
 
 type IntroSectionProps = {
   /** Active language (used only for fallback content) */
   lang?: Lang;
 
+  /** Optional Sanity payload (headlineI18n/headlineResolved + introI18n/introResolved) */
+  data?: HomeIntroData;
+
   /** If provided, overrides the fallback headline (Sanity-wired: homeHeroHeadline) */
-  title?: string;
+  title?: string | null;
 
   /**
-   * Sanity-wired intro body (homeIntro) now uses Portable Text.
+   * Sanity-wired intro body (homeIntro) uses Portable Text.
    * Pass the localized array of blocks here.
    */
-  body?: unknown;
+  body?: PortableTextBlock[] | null;
 };
 
-export default function IntroSection({ lang, title, body }: IntroSectionProps) {
+export default function IntroSection({ lang, data, title, body }: IntroSectionProps) {
   const effectiveLang: Lang = safeLang(lang);
 
   const fallbackCopy = {
@@ -34,10 +40,21 @@ export default function IntroSection({ lang, title, body }: IntroSectionProps) {
   } as const;
 
   const fallback = fallbackCopy[effectiveLang];
-  const resolvedTitle = title ?? fallback.title;
+
+  // Prefer explicit props, otherwise use Sanity-resolved fields, otherwise fallback copy.
+  const sanityTitle = data?.headlineResolved ?? null;
+  const sanityBody = data?.introResolved ?? null;
+
+  const resolvedTitle = title?.trim()
+    ? title
+    : sanityTitle?.trim()
+      ? sanityTitle
+      : fallback.title;
+
+  const resolvedBody = Array.isArray(body) && body.length > 0 ? body : sanityBody;
 
   // Portable Text arrays come through as arrays; anything else falls back to plain copy.
-  const isPortableText = Array.isArray(body) && body.length > 0;
+  const isPortableText = Array.isArray(resolvedBody) && resolvedBody.length > 0;
 
   return (
     <section className='relative overflow-hidden bg-[color:var(--paguro-bg)] py-10 md:py-16'>
@@ -100,7 +117,7 @@ export default function IntroSection({ lang, title, body }: IntroSectionProps) {
         {/* Intro copy */}
         {isPortableText ? (
           <div className='t-body text-sm md:text-base text-left md:text-justify'>
-            <RichText value={body} />
+            <RichText value={resolvedBody ?? []} />
           </div>
         ) : (
           <p className='t-body text-sm md:text-base text-left md:text-justify'>

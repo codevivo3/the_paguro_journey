@@ -23,9 +23,14 @@ export type AboutImage = NonNullable<AboutSettings>['image'] | null;
 export const ABOUT_SETTINGS_QUERY = /* groq */ `
   *[_type == "siteSettings"][0]{
     "about": {
-      "title": aboutTitle,
-      "subtitle": aboutSubtitle,
+      // Prefer new schema fields (aboutHeader.*), fallback to legacy ones
+      "title": coalesce(aboutHeader.title, aboutTitle),
+      "subtitle": coalesce(aboutHeader.subtitle, aboutSubtitle),
+
+      // About page body (Portable Text)
       "content": aboutContent,
+
+      // Curated About image (mediaItem reference)
       "image": aboutImage-> {
         alt,
         altI18n,

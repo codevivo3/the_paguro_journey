@@ -35,6 +35,14 @@ export type CountryForDestinations = {
    */
   coverImage?: SanityImageSource | null;
 
+  coverLockOrientation?: boolean | null;
+  coverOrientationEditor?: 'landscape' | 'portrait' | 'square' | 'panorama' | null;
+  coverOriginalOrientation?: 'landscape' | 'portrait' | 'square' | 'panorama' | null;
+  coverOrientationEffective?: 'landscape' | 'portrait' | 'square' | 'panorama' | null;
+  coverDimensions?: { width?: number; height?: number; aspectRatio?: number } | null;
+  coverHotspot?: { x?: number; y?: number; height?: number; width?: number } | null;
+  coverCrop?: { top?: number; bottom?: number; left?: number; right?: number } | null;
+
   /**
    * Travel styles inferred from related posts (Option A).
    * Distinct list, suitable for filter pills.
@@ -92,14 +100,302 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
       order
     }) | order(order asc, label asc),
 
-    "coverImage": coalesce(
-      destinationCover->image,
-
+    // Resolve a single MediaItem reference for the destination card cover.
+    // Priority: Country.destinationCover -> latest related Post.cardImage
+    "coverRef": coalesce(
+      destinationCover,
       *[
         _type == "post" &&
         (status == "published" || $preview == true) &&
         references(^._id)
-      ] | order(_updatedAt desc)[0].cardImage->image
+      ] | order(_updatedAt desc)[0].cardImage
+    ),
+
+    // Back-compat: existing UI expects a Sanity image source.
+    "coverImage": coalesce(
+      coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image,
+      null
+    ),
+
+    // --- Cover orientation helpers (Gallery parity) ---
+    // Manual orientation chosen in MediaItem Studio (if present)
+    "coverOrientationEditor": coalesce(
+      coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->orientation,
+      null
+    ),
+
+    // Lock flag on the MediaItem
+    "coverLockOrientation": coalesce(
+      coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->lockOrientation,
+      false
+    ),
+
+    // Asset dimensions (useful for debugging and future layout choices)
+    "coverDimensions": coalesce(
+      coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image.asset->metadata.dimensions,
+      null
+    ),
+
+    // Focal point data for Next/Image crops (Gallery parity)
+    "coverHotspot": coalesce(
+      coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image.hotspot,
+      null
+    ),
+
+    "coverCrop": coalesce(
+      coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image.crop,
+      null
+    ),
+
+    // Data-driven orientation derived from asset aspect ratio
+    "coverOriginalOrientation": select(
+      defined(
+        coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio
+      ) && coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image.asset->metadata.dimensions.aspectRatio >= 2.0 => "panorama",
+
+      defined(
+        coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio
+      ) && coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image.asset->metadata.dimensions.aspectRatio >= 0.9 && coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image.asset->metadata.dimensions.aspectRatio <= 1.1 => "square",
+
+      defined(
+        coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio
+      ) && coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image.asset->metadata.dimensions.aspectRatio > 1.1 => "landscape",
+
+      defined(
+        coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio
+      ) && coalesce(
+        destinationCover,
+        *[
+          _type == "post" &&
+          (status == "published" || $preview == true) &&
+          references(^._id)
+        ] | order(_updatedAt desc)[0].cardImage
+      )->image.asset->metadata.dimensions.aspectRatio < 0.9 => "portrait",
+
+      // Fallback: editor orientation when metadata is missing
+      coalesce(
+        coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->orientation,
+        null
+      )
+    ),
+
+    // Final orientation the UI should use for the destination cover.
+    // If locked, force original orientation; otherwise use the editor-picked one.
+    "coverOrientationEffective": select(
+      coalesce(
+        coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->lockOrientation,
+        false
+      ) == true => select(
+        defined(
+          coalesce(
+            destinationCover,
+            *[
+              _type == "post" &&
+              (status == "published" || $preview == true) &&
+              references(^._id)
+            ] | order(_updatedAt desc)[0].cardImage
+          )->image.asset->metadata.dimensions.aspectRatio
+        ) && coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio >= 2.0 => "panorama",
+        defined(
+          coalesce(
+            destinationCover,
+            *[
+              _type == "post" &&
+              (status == "published" || $preview == true) &&
+              references(^._id)
+            ] | order(_updatedAt desc)[0].cardImage
+          )->image.asset->metadata.dimensions.aspectRatio
+        ) && coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio >= 0.9 && coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio <= 1.1 => "square",
+        defined(
+          coalesce(
+            destinationCover,
+            *[
+              _type == "post" &&
+              (status == "published" || $preview == true) &&
+              references(^._id)
+            ] | order(_updatedAt desc)[0].cardImage
+          )->image.asset->metadata.dimensions.aspectRatio
+        ) && coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio > 1.1 => "landscape",
+        defined(
+          coalesce(
+            destinationCover,
+            *[
+              _type == "post" &&
+              (status == "published" || $preview == true) &&
+              references(^._id)
+            ] | order(_updatedAt desc)[0].cardImage
+          )->image.asset->metadata.dimensions.aspectRatio
+        ) && coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->image.asset->metadata.dimensions.aspectRatio < 0.9 => "portrait",
+        coalesce(
+          coalesce(
+            destinationCover,
+            *[
+              _type == "post" &&
+              (status == "published" || $preview == true) &&
+              references(^._id)
+            ] | order(_updatedAt desc)[0].cardImage
+          )->orientation,
+          null
+        )
+      ),
+      coalesce(
+        coalesce(
+          destinationCover,
+          *[
+            _type == "post" &&
+            (status == "published" || $preview == true) &&
+            references(^._id)
+          ] | order(_updatedAt desc)[0].cardImage
+        )->orientation,
+        null
+      )
     )
   }
 `;

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Button from '../ui/Button';
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
+// Defines the props for the CollabsSection component, including optional Sanity-resolved copy and language handling.
 type CollabsSectionProps = {
   lang?: Lang;
 
@@ -19,8 +20,10 @@ export default function CollabsSection({
   ctaMediaKit,
   ctaContact,
 }: CollabsSectionProps) {
+  // Use safeLang to ensure a valid language code is always used, falling back if necessary.
   const effectiveLang: Lang = safeLang(lang);
 
+  // Local fallback copy for Italian and English, used if no props are provided.
   const content = {
     it: {
       title: 'Collabora con noi',
@@ -57,24 +60,31 @@ export default function CollabsSection({
         </header>
 
         {/* CTAs */}
+        {/* 
+          The CTA section uses two Buttons:
+          - One wraps an anchor linking to the media kit PDF (external link).
+          - The other wraps a Next.js Link to the contact page.
+          Note: Nesting links inside Button components works visually but is not semantically ideal.
+          Future refactor should leverage Button's href and external props to improve semantics.
+        */}
         <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
-          <Button className='min-w-[200px]'>
+          <Button className='w-10/12 sm:w-[260px]'>
             <a
               href='/media-kit/mediakit.pdf'
               target="_blank"
               rel="noopener noreferrer"
-              className='flex w-full items-center justify-around px-4 text-center'
+              className='flex w-full items-center justify-center gap-3 px-6 text-center'
             >
               <span>{resolvedCtaMediaKit}</span>
-              <span aria-hidden className='ml-3'>➜</span>
+              <span aria-hidden>➜</span>
             </a>
           </Button>
 
-          <Button className='min-w-[200px] bg-white'>
+          <Button className='w-10/12 sm:w-[260px] bg-white'>
             <Link
               href={withLangPrefix(effectiveLang, '/contact')}
               className="
-                flex w-full items-center justify-around px-4
+                flex w-full items-center justify-center gap-3 px-6
                 text-center
                 text-[color:var(--paguro-ocean)]
                 transition-colors duration-200
@@ -82,7 +92,7 @@ export default function CollabsSection({
               "
             >
               <span>{resolvedCtaContact}</span>
-              <span aria-hidden className="ml-3">➜</span>
+              <span aria-hidden>➜</span>
             </Link>
           </Button>
         </div>

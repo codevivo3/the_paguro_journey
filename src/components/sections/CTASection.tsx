@@ -1,6 +1,7 @@
 import Button from '../ui/Button';
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
+// This section supports optional Sanity-resolved copy with language fallback.
 type CTASectionProps = {
   lang?: Lang;
 
@@ -18,8 +19,10 @@ export default function CallToAction({
   body,
   cta,
 }: CTASectionProps) {
+  // Use safeLang to guarantee a valid locale even if input is undefined or invalid.
   const effectiveLang: Lang = safeLang(lang);
 
+  // Local fallback copy (IT/EN) used when Sanity fields are missing.
   const content = {
     it: {
       eyebrow: 'Call to action',
@@ -39,12 +42,14 @@ export default function CallToAction({
 
   const fallback = content[effectiveLang];
 
+  // Resolve each piece of content by preferring Sanity data, falling back to local copy.
   const resolvedEyebrow = eyebrow ?? fallback.eyebrow;
   const resolvedTitle = title ?? fallback.title;
   const resolvedBody = body ?? fallback.body;
   const resolvedCta = cta ?? fallback.cta;
 
   return (
+    // Generic, reusable CTA block with padding and background color.
     <section className='py-14 px-4 md:py-20 md:px-6 bg-[color:var(--paguro-bg)]'>
       <div className='mx-auto max-w-3xl text-center space-y-5 md:space-y-6'>
         {/* Section eyebrow/label */}
@@ -63,9 +68,17 @@ export default function CallToAction({
         </p>
 
         <div className='pt-2'>
-          {/* Placeholder action link to be wired later */}
-          <Button href={withLangPrefix(effectiveLang, '/blog')} className='text-white'>
-            {resolvedCta} <span aria-hidden>➜</span>
+          {/* Uses shared Button component and withLangPrefix to ensure locale-aware routing */}
+          <Button
+            href={withLangPrefix(effectiveLang, '/blog')}
+            className='text-white flex max-w-2xl justify-center'
+          >
+            {/* Layout choice: icon + text aligned horizontally with spacing.
+                Accessibility: arrow is decorative and hidden from screen readers. */}
+            <div className='flex items-center gap-3 text-center'>
+              <span>{resolvedCta}</span>
+              <span aria-hidden>➜</span>
+            </div>
           </Button>
         </div>
       </div>

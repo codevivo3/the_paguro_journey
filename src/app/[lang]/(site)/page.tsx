@@ -13,6 +13,7 @@ import NewsletterForm from '@/components/features/newsletter/NewsletterForm';
 
 // Sanity / data
 import { getHomePageData } from '@/sanity/queries/home';
+import { getHomeIntro } from '@/sanity/queries/homeIntro';
 
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
@@ -84,7 +85,10 @@ export default async function Home({
   const { lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
 
-  const data = await getHomePageData(effectiveLang);
+  const [data, intro] = await Promise.all([
+    getHomePageData(effectiveLang),
+    getHomeIntro(effectiveLang),
+  ]);
 
   return (
     <>
@@ -101,7 +105,7 @@ export default async function Home({
         />
 
         {/* Intro section: explains the philosophy and vision of the project */}
-        <IntroSection lang={effectiveLang} />
+        <IntroSection lang={effectiveLang} data={intro} />
 
         {/* Latest videos preview: highlight video storytelling early */}
         <LatestVidsSection lang={effectiveLang} />

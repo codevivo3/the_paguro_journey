@@ -28,7 +28,7 @@ export default function Button({
   ...rest
 }: ButtonProps) {
   const baseClass =
-    'group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ' +
+    'group relative inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-center ' +
     '[font-family:var(--font-ui)] text-white overflow-hidden transition-all duration-300 ' +
     'bg-[color:var(--paguro-ocean)] ' +
     'before:absolute before:inset-0 before:z-0 before:bg-[color:var(--paguro-link-hover)] ' +

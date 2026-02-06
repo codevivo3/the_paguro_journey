@@ -3,5 +3,6 @@
 
   "[json]": {
     "editor.codeLens": false
-  }
+  },
+  "chatgpt.openOnStartup": true
 }

@@ -275,10 +275,9 @@ export default defineType({
       name: 'homeHeroHeadline',
       title: 'Home Hero Headline',
       type: 'object',
-      readOnly: true,
       description: biDesc(
-        'Developer-managed hero headline. Not editable by content editors.',
-        'Headline hero gestita dallo sviluppatore. Non modificabile dagli editor.',
+        'Editable hero headline. If left empty, the frontend will fall back to the default hardcoded headline.',
+        'Headline hero modificabile. Se lasciata vuota, il sito userà il testo di default hardcoded.',
       ),
       fieldset: 'homeHeroHeadline',
       fields: [

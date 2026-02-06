@@ -1,14 +1,37 @@
 'use client';
 
+import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
+import { urlFor } from '@/sanity/lib/image';
+
 import * as React from 'react';
 import Image, { type ImageProps } from 'next/image';
 import { safeLang, type Lang } from '@/lib/route';
+
+type SanityHotspot = {
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
+};
+
+type SanityCrop = {
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
 
 type MediaImageProps = Omit<ImageProps, 'onLoad' | 'onError' | 'alt'> & {
   /** Optional language for default UI strings */
   lang?: Lang;
   /** Optional alt text. If omitted, we fall back to empty string (decorative). */
   alt?: string;
+  /** Optional Sanity image source. If provided, MediaImage will build the final URL via `urlFor()` */
+  sanityImage?: SanityImageSource;
+  /** Optional Sanity hotspot for focal point-aware rendering */
+  hotspot?: SanityHotspot | null;
+  /** Optional Sanity crop data */
+  crop?: SanityCrop | null;
   /** Show a small retry button overlay when the image fails to load */
   retry?: boolean;
   /** Accessible label for the retry button */
@@ -23,6 +46,9 @@ type MediaImageProps = Omit<ImageProps, 'onLoad' | 'onError' | 'alt'> & {
 export default function MediaImage({
   lang,
   alt = '',
+  sanityImage,
+  hotspot,
+  crop,
   retry = true,
   retryAriaLabel,
   retryLabel,
@@ -52,6 +78,38 @@ export default function MediaImage({
   const resolvedRetryAriaLabel = retryAriaLabel ?? d.retryAriaLabel;
   const resolvedRetryLabel = retryLabel ?? d.retryLabel;
 
+  // If a Sanity image is provided, build a focal-point-aware URL.
+  // This preserves the existing API: callers can still pass `src` directly.
+  const baseSrc = imgProps.src;
+  const baseWidth = imgProps.width;
+  const baseQuality = imgProps.quality;
+
+  const resolvedSrc = React.useMemo(() => {
+    if (!sanityImage) return baseSrc;
+
+    // Sanity image-url builder does NOT accept crop/hotspot objects via `.crop()` / `.hotspot()`.
+    // Instead, we merge them into the image source itself (same shape Sanity uses on the image field)
+    // and build the URL from that.
+    const mergedSource = {
+      ...(sanityImage as unknown as Record<string, unknown>),
+      ...(crop ? { crop } : null),
+      ...(hotspot ? { hotspot } : null),
+    } as unknown as SanityImageSource;
+
+    // Pick a sensible transform width/quality for Sanity.
+    // - If a numeric width is provided, respect it.
+    // - Otherwise default to 1600 (good balance for cards/galleries).
+    const w = typeof baseWidth === 'number' ? baseWidth : 1600;
+    const q = typeof baseQuality === 'number' ? baseQuality : 80;
+
+    // When hotspot/crop exists we must request a crop transform so Sanity uses focal point data.
+    // `crop('focalpoint')` uses the hotspot from the source; `fit('crop')` ensures it’s applied.
+    let builder = urlFor(mergedSource).width(w).quality(q).auto('format');
+    if (hotspot || crop) builder = builder.fit('crop').crop('focalpoint');
+
+    return builder.url();
+  }, [sanityImage, crop, hotspot, baseSrc, baseWidth, baseQuality]);
+
   // Skeleton lifecycle control
   const [skeletonMounted, setSkeletonMounted] = React.useState(true);
   const [skeletonFade, setSkeletonFade] = React.useState(false);
@@ -63,7 +121,25 @@ export default function MediaImage({
     setAttempt(0);
     setSkeletonMounted(true);
     setSkeletonFade(false);
-  }, [imgProps.src]);
+  }, [resolvedSrc]);
+
+  // iOS/Safari + portal/columns layouts can sometimes skip firing onLoad/onLoadingComplete.
+  // For above-the-fold (priority) images, never keep them invisible forever.
+  React.useEffect(() => {
+    if (!imgProps.priority) return;
+
+    const t = window.setTimeout(() => {
+      // Only apply if we're still stuck.
+      if (!loaded && !errored) {
+        setLoaded(true);
+        // also hide the skeleton so the UI doesn't look broken
+        setSkeletonFade(true);
+        window.setTimeout(() => setSkeletonMounted(false), 300);
+      }
+    }, 1200);
+
+    return () => window.clearTimeout(t);
+  }, [imgProps.priority, loaded, errored, resolvedSrc]);
 
   const handleLoaded = (_e?: unknown) => {
     setLoaded(true);
@@ -145,11 +221,19 @@ export default function MediaImage({
         <Image
           key={attempt}
           {...imgProps}
+          src={resolvedSrc}
           alt={alt}
+          style={{
+            ...(imgProps.style ?? {}),
+            ...(hotspot?.x != null && hotspot?.y != null
+              ? { objectPosition: `${hotspot.x * 100}% ${hotspot.y * 100}%` }
+              : null),
+          }}
           className={`h-full w-full cursor-inherit transition-opacity duration-300 ${
-            loaded ? 'opacity-100' : 'opacity-0'
+            loaded || imgProps.priority ? 'opacity-100' : 'opacity-0'
           } ${className}`}
           onLoad={handleLoaded}
+          onLoadingComplete={() => handleLoaded()}
           onError={handleError}
         />
       </div>
