@@ -145,14 +145,14 @@ function pickLocalizedText(args: {
   const loc = localizations?.[lang];
 
   const title =
-    snippetLocalizedTitle ??
     loc?.title ??
+    snippetLocalizedTitle ??
     snippetTitle ??
     'Untitled';
 
   const description =
-    snippetLocalizedDescription ??
     loc?.description ??
+    snippetLocalizedDescription ??
     snippetDescription ??
     '';
 

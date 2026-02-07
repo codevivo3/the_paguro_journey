@@ -46,6 +46,7 @@
   /* Links */
   --paguro-link: #1f5f76;
   --paguro-link-hover: var(--paguro-coral);
+  --paguro-meadia-kit: var(--paguro-deep);
   /* Icons */
   --paguro-icon-bg: rgba(91, 194, 217, 0.12);
   --paguro-icon-fg: var(--paguro-ocean);
@@ -121,6 +122,7 @@
   /* Links */
   --paguro-link: #9bd9e8;
   --paguro-link-hover: var(--paguro-sunset);
+  --paguro-meadia-kit: var(--paguro-sunset);
 
   /* Buttons */
   --paguro-btn-text: #ffffff;

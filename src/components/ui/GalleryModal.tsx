@@ -105,7 +105,7 @@ export default function GalleryModal({
     >
       {/* Overlay */}
       <div
-        className='absolute inset-0 bg-black/70'
+        className='absolute inset-0 bg-black/55 backdrop-blur-sm'
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
@@ -118,9 +118,9 @@ export default function GalleryModal({
           if (e.target === e.currentTarget) onClose();
         }}
       >
-        <div className='relative w-full max-w-5xl overflow-hidden rounded-sm border border-white/10 bg-black shadow-2xl'>
+        <div className='relative w-full max-w-5xl overflow-hidden rounded-sm border border-[color:var(--paguro-sand)]/20 bg-black shadow-2xl'>
           {/* Top bar */}
-          <div className='relative mx-auto flex max-w-full items-center justify-between gap-3 border-b border-white/10 bg-black/70 px-6 py-0.5'>
+          <div className='relative mx-auto flex max-w-full items-center justify-between gap-3 border-b border-[color:var(--paguro-sand)]/15 bg-black/60 px-6 py-0.5 backdrop-blur-sm'>
             <div className='flex items-center justify-start pl-1'>
               <a
                 href={current.src}

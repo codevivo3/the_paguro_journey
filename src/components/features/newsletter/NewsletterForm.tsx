@@ -1,6 +1,8 @@
+'use client';
+
+import * as React from 'react';
 import { safeLang, type Lang } from '@/lib/route';
 import Button from '../../ui/Button';
-
 
 type NewsletterFormProps = {
   lang?: Lang;
@@ -17,6 +19,43 @@ type NewsletterFormProps = {
   cta?: string;
   privacy?: string;
 };
+
+function validateEmail(input: string): { ok: boolean; reason?: string } {
+  const email = input.trim();
+
+  if (!email) return { ok: false, reason: 'empty' };
+  if (email.includes(' ')) return { ok: false, reason: 'spaces' };
+
+  const at = email.indexOf('@');
+  if (at <= 0) return { ok: false, reason: 'missing_at' };
+  if (email.indexOf('@', at + 1) !== -1) return { ok: false, reason: 'multiple_at' };
+
+  const local = email.slice(0, at);
+  const domain = email.slice(at + 1);
+
+  if (local.length < 1 || local.length > 64) return { ok: false, reason: 'local_len' };
+  if (domain.length < 1 || domain.length > 255) return { ok: false, reason: 'domain_len' };
+
+  if (local.startsWith('.') || local.endsWith('.')) return { ok: false, reason: 'local_dot' };
+  if (domain.startsWith('.') || domain.endsWith('.')) return { ok: false, reason: 'domain_dot' };
+  if (email.includes('..')) return { ok: false, reason: 'double_dot' };
+
+  if (!domain.includes('.')) return { ok: false, reason: 'no_dot' };
+
+  const labels = domain.toLowerCase().split('.');
+  // Basic TLD sanity: 2..24 chars
+  const tld = labels[labels.length - 1] ?? '';
+  if (tld.length < 2 || tld.length > 24) return { ok: false, reason: 'tld' };
+
+  for (const label of labels) {
+    if (!label) return { ok: false, reason: 'empty_label' };
+    if (label.length > 63) return { ok: false, reason: 'label_len' };
+    if (label.startsWith('-') || label.endsWith('-')) return { ok: false, reason: 'label_dash' };
+    if (!/^[a-z0-9-]+$/.test(label)) return { ok: false, reason: 'label_chars' };
+  }
+
+  return { ok: true };
+}
 
 export default function NewsletterForm({
   lang,
@@ -73,6 +112,32 @@ export default function NewsletterForm({
     privacy: privacy ?? fallback.privacy,
   } as const;
 
+  const [name, setName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [emailError, setEmailError] = React.useState<string | null>(null);
+
+  const emailErrorMessage =
+    emailError
+      ? effectiveLang === 'en'
+        ? 'Enter a valid email (e.g. name@domain.com)'
+        : 'Inserisci un’email valida (es. nome@dominio.com)'
+      : null;
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const res = validateEmail(email);
+    if (!res.ok) {
+      setEmailError(res.reason ?? 'invalid');
+      return;
+    }
+
+    setEmailError(null);
+
+    // Frontend-only for now. Later we’ll wire Mailchimp/Beehiiv/ConvertKit.
+    // For now: no-op or you can add a toast later.
+  }
+
   return (
     <div className='mx-auto my-10 md:my-16 max-w-xl px-4 md:px-0'>
       <section
@@ -88,7 +153,7 @@ export default function NewsletterForm({
           {t.subtitle2}
         </p>
 
-        <form className='mt-6 flex flex-col gap-4'>
+        <form className='mt-6 flex flex-col gap-4' onSubmit={onSubmit} noValidate>
           <label className='sr-only' htmlFor='name'>
             {t.nameLabel}
           </label>
@@ -97,6 +162,8 @@ export default function NewsletterForm({
             type='text'
             autoComplete='given-name'
             placeholder={t.namePlaceholder}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className='h-10 w-full rounded-full border border-black/10 bg-white px-4 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
           />
 
@@ -110,6 +177,18 @@ export default function NewsletterForm({
               inputMode='email'
               autoComplete='email'
               placeholder={t.emailPlaceholder}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError(null);
+              }}
+              onBlur={() => {
+                if (!email.trim()) return;
+                const res = validateEmail(email);
+                setEmailError(res.ok ? null : res.reason ?? 'invalid');
+              }}
+              aria-invalid={Boolean(emailError)}
+              aria-describedby={emailError ? 'newsletter-email-error' : undefined}
               className='h-10 w-full md:flex-1 md:max-w-none rounded-full border border-black/10 bg-white px-4 text-sm text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--paguro-deep)]/40'
             />
 
@@ -117,6 +196,15 @@ export default function NewsletterForm({
               <Button className='px-10'>{t.cta}</Button>
             </div>
           </div>
+          {emailErrorMessage ? (
+            <p
+              id='newsletter-email-error'
+              role='alert'
+              className='px-4 text-xs text-red-600'
+            >
+              {emailErrorMessage}
+            </p>
+          ) : null}
         </form>
 
         <p className='t-card-body mt-4 text-center'>{t.privacy}</p>

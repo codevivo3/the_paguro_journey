@@ -383,7 +383,7 @@ export default function SearchModal({ lang }: SearchModalProps) {
               aria-modal='true'
               aria-label={t.dialog}
               onClick={closeAndRestoreFocus}
-              className='fixed inset-0 z-[2147483647] flex items-center justify-center bg-black/70 px-4 backdrop-blur-md'
+              className='fixed inset-0 z-[2147483647] flex items-center justify-center bg-black/55 px-4 backdrop-blur-sm'
             >
               <form
                 onClick={(e) => e.stopPropagation()}
@@ -394,10 +394,12 @@ export default function SearchModal({ lang }: SearchModalProps) {
                   const q = value.trim();
                   if (q.length < 3) return;
 
-                  router.push(withLangPrefix(`/search?q=${encodeURIComponent(q)}`));
+                  router.push(
+                    withLangPrefix(`/search?q=${encodeURIComponent(q)}`),
+                  );
                   closeSearch();
                 }}
-                className='relative w-full max-w-md rounded-md bg-[color:var(--paguro-surface)] p-6 shadow-xl max-h-[85vh] flex flex-col'
+                className='relative w-full max-w-md rounded-md border border-[color:var(--paguro-sand)]/20 bg-[color:var(--paguro-surface)] p-6 shadow-xl max-h-[85vh] flex flex-col'
               >
                 <div className='flex items-center justify-between'>
                   <h2 className='t-section-title font-semibold'>{t.title}</h2>
@@ -453,9 +455,7 @@ export default function SearchModal({ lang }: SearchModalProps) {
                 >
                   {/* Scrollbar styling relies on Tailwind scrollbar plugin or modern WebKit support. */}
                   {!trimmedValue ? (
-                    <p className='text-sm t-body'>
-                      {t.minChars}
-                    </p>
+                    <p className='text-sm t-body'>{t.minChars}</p>
                   ) : trimmedValue.length < 3 ? (
                     <p className='text-sm t-body'>
                       {t.remaining(3 - trimmedValue.length)}
@@ -475,7 +475,9 @@ export default function SearchModal({ lang }: SearchModalProps) {
                       youtubeItems={youtubeItems}
                       onClose={closeAndRestoreFocus}
                       onNavigate={(href) => router.push(withLangPrefix(href))}
-                      getSanityHref={(item) => withLangPrefix(getSanityHref(item))}
+                      getSanityHref={(item) =>
+                        withLangPrefix(getSanityHref(item))
+                      }
                     />
                   ) : null}
                 </div>

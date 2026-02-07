@@ -127,9 +127,7 @@ export default async function ContactPage({ params }: PageProps) {
         {/* Page header: H1 + value proposition for search engines */}
         <header className='space-y-4'>
           <h1 className='t-page-title'>{t.h1}</h1>
-          <p className='t-page-subtitle'>
-            {t.subtitle}
-          </p>
+          <p className='t-page-subtitle'>{t.subtitle}</p>
         </header>
 
         {/* Primary contact channels: email and social platforms */}
@@ -173,17 +171,16 @@ export default async function ContactPage({ params }: PageProps) {
           />
         </section>
 
-
         {/* Newsletter signup: secondary conversion action */}
         <NewsletterForm lang={effectiveLang} />
-        <section className="mt-10 text-center text-sm text-[color:var(--paguro-text-muted)]">
+        <section className='mt-10 text-center text-sm text-[color:var(--paguro-text-muted)]'>
           <p>
             {t.mediaKitPrefix}{' '}
             <a
-              href="/media-kit/mediakit.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-[color:var(--paguro-deep)] underline underline-offset-4 hover:no-underline"
+              href='/media-kit/mediakit.pdf'
+              target='_blank'
+              rel='noopener noreferrer'
+              className='font-semibold [font-family:var(--font-ui)] text-[color:var(--paguro-meadia-kit)] underline-offset-4 hover:underline'
             >
               {t.mediaKitLink}
             </a>

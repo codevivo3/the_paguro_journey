@@ -74,6 +74,12 @@ import { getGalleryImagesByCountry } from '@/lib/gallery';
 import { urlFor } from '@/sanity/lib/image';
 import { getLatestRegularVideos } from '@/lib/youtube/youtube';
 import { withVideoTags } from '@/lib/youtube/withVideoTags';
+import {
+  channelSearchUrlForCountry,
+  mapPlaylistsToCountries,
+  playlistUrl,
+  type PlaylistLite,
+} from '@/lib/youtube/destinations';
 import { getRegionShortTitle } from '@/domain/worldRegions';
 import { safeLang, type Lang } from '@/lib/route';
 
@@ -176,163 +182,6 @@ type RegionLike = {
   slug?: string | { current?: string };
 } | null;
 
-/**
- * YouTube Playlists → Country mapping
- *
- * Goal (video-first Destinations): when a destination card is clicked, we prefer
- * linking to the most relevant YouTube playlist for that country.
- *
- * Mapping strategy:
- * - Extract hashtags from playlist title/description
- * - Accept only matches that exist in our `destinations` list (prevents garbage)
- * - First match wins (stable + deterministic)
- */
-type PlaylistLite = { id: string; title: string; description?: string };
-
-function extractHashtags(text: string): string[] {
-  const out: string[] = [];
-  const re = /[#＃]([^\s#＃]+)/g;
-
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
-    const raw = (m[1] ?? '').trim();
-    if (!raw) continue;
-
-    // Strip trailing punctuation commonly seen after hashtags.
-    const cleaned = raw
-      .replace(/[.,!?:;\)\]\}]+$/g, '')
-      .trim()
-      .toLowerCase();
-
-    if (cleaned) out.push(cleaned);
-  }
-
-  return out;
-}
-
-/**
- * Convert a destination title into a YouTube-friendly keyword.
- *
- * Examples:
- * - "Costa Rica"   -> "costarica"
- * - "Côte d’Ivoire" -> "cotedivoire" (best-effort)
- *
- * Why:
- * - Your destination slugs are ISO2 (e.g. "mn"). Great internal IDs, terrible YouTube keywords.
- * - Playlists / hashtags are usually human words, not ISO codes.
- */
-function toHashtagKeyword(title: string) {
-  return (title ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // strip accents
-    .replace(/[’'`]/g, '') // strip apostrophes
-    .replace(/[^a-zA-Z0-9\s-]/g, '') // drop other punctuation
-    .replace(/[\s-]+/g, '') // remove spaces/hyphens
-    .trim()
-    .toLowerCase();
-}
-
-/**
- * Map playlists to destination countries.
- *
- * Matching strategy (per playlist):
- * - Extract hashtags from playlist title/description
- * - Consider destination keyword from title (e.g. "mongolia", "costarica")
- * - If ANY playlist hashtag equals the keyword, we map that playlist to the destination slug (ISO2)
- *
- * Notes:
- * - We keep ISO2 only as the returned key (stable internal ID).
- * - We do NOT use ISO2 for matching, because YouTube hashtags rarely use ISO codes.
- * - First match wins to keep results stable.
- */
-function mapPlaylistsToCountries(
-  playlists: PlaylistLite[],
-  destinations: Array<{ slug: string; title: string }>,
-) {
-  // Build: keyword -> destinationSlug (ISO2)
-  const keywordToSlug = new Map<string, string>();
-
-  for (const d of destinations) {
-    const slug = (d.slug ?? '').trim().toLowerCase();
-    const title = (d.title ?? '').trim();
-    if (!slug || !title) continue;
-
-    const keyword = toHashtagKeyword(title);
-    if (!keyword) continue;
-
-    // If two countries would collide (rare), keep the first one.
-    if (!keywordToSlug.has(keyword)) keywordToSlug.set(keyword, slug);
-  }
-
-  const map = new Map<string, string>(); // countrySlug(ISO2) -> playlistId
-
-  for (const p of playlists) {
-    const tags = [
-      ...extractHashtags(p.title ?? ''),
-      ...extractHashtags(p.description ?? ''),
-    ];
-
-    // Find the first hashtag that matches one of our destination keywords.
-    const matchKeyword = tags.find((t) => keywordToSlug.has(t));
-    if (!matchKeyword) continue;
-
-    const countrySlug = keywordToSlug.get(matchKeyword);
-    if (!countrySlug) continue;
-
-    // First match wins per destination to keep mapping stable.
-    if (!map.has(countrySlug)) map.set(countrySlug, p.id);
-  }
-
-  return map;
-}
-
-const playlistUrl = (id: string) =>
-  `https://www.youtube.com/playlist?list=${encodeURIComponent(id)}`;
-
-/**
- * Channel-scoped YouTube search.
- *
- * IMPORTANT:
- * - This must NOT use ISO2 ("mn", "cn", ...).
- * - Use human keywords ("mongolia", "china", "costarica", ...).
- */
-const channelSearchUrl = (query: string) =>
-  `https://www.youtube.com/@thepagurojourney/search?query=${encodeURIComponent(
-    query,
-  )}`;
-
-/**
- * Build a channel search URL for a destination country.
- * Uses the destination title -> YouTube keyword (e.g. "Mongolia" -> "mongolia").
- */
-const channelSearchUrlForCountry = (countryTitle: string) => {
-  const keyword = toHashtagKeyword(countryTitle);
-
-  // Use a plain keyword search (no leading '#').
-  // Hashtags are convenient when they exist, but channel search can be too strict
-  // if the channel doesn’t use that exact hashtag format.
-  const q = keyword ? keyword : (countryTitle ?? '');
-  return channelSearchUrl(q);
-};
-
-/**
- * Local-only helper used for DEV logging.
- * This mirrors our robust hashtag extraction logic.
- */
-function debugExtractHashtags(text: string): string[] {
-  const out: string[] = [];
-  const re = /[#＃]([^\s#＃]+)/g;
-
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
-    const raw = (m[1] ?? '').trim();
-    if (!raw) continue;
-    const cleaned = raw.replace(/[.,!?:;\)\]\}]+$/g, '').trim();
-    if (cleaned) out.push(cleaned);
-  }
-
-  return out;
-}
 
 function getRegionFromCountry(country: unknown): RegionLike {
   if (!country || typeof country !== 'object') return null;

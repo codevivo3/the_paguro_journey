@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-
-import * as Popover from '@radix-ui/react-popover';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import Button from '@/components/ui/Button';
 import PaguroSelect from '@/components/ui/PaguroSelect';
@@ -213,6 +212,13 @@ export default function DestinationsFilters({
   basePath?: string;
 }) {
   const effectiveLang: Lang = safeLang(lang);
+  const [mounted, setMounted] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const i18n = {
     it: {
@@ -226,6 +232,7 @@ export default function DestinationsFilters({
       resetAria: 'Reset filtri',
       reset: 'Reset',
       apply: 'Applica',
+      close: 'Chiudi',
       viewing: 'Stai vedendo:',
       allRegions: 'tutte le regioni',
     },
@@ -240,6 +247,7 @@ export default function DestinationsFilters({
       resetAria: 'Reset filters',
       reset: 'Reset',
       apply: 'Apply',
+      close: 'Close',
       viewing: 'You are viewing:',
       allRegions: 'all regions',
     },
@@ -338,165 +346,204 @@ export default function DestinationsFilters({
 
   return (
     <section aria-label={t.sectionAria} className='space-y-4'>
-      {/* Filters (Select + Apply) — Popover dropdown */}
-      <Popover.Root>
-        <Popover.Trigger asChild>
-          <button
-            type='button'
-            className={[
-              // Centered trigger, intentionally narrower than the Select triggers
-              // NOTE: must be a block-level element for `mx-auto` to work (inline-flex won't center)
-              'mx-auto flex w-fit',
-              // sensible min/max so it stays compact but not tiny
-              'min-w-[220px] max-w-[260px]',
-              'text-left',
-              // pill trigger style (match PaguroSelect vibe)
-              't-body text-[color:var(--paguro-text)]',
-              'h-10 rounded-full px-6 text-sm font-semibold',
-              'bg-gradient-to-b from-[var(--pill-from)] to-[var(--pill-to)]',
-              'shadow-[0_6px_18px_rgba(0,0,0,0.12)]',
-              'transition',
-              'hover:-translate-y-[1px] hover:shadow-[0_10px_26px_rgba(0,0,0,0.14)]',
-              'focus:outline-none focus-visible:outline-none',
-              'focus:ring-1 focus:ring-[color:var(--paguro-ocean)]/20',
-              'data-[state=open]:from-[var(--pill-from-hover)] data-[state=open]:to-[var(--pill-to-hover)]',
-              // layout
-              'items-center justify-between gap-3',
-              'select-none',
-            ].join(' ')}
-            aria-label={t.sectionAria}
+      {/* Filters (modal trigger) */}
+      <button
+        ref={triggerRef}
+        type='button'
+        onClick={() => setIsOpen(true)}
+        className={[
+          'mx-auto flex w-fit',
+          'min-w-[180px] max-w-[220px]',
+          'text-left',
+          't-body text-[color:var(--paguro-text)]/80',
+          'h-9 rounded-full px-4 text-xs font-semibold tracking-wide',
+          'border border-[color:var(--paguro-sand)]/30',
+          'bg-[color:var(--paguro-surface)]/80',
+          'shadow-sm',
+          'transition',
+          'hover:-translate-y-[1px] hover:border-[color:var(--paguro-sand)]/45 hover:text-[color:var(--paguro-text)]',
+          'focus:outline-none focus-visible:outline-none',
+          'focus:ring-1 focus:ring-[color:var(--paguro-ocean)]/15',
+          'items-center justify-between gap-3',
+          'select-none',
+        ].join(' ')}
+        aria-label={t.sectionAria}
+      >
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='24'
+          height='24'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+          className='lucide lucide-sliders-horizontal-icon lucide-sliders-horizontal'
+        >
+          <path d='M10 5H3' />
+          <path d='M12 19H3' />
+          <path d='M14 3v4' />
+          <path d='M16 17v4' />
+          <path d='M21 12h-9' />
+          <path d='M21 19h-5' />
+          <path d='M21 5h-7' />
+          <path d='M8 10v4' />
+          <path d='M8 12H3' />
+        </svg>
+        <span className='t-section-title text-sm'>{t.sectionAria}</span>
+
+        <span aria-hidden='true' className='opacity-70'>
+          <svg
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
+            className='h-4 w-4'
           >
-            <span className='t-section-title text-base'>{t.sectionAria}</span>
+            <path
+              strokeWidth={2}
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='m6 9 6 6 6-6'
+            />
+          </svg>
+        </span>
+      </button>
 
-            <span aria-hidden='true' className='opacity-70'>
-              <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' className='h-5 w-5'>
-                <path
-                  strokeWidth={2}
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  d='m6 9 6 6 6-6'
-                />
-              </svg>
-            </span>
-          </button>
-        </Popover.Trigger>
-
-        <Popover.Portal>
-          <Popover.Content
-            side='bottom'
-            align='center'
-            sideOffset={10}
-            collisionPadding={16}
-            avoidCollisions
-            // Keep popover open while interacting with Radix Select (its content is portaled)
-            onInteractOutside={(e) => {
-              const target = e.target as HTMLElement | null;
-              if (target?.closest('[data-radix-select-content]')) {
-                e.preventDefault();
-              }
-            }}
-            className={[
-              'z-[70]',
-              // Panel can be wider than the trigger (better UX)
-              'w-[min(560px,calc(100vw-32px))]',
-              'max-w-[calc(100vw-32px)]',
-              'rounded-3xl border border-[color:var(--paguro-sand)]/25',
-              // less glassy
-              'bg-[color:var(--paguro-surface)]',
-              'shadow-[0_18px_60px_rgba(0,0,0,0.22)]',
-              // if too tall: scroll
-              'max-h-[min(70vh,520px)] overflow-auto',
-              'p-4 md:p-5',
-              'outline-none',
-            ].join(' ')}
-            aria-label={t.formAria}
-          >
-            <form method='get' action={effectiveBasePath} className='space-y-4'>
-              <div className='grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3'>
-                {/* Region */}
-                <label className='grid gap-1'>
-                  <span
-                    id='destinations-filter-region'
-                    className='t-section-title text-base px-4 font-medium text-[color:var(--paguro-text)]'
+      {mounted && isOpen
+        ? createPortal(
+            <div
+              role='dialog'
+              aria-modal='true'
+              aria-label={t.formAria}
+              onClick={() => {
+                setIsOpen(false);
+                triggerRef.current?.focus();
+              }}
+              className='fixed inset-0 z-[2147483647] flex items-center justify-center bg-black/70 px-4 backdrop-blur-md'
+            >
+              <form
+                method='get'
+                action={effectiveBasePath}
+                onClick={(e) => e.stopPropagation()}
+                className='relative w-full max-w-2xl rounded-md border border-[color:var(--paguro-sand)]/20 bg-[color:var(--paguro-surface)] p-6 shadow-xl max-h-[85vh] overflow-auto'
+              >
+                <div className='flex items-center justify-between'>
+                  <h2 className='t-section-title font-semibold'>
+                    {t.sectionAria}
+                  </h2>
+                  <button
+                    type='button'
+                    aria-label={t.close}
+                    onClick={() => {
+                      setIsOpen(false);
+                      triggerRef.current?.focus();
+                    }}
+                    className='text-[color:var(--paguro-text)] text-xl [font-family:var(--font-ui)] transition-transform duration-300 hover:scale-[1.2]'
                   >
-                    {t.region}
-                  </span>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      strokeWidth='1.5'
+                      stroke='currentColor'
+                      className='size-6'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        d='m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+                      />
+                    </svg>
+                  </button>
+                </div>
 
-                  <PaguroSelect
-                    name='region'
-                    labelId='destinations-filter-region'
-                    value={selected.region}
-                    onValueChange={setRegion}
-                    placeholder={t.all}
-                    options={state.options.regions.map((r) => ({
-                      value: r.slug,
-                      label: r.label,
-                    }))}
-                  />
-                </label>
+                <div className='mt-4 grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3'>
+                  {/* Region */}
+                  <label className='grid gap-1'>
+                    <span
+                      id='destinations-filter-region'
+                      className='t-section-title text-base px-4 font-medium text-[color:var(--paguro-text)]'
+                    >
+                      {t.region}
+                    </span>
 
-                {/* Country */}
-                <label className='grid gap-1'>
-                  <span
-                    id='destinations-filter-country'
-                    className='t-section-title text-base px-4 font-medium text-[color:var(--paguro-text)]'
+                    <PaguroSelect
+                      name='region'
+                      labelId='destinations-filter-region'
+                      value={selected.region}
+                      onValueChange={setRegion}
+                      placeholder={t.all}
+                      options={state.options.regions.map((r) => ({
+                        value: r.slug,
+                        label: r.label,
+                      }))}
+                    />
+                  </label>
+
+                  {/* Country */}
+                  <label className='grid gap-1'>
+                    <span
+                      id='destinations-filter-country'
+                      className='t-section-title text-base px-4 font-medium text-[color:var(--paguro-text)]'
+                    >
+                      {t.country}
+                    </span>
+
+                    <PaguroSelect
+                      name='country'
+                      labelId='destinations-filter-country'
+                      value={selected.country}
+                      onValueChange={setCountry}
+                      placeholder={t.allPlural}
+                      options={state.options.countries.map((c) => ({
+                        value: c.slug,
+                        label: c.label,
+                      }))}
+                    />
+                  </label>
+
+                  {/* Style filter (future) */}
+                  {/**
+                  <label className='grid gap-1'>
+                    <span
+                      id='destinations-filter-style'
+                      className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
+                    >
+                      {t.style}
+                    </span>
+
+                    <PaguroSelect
+                      name='style'
+                      labelId='destinations-filter-style'
+                      value={selected.style}
+                      onValueChange={setStyle}
+                      placeholder={t.allPlural}
+                      options={state.options.styles.map((s) => ({
+                        value: s.slug,
+                        label: s.label,
+                      }))}
+                    />
+                  </label>
+                  */}
+                </div>
+
+                <div className='mt-4 flex flex-col items-stretch justify-center gap-3 border-t border-[color:var(--paguro-sand)]/15 pt-4 sm:flex-row sm:items-center sm:justify-between'>
+                  <a
+                    href={effectiveBasePath}
+                    className='t-card-title text-sm text-[color:var(--paguro-text)]/70 underline underline-offset-4 hover:text-[color:var(--paguro-ocean)]'
+                    aria-label={t.resetAria}
                   >
-                    {t.country}
-                  </span>
+                    {t.reset}
+                  </a>
 
-                  <PaguroSelect
-                    name='country'
-                    labelId='destinations-filter-country'
-                    value={selected.country}
-                    onValueChange={setCountry}
-                    placeholder={t.allPlural}
-                    options={state.options.countries.map((c) => ({
-                      value: c.slug,
-                      label: c.label,
-                    }))}
-                  />
-                </label>
-
-                {/* Style filter (future) */}
-                {/**
-                <label className='grid gap-1'>
-                  <span
-                    id='destinations-filter-style'
-                    className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
-                  >
-                    {t.style}
-                  </span>
-
-                  <PaguroSelect
-                    name='style'
-                    labelId='destinations-filter-style'
-                    value={selected.style}
-                    onValueChange={setStyle}
-                    placeholder={t.allPlural}
-                    options={state.options.styles.map((s) => ({
-                      value: s.slug,
-                      label: s.label,
-                    }))}
-                  />
-                </label>
-                */}
-              </div>
-
-              <div className='flex flex-col items-stretch justify-center gap-3 border-t border-[color:var(--paguro-sand)]/15 pt-4 sm:flex-row sm:items-center sm:justify-between'>
-                <a
-                  href={effectiveBasePath}
-                  className='t-card-title text-sm text-[color:var(--paguro-text)]/70 underline underline-offset-4 hover:text-[color:var(--paguro-ocean)]'
-                  aria-label={t.resetAria}
-                >
-                  {t.reset}
-                </a>
-
-                <Button type='submit'>{t.apply}</Button>
-              </div>
-            </form>
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover.Root>
+                  <Button type='submit'>{t.apply}</Button>
+                </div>
+              </form>
+            </div>,
+            document.body,
+          )
+        : null}
 
       {/* Selected summary (derived from URL params) */}
       {anyActive ? (

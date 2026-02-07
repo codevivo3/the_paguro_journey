@@ -17,6 +17,7 @@ type FooterProps = {
   tagline?: string;
   blog?: string;
   destinations?: string;
+  gallery?: string;
   about?: string;
   contact?: string;
   mediaKit?: string;
@@ -27,6 +28,7 @@ export default function Footer({
   tagline,
   blog,
   destinations,
+  gallery,
   about,
   contact,
   mediaKit,
@@ -41,6 +43,7 @@ export default function Footer({
       home: withLangPrefix(effectiveLang, '/'),
       blog: withLangPrefix(effectiveLang, '/blog'),
       destinations: withLangPrefix(effectiveLang, '/destinations'),
+      gallery: withLangPrefix(effectiveLang, '/gallery'),
       about: withLangPrefix(effectiveLang, '/about'),
       contact: withLangPrefix(effectiveLang, '/contact'),
       mediaKit: '/media-kit/mediakit.pdf',
@@ -53,6 +56,7 @@ export default function Footer({
       tagline: 'Viaggi consapevoli, destinazioni fuori rotta.',
       blog: 'Blog',
       destinations: 'Destinazioni',
+      gallery: 'Galleria',
       about: 'Chi Siamo',
       contact: 'Contatti',
       mediaKit: 'Media Kit',
@@ -62,6 +66,7 @@ export default function Footer({
       tagline: 'Mindful travel, off-the-beaten-path destinations.',
       blog: 'Blog',
       destinations: 'Destinations',
+      gallery: 'Gallery',
       about: 'About',
       contact: 'Contact',
       mediaKit: 'Media Kit',
@@ -75,6 +80,7 @@ export default function Footer({
     tagline: tagline ?? fallback.tagline,
     blog: blog ?? fallback.blog,
     destinations: destinations ?? fallback.destinations,
+    gallery: gallery ?? fallback.gallery,
     about: about ?? fallback.about,
     contact: contact ?? fallback.contact,
     mediaKit: mediaKit ?? fallback.mediaKit,
@@ -88,6 +94,12 @@ export default function Footer({
         <div className='space-y-2 text-center md:text-left'>
           <Link
             href={href.home}
+            onClick={(e) => {
+              if (pathname === href.home || pathname === href.home.replace(/\/$/, '')) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
             className='text-lg [font-family:var(--font-ui)] font-semibold transition-colors hover:text-[color:var(--paguro-coral)]'
           >
             The Paguro Journey
@@ -110,6 +122,12 @@ export default function Footer({
             className='transition-colors hover:text-[color:var(--paguro-coral)]'
           >
             {t.destinations}
+          </Link>
+          <Link
+            href={href.gallery}
+            className='transition-colors hover:text-[color:var(--paguro-coral)]'
+          >
+            {t.gallery}
           </Link>
           <Link
             href={href.about}

@@ -97,6 +97,31 @@ export default function Navbar({ lang }: NavbarProps) {
     return current === target || current.startsWith(`${target}/`);
   };
 
+  const isHome = stripLangPrefix(pathname || '/') === '/';
+
+  function scrollToTopSmooth() {
+    if (typeof window === 'undefined') return;
+    const prefersReduced =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    window.scrollTo({
+      top: 0,
+      behavior: prefersReduced ? 'auto' : 'smooth',
+    });
+  }
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    // Always close mobile menu
+    setMobileOpen(false);
+
+    // If we're already on home, don't re-navigate — just scroll to hero/top.
+    if (isHome) {
+      e.preventDefault();
+      scrollToTopSmooth();
+    }
+  };
+
   // LI is the positioning + hover group container
   const LI_CLASS =
     'relative px-1 py-1 text-sm font-semibold text-white group cursor-pointer';
@@ -148,7 +173,7 @@ export default function Navbar({ lang }: NavbarProps) {
         <Link
           href={withLangPrefix(effectiveLang, '/')}
           aria-label={t.homeAria}
-          onClick={() => setMobileOpen(false)}
+          onClick={handleLogoClick}
           className='flex items-center rounded-xl transition-transform duration-200 ease-out hover:-translate-y-0.3 hover:scale-105 active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
         >
           <Image

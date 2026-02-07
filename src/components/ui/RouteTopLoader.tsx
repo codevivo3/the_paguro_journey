@@ -12,16 +12,33 @@ import NProgress from 'nprogress';
 let activeCount = 0;
 let startTimer: number | null = null;
 let startTimestamp: number | null = null;
+let watchdogTimer: number | null = null;
 
 // Tuning knobs
 const START_DELAY_MS = 60; // show sooner
 const MIN_VISIBLE_MS = 120; // keep visible briefly, avoid feeling slow
+const MAX_ACTIVE_MS = 12_000; // hard safety: never let the bar hang forever
 
 function clearStartTimer() {
   if (startTimer != null) {
     window.clearTimeout(startTimer);
     startTimer = null;
   }
+}
+
+function clearWatchdog() {
+  if (watchdogTimer != null) {
+    window.clearTimeout(watchdogTimer);
+    watchdogTimer = null;
+  }
+}
+
+function armWatchdog() {
+  clearWatchdog();
+  watchdogTimer = window.setTimeout(() => {
+    // If something went wrong (same-route click, aborted nav, forgotten doneTopProgress), reset.
+    resetTopProgress();
+  }, MAX_ACTIVE_MS);
 }
 
 function scheduleStart() {
@@ -34,11 +51,13 @@ function scheduleStart() {
     // Start only once we are sure something is still loading.
     startTimestamp = Date.now();
     NProgress.start();
+    armWatchdog();
   }, START_DELAY_MS);
 }
 
 function finishWithMinDuration() {
   clearStartTimer();
+  clearWatchdog();
 
   // If the bar never started (we were within delay), just ensure it stays stopped.
   if (!NProgress.isStarted()) {
@@ -75,13 +94,17 @@ export function startTopProgress() {
 /** Finish the global top loading bar (reference-counted). */
 export function doneTopProgress() {
   activeCount = Math.max(0, activeCount - 1);
-  if (activeCount === 0) finishWithMinDuration();
+  if (activeCount === 0) {
+    clearWatchdog();
+    finishWithMinDuration();
+  }
 }
 
 /** Force-stop the bar immediately (use on errors / aborts). */
 export function resetTopProgress() {
   activeCount = 0;
   clearStartTimer();
+  clearWatchdog();
   startTimestamp = null;
   NProgress.done(true);
 }
@@ -149,6 +172,20 @@ export default function RouteTopLoader() {
       const href = a.getAttribute('href');
       if (!href) return;
 
+      // If this click would keep us on the exact same route (common with logo/home links),
+      // do NOT start the progress bar.
+      try {
+        const nextUrl = new URL(href, window.location.href);
+        const curUrl = new URL(window.location.href);
+
+        // Ignore hash-only changes (and same-path links) for the loader.
+        const nextKey = `${nextUrl.origin}${nextUrl.pathname}${nextUrl.search}`;
+        const curKey = `${curUrl.origin}${curUrl.pathname}${curUrl.search}`;
+        if (nextKey === curKey) return;
+      } catch {
+        // If URL parsing fails, fall back to existing behavior.
+      }
+
       // Ignore in-page anchors and non-http intents
       if (href.startsWith('#')) return;
       if (href.startsWith('mailto:') || href.startsWith('tel:')) return;
@@ -168,8 +205,15 @@ export default function RouteTopLoader() {
     };
 
     document.addEventListener('click', onClickCapture, true);
+
+    const onPageHide = () => resetTopProgress();
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('beforeunload', onPageHide);
+
     return () => {
       document.removeEventListener('click', onClickCapture, true);
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('beforeunload', onPageHide);
     };
   }, []);
 

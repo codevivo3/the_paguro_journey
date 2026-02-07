@@ -20,6 +20,18 @@ function SkeletonBlock({ className = '' }: { className?: string }) {
   return <div className={`skeleton rounded-[inherit] ${className}`} />;
 }
 
+export function DestinationsFiltersSkeleton() {
+  return (
+    <section
+      aria-label='Loading filters / Caricamento filtri'
+      className='space-y-4'
+    >
+      <div className='mx-auto h-9 w-44 rounded-full skeleton' />
+      <div className='mx-auto h-3 w-64 rounded-md skeleton' />
+    </section>
+  );
+}
+
 export function DestinationCardClient({
   lang,
   href,

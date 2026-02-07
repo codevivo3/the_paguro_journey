@@ -120,7 +120,7 @@ export default function PaguroSelect({
             avoidCollisions
             collisionPadding={{ top: 96, bottom: 24, left: 16, right: 16 }}
             className={[
-              'z-[70]',
+              'z-[2147483648]',
               // Match trigger width (and clamp to viewport)
               'w-[var(--radix-select-trigger-width)]',
               'max-w-[calc(100vw-32px)]',
