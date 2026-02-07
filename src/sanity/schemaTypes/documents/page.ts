@@ -5,17 +5,10 @@ import React, { type ReactElement } from 'react';
 
 type UnknownRecord = Record<string, unknown>;
 
-/**
- * Safely extract the current slug value from a Sanity document.
- *
- * Why this exists:
- * - In schema callbacks (`readOnly`, `hidden`, etc.) `document` is typed as `unknown`
- * - Direct access like `document.slug.current` causes TypeScript errors
- * - This helper keeps access safe, explicit, and future-proof
- */
+/** Safely read `slug.current` from an unknown Sanity document. */
 function getSlugCurrent(document: unknown): string | undefined {
   const doc = document as UnknownRecord | null;
-  const slug = doc?.['slug'] as UnknownRecord | undefined;
+  const slug = (doc?.['slug'] as UnknownRecord | undefined) ?? undefined;
   return slug?.['current'] as string | undefined;
 }
 
@@ -49,23 +42,6 @@ export default defineType({
   ),
   type: 'document',
 
-  /**
-   * 🔒 Editorial guardrail (field-level)
-   *
-   * We want the internal “Guida Editor” page to be mostly immutable,
-   * BUT still allow setting a cover image so it shows a nice thumbnail in the list.
-   *
-   * Therefore we do NOT lock the whole document; we lock specific fields below.
-   */
-  // readOnly: ({ document }) => getSlugCurrent(document) === 'guida-editor',
-
-  /**
-   * 🧨 Prevent deletion of important pages
-   * (runtime-supported by Sanity, not typed yet)
-   */
-  // @ts-expect-error Sanity supports this at runtime
-  __experimental_actions: ['create', 'update', 'publish'],
-
   fields: [
     /* ---------------------------------------------------------------------- */
     /* Core                                                                   */
@@ -79,7 +55,6 @@ export default defineType({
         'Internal and public title for this page (e.g. “About”, “Contact”, “Privacy Policy”).',
         'Titolo interno e pubblico della pagina (es. “Chi siamo”, “Contatti”, “Privacy Policy”).'
       ),
-      readOnly: ({ document }) => getSlugCurrent(document) === 'guida-editor',
       validation: (r) => r.required(),
     }),
 
@@ -98,7 +73,7 @@ export default defineType({
       /**
        * Lock slug once created to keep URLs stable.
        */
-      readOnly: ({ document }) => Boolean(getSlugCurrent(document)) || getSlugCurrent(document) === 'guida-editor',
+      readOnly: ({ document }) => Boolean(getSlugCurrent(document)),
       validation: (r) => r.required(),
     }),
 
@@ -114,7 +89,6 @@ export default defineType({
         'Optional but recommended. Overrides default site metadata for this page.',
         'Opzionale ma consigliato. Sovrascrive i metadati di default del sito per questa pagina.'
       ),
-      readOnly: ({ document }) => getSlugCurrent(document) === 'guida-editor',
     }),
 
     /* ---------------------------------------------------------------------- */
@@ -158,7 +132,6 @@ export default defineType({
         // switch this to a reference to `mediaItem`.
         { type: 'image', options: { hotspot: true } },
       ],
-      readOnly: ({ document }) => getSlugCurrent(document) === 'guida-editor',
       validation: (r) => r.required(),
     }),
 
@@ -182,7 +155,6 @@ export default defineType({
         ],
         layout: 'radio',
       },
-      readOnly: ({ document }) => getSlugCurrent(document) === 'guida-editor',
       validation: (r) => r.required(),
     }),
 
@@ -194,7 +166,6 @@ export default defineType({
         'Optional. Useful if you want to display a publish or last-updated date.',
         'Opzionale. Utile se vuoi mostrare la data di pubblicazione o ultimo aggiornamento.'
       ),
-      readOnly: ({ document }) => getSlugCurrent(document) === 'guida-editor',
     }),
   ],
 
@@ -211,8 +182,7 @@ export default defineType({
         slug ? `/${slug}` : null,
       ].filter(Boolean);
 
-      const isEditorGuide = slug === 'guida-editor';
-      const media = cover || (isEditorGuide ? BookIcon : undefined);
+      const media = cover || BookIcon;
 
       return {
         title: title || 'Untitled page',

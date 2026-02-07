@@ -1,113 +1,128 @@
 # The Paguro Journey 🌍
 
-A slow-travel storytelling platform combining long-form articles, destinations, and video content.
-  
-**Live Demo:** https://the-paguro-journey.vercel.app/
+A slow-travel storytelling platform focused on clarity, calm design, and long-term scalability.
 
-This project explores how travel stories can be presented with clarity, calm design, and long-term scalability in mind — avoiding clutter, hype, and short-form noise.
+**Live demo:** https://the-paguro-journey.vercel.app/
 
 ---
 
-## ✨ Project Overview
+## Overview
 
-**The Paguro Journey** is a modern web platform designed to grow over time:
+**The Paguro Journey** is a modern web platform for travel stories, destinations, and video-led content.
 
-- Editorial blog posts (long-form, SEO-friendly)
-- Destination-based exploration (geographic & thematic)
-- Video integration (YouTube)
-- Clean UI with focus on readability and calm navigation
+The project explores how long-form travel content can be presented without noise, hype, or algorithm-driven clutter — prioritizing readability, structure, and editorial intent.
 
-The project is currently in **active development** and serves both as:
-- a real collaborative project, and
-- a portfolio piece demonstrating architecture, design decisions, and scalability.
+This repository serves both as:
+- a **real, evolving project**, and
+- a **portfolio-grade codebase** showcasing architectural and design decisions.
 
 ---
 
-## 🧠 Key Design Principles
+## Core Principles
 
-- **Slow & readable** → typography-first layouts
-- **Content-driven** → structure before visuals
-- **Scalable architecture** → ready for CMS (Sanity)
-- **No premature complexity** → features added when justified
+- **Slow by design**  
+  Typography-first layouts, calm spacing, and deliberate pacing.
+
+- **Content before features**  
+  Structure and data models come first; features are added only when justified.
+
+- **Editorial control over automation**  
+  CMS-driven decisions (orientation, focal points, visibility) always override “smart” defaults.
+
+- **Scalable, not over-engineered**  
+  Clean architecture without premature abstractions.
 
 ---
 
-## 🛠️ Tech Stack
+## Features
+
+- Responsive, accessible navigation
+- Hero slideshow with pause & interaction logic
+- Destinations view with structured filtering
+- Gallery with:
+  - masonry layout
+  - hotspot-aware cropping
+  - orientation locking for sensitive images
+- Reusable UI system (cards, sections, modals)
+- SEO-friendly structure (semantic HTML, predictable routes)
+- Keyboard and focus-aware interactions
+
+---
+
+## Tech Stack
 
 - **Framework:** Next.js (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS + CSS variables (design tokens)
-- **Images:** Next/Image
-- **State:** Local + lightweight context where needed
-- **CMS (planned):** Sanity
+- **Images:** Next/Image + Sanity image pipeline
+- **State:** Local state + derived data (no heavy global state)
+- **CMS:** Sanity (custom schemas & queries)
 - **Deployment:** Vercel
 
 ---
 
-## 🗂️ Current Features
+## Architecture Notes
 
-- Responsive navigation with active route styling
-- Hero slideshow with controls and pause logic
-- Blog system with dynamic slugs
-- Destinations as a structured content view
-- Reusable UI components (cards, sections, icons)
-- Accessibility-aware interactions (keyboard, focus states)
-- SEO-friendly structure (semantic HTML, hidden H1s where needed)
+This project intentionally avoids:
+- heavy global state libraries
+- over-abstracted “framework-inside-framework” patterns
+- design-driven randomness without editorial guardrails
+
+Notable design decisions:
+- Media orientation and cropping are **data-driven**, not inferred blindly.
+- Gallery layout balances variation with predictability.
+- Mobile and desktop galleries are treated as **distinct experiences**.
+- Loading states mirror final layout to avoid visual jumps.
 
 ---
 
-## 🚧 Roadmap
+## Project Status
 
-Short-term:
-- Styling refinements (typography & spacing consistency)
-- CMS schema design (Sanity)
-- Content migration (posts, destinations, collaborations)
+**Active development**
 
-Mid-term:
+Current focus:
+- Destinations filters UX & styling
+- CMS editor documentation
+- Final layout refinements
+- Performance and lazy-loading tuning
+
+---
+
+## Roadmap
+
+**Short term**
+- Sanity Studio editorial guidelines
+- Destinations filtering polish
+- Search UX refinement
+
+**Mid term**
 - YouTube API integration
-- Search functionality
-- Destination ↔ blog cross-linking
-- Performance & SEO optimizations
+- Cross-linking (destinations ↔ stories)
+- Performance & SEO audits
 
-Long-term:
+**Long term**
 - Editorial workflows
-- Internationalization
-- Advanced filtering & discovery
+- Internationalization strategy
+- Advanced discovery patterns
 
 ---
 
-## 👤 My Role
+## Maintainer
 
-I’m responsible for:
+**Francesco De Vivo**  
+Frontend developer focused on clarity, calm UI, and real-world scalability.
 
-- Project architecture
-- Frontend development
-- Component design
-- Styling system & typography
-- CMS-ready data modeling
-- Performance & accessibility considerations
-
-This repository is maintained as part of my **developer portfolio** and reflects real-world decision-making rather than tutorial patterns.
+This repository is maintained as part of my professional portfolio and reflects real production-style decision making rather than tutorial patterns.
 
 ---
 
-## ⚠️ Notes
+## License & Usage
 
-- Content is placeholder where marked (Lorem Ipsum, mock data).
-- The project will eventually be deployed on a separate production account.
-- This repository remains public for portfolio and documentation purposes.
+This project is shared for **educational and portfolio purposes**.
 
----
-
-## 📄 License
-
-This project is shared for educational and portfolio purposes.  
-Design and content branding belong to their respective owners.
+Design, branding, and content concepts remain the property of their respective owners.
 
 ---
 
-## © Attribution
-
-© 2026 codevivo.dev — Francesco De Vivo
-
-This project is developed and maintained by Francesco De Vivo as part of his professional portfolio.
+© 2026 — codevivo.dev  
+Built with care, not urgency.
