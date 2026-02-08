@@ -54,45 +54,108 @@ function biDesc(en: string, it: string): ReactElement {
 // Studio-only Preview button (schema-level field UI)
 // -----------------------------------------------------------------------------
 
-function getStudioEnv(key: string): string | undefined {
-  // Sanity Studio exposes env vars as process.env.SANITY_STUDIO_* at build time.
-  // Some setups may also provide Vite-style import.meta.env.
-  const fromProcess =
-    (typeof process !== 'undefined' &&
-      (process as unknown as { env?: Record<string, string | undefined> }).env?.[key]) ||
+function getSiteBaseUrl(): string | null {
+  // Sanity Studio runs on Vite. Env vars should be available on import.meta.env.
+  const viteEnv =
+    (typeof import.meta !== 'undefined' &&
+      (import.meta as unknown as { env?: Record<string, string | undefined> }).env) ||
     undefined;
 
-  const fromImportMeta =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.[key]) ||
+  const fromVite =
+    viteEnv?.SANITY_STUDIO_SITE_URL ?? viteEnv?.NEXT_PUBLIC_SANITY_STUDIO_SITE_URL;
+
+  // Node-style env (rare in Studio browser runtime, but useful in tests/scripts)
+  const fromNode =
+    (typeof process !== 'undefined'
+      ? ((process.env.NEXT_PUBLIC_SANITY_STUDIO_SITE_URL as string | undefined) ??
+          (process.env.SANITY_STUDIO_SITE_URL as string | undefined))
+      : undefined) ??
+    (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } })
+      ?.process?.env?.NEXT_PUBLIC_SANITY_STUDIO_SITE_URL ??
+    (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } })
+      ?.process?.env?.SANITY_STUDIO_SITE_URL;
+
+  // Local dev fallback: if Studio is hosted inside the same Next app, this is correct.
+  const fromWindow = typeof window !== 'undefined' ? window.location.origin : undefined;
+
+  const url = (fromVite ?? fromNode ?? fromWindow ?? '').trim();
+  return url ? url.replace(/\/$/, '') : null;
+}
+
+function getPreviewSecret(): string | null {
+  const viteEnv =
+    (typeof import.meta !== 'undefined' &&
+      (import.meta as unknown as { env?: Record<string, string | undefined> }).env) ||
     undefined;
 
-  return fromProcess ?? fromImportMeta;
+  const fromVite =
+    viteEnv?.SANITY_STUDIO_PREVIEW_SECRET ??
+    viteEnv?.NEXT_PUBLIC_SANITY_STUDIO_PREVIEW_SECRET;
+
+  const fromNode =
+    (typeof process !== 'undefined'
+      ? ((process.env.NEXT_PUBLIC_SANITY_STUDIO_PREVIEW_SECRET as string | undefined) ??
+          (process.env.SANITY_STUDIO_PREVIEW_SECRET as string | undefined))
+      : undefined) ??
+    (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } })
+      ?.process?.env?.NEXT_PUBLIC_SANITY_STUDIO_PREVIEW_SECRET ??
+    (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } })
+      ?.process?.env?.SANITY_STUDIO_PREVIEW_SECRET;
+
+  const secret = (fromVite ?? fromNode ?? '').trim();
+  return secret || null;
+}
+
+function getStudioLang(): string {
+  // Studio path is usually `/` or `/structure/...` so auto-detect is unreliable.
+  // Default to Italian unless you later add a lang field.
+  if (typeof window === 'undefined') return 'it';
+  const [, maybeLang] = window.location.pathname.split('/');
+  return maybeLang === 'en' || maybeLang === 'it' ? maybeLang : 'it';
 }
 
 function buildPreviewUrl(slugCurrent?: string): string | null {
-  const siteUrl = getStudioEnv('SANITY_STUDIO_SITE_URL');
-  const secret = getStudioEnv('SANITY_STUDIO_PREVIEW_SECRET');
-
+  const siteUrl = getSiteBaseUrl();
+  const secret = getPreviewSecret();
   if (!siteUrl || !secret) return null;
 
-  const slug = slugCurrent?.startsWith('/') ? slugCurrent : `/${slugCurrent ?? ''}`;
-  const url = new URL('/api/preview', siteUrl);
-  url.searchParams.set('secret', secret);
-  url.searchParams.set('slug', slug);
+  const slugValue = (slugCurrent ?? '').trim();
+  if (!slugValue) return null;
 
+  const cleanSlug = slugValue.startsWith('/') ? slugValue.slice(1) : slugValue;
+  const lang = getStudioLang();
+
+  // We pass a *path* the Next route will redirect to.
+  const previewSlug = `/${lang}/blog/${cleanSlug}`;
+  const previewApi = `/${lang}/api/studio/preview`;
+
+  const url = new URL(previewApi, siteUrl);
+  url.searchParams.set('secret', secret);
+  url.searchParams.set('slug', previewSlug);
   return url.toString();
 }
 
 function PreviewLinkInput() {
+  const [isHover, setIsHover] = React.useState(false);
   const slug = useFormValue(['slug', 'current']) as string | undefined;
+  const previewUrl = buildPreviewUrl(slug);
 
-  const url = buildPreviewUrl(slug);
+  const siteUrl = getSiteBaseUrl();
+  const secret = getPreviewSecret();
+
   const disabledReason = !slug
     ? 'Add a Slug first to enable Preview.'
-    : !url
-      ? 'Missing SANITY_STUDIO_SITE_URL or SANITY_STUDIO_PREVIEW_SECRET in Studio env.'
-      : null;
+    : !siteUrl
+      ? 'Missing SANITY_STUDIO_SITE_URL in Studio env.'
+      : !secret
+        ? 'Missing SANITY_STUDIO_PREVIEW_SECRET in Studio env.'
+        : !previewUrl
+          ? 'Preview URL could not be built.'
+          : null;
+
+  const helpText = previewUrl
+    ? `Open the live preview for this post (draft mode enabled).`
+    : `${disabledReason} (Detected siteUrl: ${siteUrl ?? 'null'}, secret: ${secret ? 'set' : 'null'})`;
 
   return React.createElement(
     'div',
@@ -104,41 +167,45 @@ function PreviewLinkInput() {
         flexWrap: 'wrap',
       },
     },
-    React.createElement(
-      'button',
-      {
-        type: 'button',
-        disabled: Boolean(disabledReason),
-        onClick: () => {
-          if (!url) return;
-          window.open(url, '_blank', 'noopener,noreferrer');
-        },
-        style: {
-          padding: '0.5rem 0.75rem',
-          borderRadius: '6px',
-          border: '1px solid rgba(0,0,0,0.15)',
-          background: disabledReason ? 'rgba(0,0,0,0.06)' : 'white',
-          cursor: disabledReason ? 'not-allowed' : 'pointer',
-          fontWeight: 600,
-        },
-      },
-      'Open Preview',
-    ),
-    url
+    previewUrl
       ? React.createElement(
           'a',
           {
-            href: url,
+            href: previewUrl,
             target: '_blank',
-            rel: 'noreferrer',
-            style: { fontSize: '0.95rem' },
+            rel: 'noopener noreferrer',
+            onMouseEnter: () => setIsHover(true),
+            onMouseLeave: () => setIsHover(false),
+            style: {
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.55rem 0.85rem',
+              borderRadius: '8px',
+              background: isHover ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.06)',
+              border: isHover
+                ? '1px solid rgba(255,255,255,0.22)'
+                : '1px solid rgba(255,255,255,0.14)',
+              color: 'inherit',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              fontWeight: 650,
+              transition: 'background 120ms ease, border-color 120ms ease, transform 120ms ease',
+              transform: isHover ? 'translateY(-1px)' : 'translateY(0px)',
+            },
+            title: 'Open preview in a new tab',
           },
-          'Preview link',
+          'Open Preview ↗',
         )
       : React.createElement(
           'span',
-          { style: { fontSize: '0.95rem', opacity: 0.8 } },
-          disabledReason,
+          {
+            style: {
+              fontSize: '0.95rem',
+              opacity: 0.8,
+            },
+          },
+          helpText,
         ),
   );
 }
@@ -568,8 +635,8 @@ export default defineType({
       type: 'string',
       readOnly: true,
       description: biDesc(
-        'Studio-only helper. Opens the secret preview for this post (drafts included). Requires SANITY_STUDIO_SITE_URL and SANITY_STUDIO_PREVIEW_SECRET in Studio env.',
-        'Helper solo Studio. Apre la preview segreta di questo post (incluse le bozze). Richiede SANITY_STUDIO_SITE_URL e SANITY_STUDIO_PREVIEW_SECRET nelle env di Studio.',
+        'Studio-only helper. Opens a server-protected preview URL for this post (draft mode enabled).',
+        'Helper solo Studio. Apre una preview protetta lato server per questo post (draft mode attivo).',
       ),
       components: {
         input: PreviewLinkInput,

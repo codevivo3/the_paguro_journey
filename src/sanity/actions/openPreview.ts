@@ -6,6 +6,33 @@ type PostWithSlug = {
   slug?: { current?: string };
 };
 
+function getStudioOrigin(): string | null {
+  if (typeof window === 'undefined') return null;
+  return window.location.origin;
+}
+
+function getStudioLang(): string | null {
+  if (typeof window === 'undefined') return null;
+  const [, lang] = window.location.pathname.split('/');
+  return lang || null;
+}
+
+function buildPreviewUrlTemplate(slugCurrent?: string): string | null {
+  const origin = getStudioOrigin();
+  if (!origin) return null;
+
+  const slug = slugCurrent?.startsWith('/') ? slugCurrent : `/${slugCurrent ?? ''}`;
+  const lang = getStudioLang();
+  const blogPath = `/blog${slug}`;
+  const previewSlug = lang ? `/${lang}${blogPath}` : blogPath;
+  const previewPath = lang ? `/${lang}/api/studio/preview` : '/api/studio/preview';
+
+  const url = new URL(previewPath, origin);
+  url.searchParams.set('secret', 'YOUR_SECRET');
+  url.searchParams.set('slug', previewSlug);
+  return url.toString();
+}
+
 export const openPreviewAction: DocumentActionComponent = (props) => {
   const doc = (props.draft ?? props.published) as unknown;
 
@@ -14,52 +41,20 @@ export const openPreviewAction: DocumentActionComponent = (props) => {
 
   const slug = (doc as PostWithSlug)?.slug?.current;
 
-  // Sanity Studio bundles env vars at build time for keys that start with SANITY_STUDIO_.
-  // Depending on your bundler/runtime, these can be available via `process.env` and/or `import.meta.env`.
-  // So we read both safely and fall back gracefully.
-  const processEnv =
-    typeof process !== 'undefined' && (process as unknown as { env?: Record<string, string | undefined> }).env
-      ? (process as unknown as { env: Record<string, string | undefined> }).env
-      : undefined;
-
-  const metaEnv = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
-
-  const readEnv = (key: string) => processEnv?.[key] ?? metaEnv?.[key];
-
-  const baseUrl =
-    readEnv('SANITY_STUDIO_SITE_URL') ??
-    readEnv('VITE_SANITY_STUDIO_SITE_URL') ??
-    'http://localhost:3000';
-
-  const secret =
-    readEnv('SANITY_STUDIO_PREVIEW_SECRET') ??
-    readEnv('VITE_SANITY_STUDIO_PREVIEW_SECRET');
-
-  // Next.js expects a PATH for `slug` (e.g. /blog/my-post)
-  // Your post slug is usually "my-post" so we convert it.
-  const previewPath = slug ? `/blog/${slug}` : '';
-
-  const canOpen = Boolean(previewPath && secret);
-
-  const url = canOpen
-    ? `${baseUrl}/api/preview?secret=${encodeURIComponent(
-        secret!,
-      )}&slug=${encodeURIComponent(previewPath)}`
-    : '';
+  const urlTemplate = buildPreviewUrlTemplate(slug);
+  const canOpen = Boolean(slug && urlTemplate);
 
   return {
-    label: canOpen ? 'Open Preview' : 'Open Preview (missing env)',
+    label: canOpen ? 'Open Preview (requires secret)' : 'Open Preview (add slug)',
     icon: LaunchIcon,
     tone: canOpen ? 'primary' : 'caution',
-    disabled: !canOpen,
+    disabled: true,
     onHandle: () => {
       if (!slug) return alert('No slug yet — generate the slug first.');
-      if (!secret)
-        return alert(
-          'Missing SANITY_STUDIO_PREVIEW_SECRET. Add it to Studio env vars and reload the Studio.',
-        );
-
-      window.open(url, '_blank', 'noopener,noreferrer');
+      if (!urlTemplate) return alert('Preview URL is not available in this context.');
+      return alert(
+        `Preview is server-protected. Use this URL template and replace YOUR_SECRET:\n\n${urlTemplate}`,
+      );
     },
   };
 };

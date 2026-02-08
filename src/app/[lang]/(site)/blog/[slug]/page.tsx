@@ -270,7 +270,7 @@ export async function generateMetadata({
   const { slug, lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
   const { isEnabled } = await draftMode();
-  const post = await getPostBySlug(slug, { preview: isEnabled });
+  const post = await getPostBySlug(slug, { preview: isEnabled, lang: effectiveLang });
   if (!post)
     return {
       title:
@@ -309,12 +309,12 @@ export default async function BlogPostPage({
   const { slug, lang } = await params;
   const effectiveLang: Lang = safeLang(lang);
   const { isEnabled } = await draftMode();
-  const post = await getPostBySlug(slug, { preview: isEnabled });
+  const post = await getPostBySlug(slug, { preview: isEnabled, lang: effectiveLang });
   if (!post) notFound();
 
-  const title = pickLang(effectiveLang, post.titleIt, post.titleEn) ?? post.titleIt;
-  const excerpt = pickLang(effectiveLang, post.excerptIt, post.excerptEn);
-  const content = pickLang(effectiveLang, post.contentIt, post.contentEn);
+  const title = post.title ?? pickLang(effectiveLang, post.titleIt, post.titleEn) ?? post.titleIt;
+  const excerpt = post.excerpt ?? pickLang(effectiveLang, post.excerptIt, post.excerptEn);
+  const content = post.content ?? pickLang(effectiveLang, post.contentIt, post.contentEn);
 
   const cover = resolveSanityCover(post);
   const gallery = resolveSanityGallery(post, 6);

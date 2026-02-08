@@ -1,3 +1,4 @@
+import 'server-only';
 // src/sanity/lib/client.ts
 import { createClient } from 'next-sanity';
 /**
@@ -71,10 +72,19 @@ export const client = createClient({
 // Used ONLY when Next.js Draft Mode is enabled
 // -----------------------------------------------------------------------------
 
+// IMPORTANT: Preview (drafts) requires an authenticated token.
+// Prefer a READ token if you create one; falling back to the write token is OK but riskier.
+const previewToken =
+  process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_WRITE_TOKEN;
+
 export const previewClient = createClient({
   projectId,
   dataset,
   apiVersion,
+
+  // Preview requires auth to read drafts
+  token: previewToken,
+  ignoreBrowserTokenWarning: true,
 
   // Never use CDN for previews (must read fresh drafts)
   useCdn: false,
