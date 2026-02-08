@@ -1,5 +1,5 @@
 // src/sanity/schemaTypes/documents/post.ts
-import { defineType, defineField } from 'sanity';
+import { defineType, defineField, useFormValue } from 'sanity';
 import React from 'react';
 import type { ReactElement } from 'react';
 
@@ -47,6 +47,99 @@ function biDesc(en: string, it: string): ReactElement {
       ' — ',
       it,
     ),
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Studio-only Preview button (schema-level field UI)
+// -----------------------------------------------------------------------------
+
+function getStudioEnv(key: string): string | undefined {
+  // Sanity Studio exposes env vars as process.env.SANITY_STUDIO_* at build time.
+  // Some setups may also provide Vite-style import.meta.env.
+  const fromProcess =
+    (typeof process !== 'undefined' &&
+      (process as unknown as { env?: Record<string, string | undefined> }).env?.[key]) ||
+    undefined;
+
+  const fromImportMeta =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.[key]) ||
+    undefined;
+
+  return fromProcess ?? fromImportMeta;
+}
+
+function buildPreviewUrl(slugCurrent?: string): string | null {
+  const siteUrl = getStudioEnv('SANITY_STUDIO_SITE_URL');
+  const secret = getStudioEnv('SANITY_STUDIO_PREVIEW_SECRET');
+
+  if (!siteUrl || !secret) return null;
+
+  const slug = slugCurrent?.startsWith('/') ? slugCurrent : `/${slugCurrent ?? ''}`;
+  const url = new URL('/api/preview', siteUrl);
+  url.searchParams.set('secret', secret);
+  url.searchParams.set('slug', slug);
+
+  return url.toString();
+}
+
+function PreviewLinkInput() {
+  const slug = useFormValue(['slug', 'current']) as string | undefined;
+
+  const url = buildPreviewUrl(slug);
+  const disabledReason = !slug
+    ? 'Add a Slug first to enable Preview.'
+    : !url
+      ? 'Missing SANITY_STUDIO_SITE_URL or SANITY_STUDIO_PREVIEW_SECRET in Studio env.'
+      : null;
+
+  return React.createElement(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        gap: '0.75rem',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      },
+    },
+    React.createElement(
+      'button',
+      {
+        type: 'button',
+        disabled: Boolean(disabledReason),
+        onClick: () => {
+          if (!url) return;
+          window.open(url, '_blank', 'noopener,noreferrer');
+        },
+        style: {
+          padding: '0.5rem 0.75rem',
+          borderRadius: '6px',
+          border: '1px solid rgba(0,0,0,0.15)',
+          background: disabledReason ? 'rgba(0,0,0,0.06)' : 'white',
+          cursor: disabledReason ? 'not-allowed' : 'pointer',
+          fontWeight: 600,
+        },
+      },
+      'Open Preview',
+    ),
+    url
+      ? React.createElement(
+          'a',
+          {
+            href: url,
+            target: '_blank',
+            rel: 'noreferrer',
+            style: { fontSize: '0.95rem' },
+          },
+          'Preview link',
+        )
+      : React.createElement(
+          'span',
+          { style: { fontSize: '0.95rem', opacity: 0.8 } },
+          disabledReason,
+        ),
   );
 }
 
@@ -122,6 +215,7 @@ export default defineType({
       ),
       validation: (r) => r.required(),
     }),
+
 
     defineField({
       name: 'excerptIt',
@@ -466,6 +560,20 @@ export default defineType({
         'If a travel style does not exist yet, you can create it directly from here.\n' +
         'Naming convention: Title Case, singular, descriptive terms (avoid abbreviations or overly generic labels).',
       validation: (r) => r.unique(),
+    }),
+
+    defineField({
+      name: 'previewLink',
+      title: 'Preview',
+      type: 'string',
+      readOnly: true,
+      description: biDesc(
+        'Studio-only helper. Opens the secret preview for this post (drafts included). Requires SANITY_STUDIO_SITE_URL and SANITY_STUDIO_PREVIEW_SECRET in Studio env.',
+        'Helper solo Studio. Apre la preview segreta di questo post (incluse le bozze). Richiede SANITY_STUDIO_SITE_URL e SANITY_STUDIO_PREVIEW_SECRET nelle env di Studio.',
+      ),
+      components: {
+        input: PreviewLinkInput,
+      },
     }),
   ],
 
