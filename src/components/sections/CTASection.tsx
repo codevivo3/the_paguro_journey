@@ -53,9 +53,9 @@ export default function CallToAction({
     <section className='py-14 px-4 md:py-20 md:px-6 bg-[color:var(--paguro-bg)]'>
       <div className='mx-auto max-w-3xl text-center space-y-5 md:space-y-6'>
         {/* Section eyebrow/label */}
-        <p className='t-meta text-[0.7rem] md:text-[0.75rem] [font-family:var(--font-ui)] uppercase tracking-wide'>
+        {/* <p className='t-meta text-[0.7rem] md:text-[0.75rem] [font-family:var(--font-ui)] uppercase tracking-wide'>
           {resolvedEyebrow}
-        </p>
+        </p> */}
 
         {/* CTA headline */}
         <h2 className='t-section-title text-2xl md:text-3xl title-divider title-divider-center'>

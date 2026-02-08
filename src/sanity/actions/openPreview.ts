@@ -9,18 +9,40 @@ type PostWithSlug = {
 export const openPreviewAction: DocumentActionComponent = (props) => {
   const doc = (props.draft ?? props.published) as unknown;
 
-  // only for posts
+  // Only for posts
   if (!doc || (doc as { _type?: string })._type !== 'post') return null;
 
   const slug = (doc as PostWithSlug)?.slug?.current;
 
-  // Studio runs in the browser -> only NEXT_PUBLIC_* reliably exists
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  const secret = process.env.NEXT_PUBLIC_PREVIEW_SECRET;
+  // Sanity Studio runs in the browser -> only SANITY_STUDIO_* and import.meta.env are reliable.
+  // Set these in Sanity Studio env (or Vercel env for the Studio deployment):
+  // - SANITY_STUDIO_SITE_URL (e.g. https://the-paguro-journey.vercel.app)
+  // - SANITY_STUDIO_PREVIEW_SECRET (must match Next.js PREVIEW_SECRET)
+  type ImportMetaWithEnv = ImportMeta & {
+    env: Record<string, string | undefined>;
+  };
 
-  const canOpen = Boolean(slug && secret);
+  const env = (import.meta as ImportMetaWithEnv).env;
+
+  const baseUrl =
+    env.SANITY_STUDIO_SITE_URL ??
+    env.VITE_SANITY_STUDIO_SITE_URL ??
+    'http://localhost:3000';
+
+  const secret =
+    env.SANITY_STUDIO_PREVIEW_SECRET ??
+    env.VITE_SANITY_STUDIO_PREVIEW_SECRET;
+
+  // Next.js expects a PATH for `slug` (e.g. /blog/my-post)
+  // Your post slug is usually "my-post" so we convert it.
+  const previewPath = slug ? `/blog/${slug}` : '';
+
+  const canOpen = Boolean(previewPath && secret);
+
   const url = canOpen
-    ? `${baseUrl}/api/draft?secret=${encodeURIComponent(secret!)}&slug=${encodeURIComponent(slug!)}`
+    ? `${baseUrl}/api/preview?secret=${encodeURIComponent(
+        secret!,
+      )}&slug=${encodeURIComponent(previewPath)}`
     : '';
 
   return {
@@ -32,7 +54,7 @@ export const openPreviewAction: DocumentActionComponent = (props) => {
       if (!slug) return alert('No slug yet — generate the slug first.');
       if (!secret)
         return alert(
-          'Missing NEXT_PUBLIC_PREVIEW_SECRET in .env.local. Add it and restart dev server.',
+          'Missing SANITY_STUDIO_PREVIEW_SECRET. Add it to Studio env vars and reload the Studio.',
         );
 
       window.open(url, '_blank', 'noopener,noreferrer');

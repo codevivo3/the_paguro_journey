@@ -11,7 +11,8 @@
     "seed:worldRegions": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/seed-world-regions.ts scripts/data/world-regions-according-to-the-world-bank.csv",
     "seed:worldRegions:attach": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/seed-world-regions.ts scripts/data/world-regions-according-to-the-world-bank.csv --attach",
     "seed:worldRegions:maps": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/seed-world-regions.ts scripts/data/world-regions-according-to-the-world-bank.csv --maps",
-    "seed:worldRegions:attach:maps": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/seed-world-regions.ts scripts/data/world-regions-according-to-the-world-bank.csv --attach --maps"
+    "seed:worldRegions:attach:maps": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/seed-world-regions.ts scripts/data/world-regions-according-to-the-world-bank.csv --attach --maps",
+    "attach:worldRegions": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/attach-world-regions-to-countries.ts"
   },
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.17.12",
