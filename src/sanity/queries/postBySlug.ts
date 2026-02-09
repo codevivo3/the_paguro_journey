@@ -70,11 +70,6 @@ export type BlogPostBySlug = {
 const POST_BY_SLUG_QUERY = /* groq */ `
   *[
     _type == "post" &&
-    (
-      $preview == true ||
-      !defined(status) ||
-      status == "published"
-    ) &&
     slug.current == $slug
   ][0]{
     _id,

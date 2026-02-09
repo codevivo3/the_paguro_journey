@@ -87,14 +87,26 @@ export default defineType({
     /* ---------------------------------------------------------------------- */
 
     defineField({
-      name: 'titleRegion',
-      title: 'Region / Area name',
-      type: 'string',
+      name: 'titleI18n',
+      title: 'Region / Area name (IT / EN)',
+      type: 'object',
       description: biDesc(
         'Name of the sub-area (e.g. Northern Italy, Tuscany, Cyclades, Bangkok). Naming convention: Title Case, singular, clear geographic names (avoid abbreviations).',
         'Nome della sotto-area (es. Nord Italia, Toscana, Cicladi, Bangkok). Regole: Titolo con iniziali maiuscole, singolare, nomi geografici chiari (evita abbreviazioni).',
       ),
-      validation: (r) => r.required(),
+      fields: [
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'string',
+          validation: (r) => r.required(),
+        }),
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'string',
+        }),
+      ],
     }),
 
     defineField({
@@ -102,7 +114,12 @@ export default defineType({
       title: 'Slug',
       type: 'slug',
       options: {
-        source: 'titleRegion',
+        source: (doc: UnknownRecord | undefined) => {
+          const t = (doc?.['titleI18n'] as UnknownRecord | undefined) ?? undefined;
+          const it = (t?.['it'] as string | undefined) ?? undefined;
+          const en = (t?.['en'] as string | undefined) ?? undefined;
+          return it || en || '';
+        },
         maxLength: 96,
       },
       // Keep URLs stable once created (avoid breaking references/links)
@@ -234,14 +251,13 @@ export default defineType({
      * This preview is for Studio UX only and has NO impact on the website.
      */
     select: {
-      title: 'titleRegion',
+      titleIt: 'titleI18n.it',
+      titleEn: 'titleI18n.en',
       media: 'coverImage.image',
     },
-    prepare(
-      { title, media }: { title?: string; media?: unknown },
-    ): PreviewValue {
+    prepare({ titleIt, titleEn, media }: { titleIt?: string; titleEn?: string; media?: unknown }): PreviewValue {
       return {
-        title: title ?? '',
+        title: titleIt || titleEn || '',
         media: media as PreviewValue['media'],
       };
     },

@@ -503,29 +503,28 @@ export default function DestinationsFilters({
                     />
                   </label>
 
-                  {/* Style filter (future) */}
-                  {/**
-                  <label className='grid gap-1'>
-                    <span
-                      id='destinations-filter-style'
-                      className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
-                    >
-                      {t.style}
-                    </span>
+                  {state.options.styles.length > 0 && (
+                    <label className='grid gap-1'>
+                      <span
+                        id='destinations-filter-style'
+                        className='t-section-title text-base font-medium text-[color:var(--paguro-text)]'
+                      >
+                        {t.style}
+                      </span>
 
-                    <PaguroSelect
-                      name='style'
-                      labelId='destinations-filter-style'
-                      value={selected.style}
-                      onValueChange={setStyle}
-                      placeholder={t.allPlural}
-                      options={state.options.styles.map((s) => ({
-                        value: s.slug,
-                        label: s.label,
-                      }))}
-                    />
-                  </label>
-                  */}
+                      <PaguroSelect
+                        name='style'
+                        labelId='destinations-filter-style'
+                        value={selected.style}
+                        onValueChange={setStyle}
+                        placeholder={t.allPlural}
+                        options={state.options.styles.map((s) => ({
+                          value: s.slug,
+                          label: s.label,
+                        }))}
+                      />
+                    </label>
+                  )}
                 </div>
 
                 <div className='mt-4 flex flex-col items-stretch justify-center gap-3 border-t border-[color:var(--paguro-sand)]/15 pt-4 sm:flex-row sm:items-center sm:justify-between'>

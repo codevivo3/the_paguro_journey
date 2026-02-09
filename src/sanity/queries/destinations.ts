@@ -48,8 +48,9 @@ export type CountryForDestinations = {
    * Distinct list, suitable for filter pills.
    */
   travelStyles?: Array<{
+    _id: string; // stable filter key
     slug: string;
-    label: string;
+    label: string; // UI label (localized)
     titleI18n?: { it?: string; en?: string };
     order?: number;
   }>;
@@ -94,6 +95,7 @@ const COUNTRIES_FOR_DESTINATIONS_QUERY = /* groq */ `
       (status == "published" || $preview == true) &&
       references(^._id)
     ].travelStyles[]-> {
+      _id,
       "slug": slug.current,
       titleI18n,
       "label": coalesce(titleI18n[$lang], title),

@@ -519,22 +519,6 @@ export default defineType({
         'Optional. If empty, the website can fall back to “last updated”.',
     }),
 
-    defineField({
-      name: 'status',
-      title: 'Status',
-      type: 'string',
-      initialValue: 'draft',
-      options: {
-        list: [
-          { title: 'Draft', value: 'draft' },
-          { title: 'Published', value: 'published' },
-        ],
-        layout: 'radio',
-      },
-      description:
-        'Draft = not live. Published = visible on the website (depending on your frontend logic).',
-      validation: (r) => r.required(),
-    }),
 
     /* ---------------------------------------------------------------------- */
     /* Relations (used for filtering, discovery, and grouping)                */
@@ -648,16 +632,13 @@ export default defineType({
     select: {
       title: 'titleIt',
       seoTitle: 'seo.title',
-      status: 'status',
       publishedAt: 'publishedAt',
       // For Studio list thumbnail: follow the coverImage reference and grab its image
       coverImage: 'coverImage.image',
     },
-    prepare({ title, seoTitle, status, publishedAt, coverImage }) {
-      const baseSubtitle =
-        status === 'published'
-          ? `Published · ${publishedAt ? new Date(publishedAt).toLocaleDateString() : ''}`
-          : 'Draft';
+    prepare({ title, seoTitle, publishedAt, coverImage }) {
+      const date = publishedAt ? new Date(publishedAt).toLocaleDateString() : '';
+      const baseSubtitle = date ? `Published · ${date}` : 'Published';
 
       // Show SEO title only as an internal hint (do NOT use it as the main title)
       const seoHint = seoTitle ? ` · SEO: ${seoTitle}` : '';

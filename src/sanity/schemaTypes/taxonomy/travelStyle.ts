@@ -73,14 +73,48 @@ export default defineType({
     /* ---------------------------------------------------------------------- */
 
     defineField({
-      name: 'title',
-      title: 'Travel style name',
-      type: 'string',
+      name: 'titleI18n',
+      title: 'Travel style name (IT/EN)',
+      type: 'object',
       description: biDesc(
-        'Human-readable label used in filters, cards, and UI elements (e.g. Slow Travel, Digital Nomad, Sailing). Naming convention: Title Case, singular, descriptive terms (avoid abbreviations and overly generic labels).',
-        'Etichetta leggibile usata in filtri, card e UI (es. Slow Travel, Digital Nomad, Vela). Regole: Titolo con iniziali maiuscole, singolare, termini descrittivi (evita abbreviazioni ed etichette troppo generiche).',
+        'Human-readable label used in filters, cards, and UI elements. Naming convention: Title Case, singular, descriptive terms (avoid abbreviations and overly generic labels).',
+        'Etichetta leggibile usata in filtri, card e UI. Regole: Titolo con iniziali maiuscole, singolare, termini descrittivi (evita abbreviazioni ed etichette troppo generiche).',
       ),
-      validation: (r) => r.required(),
+      fields: [
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'string',
+          validation: (r) => r.required(),
+        }),
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'string',
+        }),
+      ],
+    }),
+
+    defineField({
+      name: 'subtitleI18n',
+      title: 'Travel style subtitle (IT/EN)',
+      type: 'object',
+      description: biDesc(
+        'Optional short subtitle/tagline shown in UI (e.g. “Work remotely on the move”). Keep it concise.',
+        'Sottotitolo/tagline opzionale mostrato nella UI (es. “Lavoro remoto in viaggio”). Tienilo conciso.',
+      ),
+      fields: [
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'string',
+        }),
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'string',
+        }),
+      ],
     }),
 
     defineField({
@@ -88,7 +122,12 @@ export default defineType({
       title: 'Slug',
       type: 'slug',
       options: {
-        source: 'title',
+        source: (doc: UnknownRecord | undefined) => {
+          const t = (doc?.['titleI18n'] as UnknownRecord | undefined) ?? undefined;
+          const it = (t?.['it'] as string | undefined) ?? undefined;
+          const en = (t?.['en'] as string | undefined) ?? undefined;
+          return it || en || '';
+        },
         maxLength: 96,
       },
       // Lock slug after first save to avoid URL churn
@@ -129,6 +168,68 @@ export default defineType({
     }),
 
     defineField({
+      name: 'contentI18n',
+      title: 'Content (IT/EN)',
+      type: 'object',
+      description: biDesc(
+        'Optional long-form content for this travel style. Useful for tooltips, landing pages, or richer UI in the future.',
+        'Contenuto lungo opzionale per questo stile di viaggio. Utile per tooltip, pagine dedicate o UI più ricche in futuro.',
+      ),
+      fields: [
+        defineField({
+          name: 'it',
+          title: 'Italiano',
+          type: 'array',
+          of: [
+            { type: 'block' },
+            {
+              type: 'image',
+              options: { hotspot: true },
+              fields: [
+                {
+                  name: 'alt',
+                  title: 'Alt text (accessibility)',
+                  type: 'string',
+                  description: 'Short description for screen readers.',
+                },
+                {
+                  name: 'caption',
+                  title: 'Caption (optional)',
+                  type: 'string',
+                },
+              ],
+            },
+          ],
+        }),
+        defineField({
+          name: 'en',
+          title: 'English',
+          type: 'array',
+          of: [
+            { type: 'block' },
+            {
+              type: 'image',
+              options: { hotspot: true },
+              fields: [
+                {
+                  name: 'alt',
+                  title: 'Alt text (accessibility)',
+                  type: 'string',
+                  description: 'Short description for screen readers.',
+                },
+                {
+                  name: 'caption',
+                  title: 'Caption (optional)',
+                  type: 'string',
+                },
+              ],
+            },
+          ],
+        }),
+      ],
+    }),
+
+    defineField({
       name: 'order',
       title: 'Order',
       type: 'number',
@@ -141,11 +242,18 @@ export default defineType({
   ],
 
   preview: {
-    select: { title: 'title' },
-    prepare({ title }) {
+    select: {
+      titleIt: 'titleI18n.it',
+      titleEn: 'titleI18n.en',
+      subIt: 'subtitleI18n.it',
+      subEn: 'subtitleI18n.en',
+    },
+    prepare({ titleIt, titleEn, subIt, subEn }) {
+      const title = (titleIt || titleEn || 'Travel Style') as string;
+      const sub = (subIt || subEn || '') as string;
       return {
-        title: title || 'Travel Style',
-        subtitle: 'Taxonomy',
+        title,
+        subtitle: sub ? `Taxonomy · ${sub}` : 'Taxonomy',
       };
     },
   },
