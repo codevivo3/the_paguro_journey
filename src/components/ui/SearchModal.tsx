@@ -93,6 +93,8 @@ function useSearchResults(opts: {
 
         const res = await fetch(`/api/search?${qs.toString()}`, {
           signal: controller.signal,
+          // Typeahead search is highly dynamic and querystring-driven.
+          // Keep uncached to avoid stale results while the user types.
           cache: 'no-store',
         });
 

@@ -36,6 +36,12 @@ export async function getHomeIntro(lang: 'it' | 'en' = 'it'): Promise<HomeIntroD
   return client.fetch<HomeIntroData>(
     HOME_INTRO_QUERY,
     { lang },
-    isDev ? { cache: 'no-store' } : { next: { revalidate: 60 * 60 } },
+    isDev
+      ? { cache: 'no-store' }
+      : {
+          // Production: cache indefinitely and refresh via on-demand revalidation (Option 4)
+          // when Sanity content (siteSettings/homeIntro) changes.
+          next: { tags: ['sanity', 'homeIntro', 'siteSettings'] },
+        },
   );
 }

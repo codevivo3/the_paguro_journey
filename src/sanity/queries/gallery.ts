@@ -180,6 +180,10 @@ export async function getGalleryItems(options?: { preview?: boolean; lang?: 'it'
     { preview: options?.preview ?? false, lang: options?.lang ?? 'it' },
     options?.preview
       ? { cache: 'no-store' }
-      : { next: { revalidate: 60 * 60 * 24 } }, // 24h
+      : {
+          // Production: cache indefinitely and refresh via on-demand revalidation (Option 4)
+          // when Sanity content changes.
+          next: { tags: ['sanity', 'gallery'] },
+        },
   );
 }

@@ -75,7 +75,13 @@ export async function getHomeHeroSlides(lang: 'it' | 'en' = 'it') {
   }>(
     HOME_HERO_SLIDES_QUERY,
     { lang },
-    isDev ? ({ cache: 'no-store' } as const) : { next: { revalidate: 60 * 60 } },
+    isDev
+      ? ({ cache: 'no-store' } as const)
+      : {
+          // Production: cache indefinitely and refresh via on-demand revalidation (Option 4)
+          // when Sanity content changes.
+          next: { tags: ['sanity', 'homeHeroSlides', 'siteSettings'] },
+        },
   );
 
   const hasImageAsset = (slide: SanityHomeHeroSlide | null | undefined) => {

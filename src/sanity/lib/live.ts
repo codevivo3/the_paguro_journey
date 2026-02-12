@@ -10,7 +10,7 @@ type SanityFetchOptions = {
 
   /**
    * Next.js ISR revalidation (seconds). If omitted, Next.js uses its default caching behavior.
-   * In Draft Mode you should override caching at the route level (usually `cache: 'no-store'`).
+   * In Draft/Preview mode you should bypass caching (usually `cache: 'no-store'`).
    */
   revalidate?: number;
 
@@ -19,6 +19,13 @@ type SanityFetchOptions = {
    * Example: tags: ['gallery', `post:${slug}`]
    */
   tags?: string[];
+
+  /**
+   * Next.js fetch cache mode.
+   * Useful for Draft/Preview mode where you want to bypass caching entirely.
+   * Example: cache: 'no-store'
+   */
+  cache?: RequestCache;
 };
 /**
  * Sanity Live Content helpers.
@@ -47,7 +54,7 @@ const live = defineLive({ client });
  *
  * Notes:
  * - Sanity `client.fetch` does not like `undefined` params in some TS overloads.
- * - If you need on-demand updates after publish, pass `tags` and call `revalidateTag()` from a webhook route.
+ * - If you need on-demand updates after publish, pass `tags` and call `revalidateTag()` (or `revalidatePath()`) from your webhook route.
  */
 export function sanityFetch<R = unknown>(opts: SanityFetchOptions) {
   if (enableLive) {
@@ -59,8 +66,11 @@ export function sanityFetch<R = unknown>(opts: SanityFetchOptions) {
 
   // Build Next.js caching options only when provided.
   const next =
-    opts.revalidate !== undefined || (opts.tags && opts.tags.length)
+    opts.cache !== undefined ||
+    opts.revalidate !== undefined ||
+    (opts.tags && opts.tags.length)
       ? {
+          ...(opts.cache !== undefined ? { cache: opts.cache } : {}),
           next: {
             ...(opts.revalidate !== undefined ? { revalidate: opts.revalidate } : {}),
             ...(opts.tags && opts.tags.length ? { tags: opts.tags } : {}),

@@ -413,6 +413,10 @@ export async function getCountriesForDestinations(options?: {
     { preview: options?.preview ?? false, lang: options?.lang ?? 'it' },
     options?.preview || process.env.NODE_ENV !== 'production'
       ? { cache: 'no-store' }
-      : { next: { revalidate: 60 * 60 * 24 } }, // 24h
+      : {
+          // Production: cache this query and rely on on-demand revalidation (Option 4)
+          // via revalidateTag()/revalidatePath() when Sanity content changes.
+          next: { tags: ['sanity', 'destinations'] },
+        },
   );
 }

@@ -66,7 +66,8 @@ function jsonError(message: string, status = 400) {
     {
       status,
       headers: {
-        // Don't cache errors.
+        // Search + error responses should never be cached by browsers/CDNs.
+        // This API is querystring-driven and user-typed; caching errors risks stale/broken UX.
         'cache-control': 'no-store',
       },
     },
@@ -214,7 +215,7 @@ export async function GET(req: Request) {
       {
         status: 200,
         headers: {
-          // Don't cache partial queries.
+          // Don't cache partial queries (users type quickly; this avoids stale suggestions/results).
           'cache-control': 'no-store',
         },
       },
@@ -234,6 +235,7 @@ export async function GET(req: Request) {
       {
         status: 200,
         headers: {
+          // Empty query is essentially a "no-op" response; keep uncached.
           'cache-control': 'no-store',
         },
       },
@@ -266,7 +268,8 @@ export async function GET(req: Request) {
       {
         status: 200,
         headers: {
-          // Keep it snappy but safe: don't cache in dev, short cache in prod.
+          // Search is querystring-driven: keep uncached in dev, and only short-edge-cache in prod.
+          // This is independent from Sanity revalidation (Option 4) — search should stay dynamic.
           'cache-control': isDev
             ? 'no-store'
             : 'public, s-maxage=60, stale-while-revalidate=60',

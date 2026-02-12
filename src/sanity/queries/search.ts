@@ -244,7 +244,12 @@ export async function searchContent(args: {
       lang: args.lang ?? 'it',
       mode: args.mode ?? 'quick',
     },
-    { cache: 'no-store' }, // dev-friendly; later you can revalidate
+    {
+      // Search is query-driven and highly dynamic (q, page, mode).
+      // Keep uncached to avoid stale results and inconsistent pagination.
+      // This is intentionally independent from Option 4 (on-demand revalidation).
+      cache: 'no-store',
+    },
   );
 
   const total = data?.total ?? 0;

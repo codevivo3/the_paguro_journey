@@ -159,6 +159,12 @@ export async function getHomeDivider(
   return client.fetch(
     HOME_DIVIDER_QUERY,
     { lang },
-    isDev ? { cache: 'no-store' } : { next: { revalidate: 60 * 60 } },
+    isDev
+      ? { cache: 'no-store' }
+      : {
+          // Production: cache indefinitely and refresh via on-demand revalidation (Option 4)
+          // when Sanity content changes.
+          next: { tags: ['sanity', 'homeDivider', 'siteSettings'] },
+        },
   );
 }

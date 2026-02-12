@@ -176,6 +176,8 @@ export default async function SearchPage({ searchParams, params }: PageProps) {
     const baseUrl = `${proto}://${host}`;
 
     const res = await fetch(`${baseUrl}/api/search?${qs.toString()}`, {
+      // Search results are request-specific (querystring + pagination + yt toggle).
+      // Keep uncached so edits and toggles reflect immediately and we don't serve stale results.
       cache: 'no-store',
     });
 

@@ -208,7 +208,11 @@ export async function getPostBySlug(
       // In dev we prefer fresh data and avoid weird abort/caching edge cases.
       isDev || options?.preview
         ? { cache: 'no-store' }
-        : { next: { revalidate: 60 * 60 } },
+        : {
+            // Production: cache indefinitely and refresh via on-demand revalidation (Option 4)
+            // when this post (or any Sanity content) changes.
+            next: { tags: ['sanity', 'post', `post:${slug}`] },
+          },
     );
   } catch (err) {
     // Next.js can abort in-flight fetches during navigation / HMR.
