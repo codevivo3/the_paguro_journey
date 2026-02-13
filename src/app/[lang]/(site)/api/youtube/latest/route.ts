@@ -10,9 +10,9 @@ export const revalidate = 600;
 
 export async function GET(
   _: NextRequest,
-  context: { params: Promise<{ lang: string }> },
+  { params }: { params: Promise<{ lang: string }> },
 ) {
-  const { lang: rawLang } = await context.params;
+  const { lang: rawLang } = await params;
   const lang = safeLang(rawLang as Lang);
   const limit = 6;
 
