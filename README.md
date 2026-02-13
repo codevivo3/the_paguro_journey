@@ -2,7 +2,7 @@
 
 A slow-travel storytelling platform focused on clarity, calm design, and long-term scalability.
 
-**Live demo:** https://the-paguro-journey.vercel.app/
+**Live site:** https://www.thepagurojourney.com
 
 ---
 
@@ -13,8 +13,8 @@ A slow-travel storytelling platform focused on clarity, calm design, and long-te
 The project explores how long-form travel content can be presented without noise, hype, or algorithm-driven clutter — prioritizing readability, structure, and editorial intent.
 
 This repository serves both as:
-- a **real, evolving project**, and
-- a **portfolio-grade codebase** showcasing architectural and design decisions.
+- a real, evolving project, and
+- a portfolio-grade codebase showcasing architectural decisions and scalable frontend patterns.
 
 ---
 
@@ -69,10 +69,11 @@ This project intentionally avoids:
 - design-driven randomness without editorial guardrails
 
 Notable design decisions:
-- Media orientation and cropping are **data-driven**, not inferred blindly.
+- Media orientation and cropping are data-driven, not inferred blindly.
 - Gallery layout balances variation with predictability.
-- Mobile and desktop galleries are treated as **distinct experiences**.
+- Mobile and desktop galleries are treated as distinct experiences.
 - Loading states mirror final layout to avoid visual jumps.
+- Content ordering respects editorial metadata (e.g., manual publication dates).
 
 ---
 
@@ -80,7 +81,7 @@ Notable design decisions:
 
 **Active development**
 
-Current focus:
+### Current focus:
 - Destinations filters UX & styling
 - CMS editor documentation
 - Final layout refinements
@@ -90,17 +91,17 @@ Current focus:
 
 ## Roadmap
 
-**Short term**
+### Short term
 - Sanity Studio editorial guidelines
 - Destinations filtering polish
 - Search UX refinement
 
-**Mid term**
+### Mid term
 - YouTube API integration
 - Cross-linking (destinations ↔ stories)
 - Performance & SEO audits
 
-**Long term**
+### Long term
 - Editorial workflows
 - Internationalization strategy
 - Advanced discovery patterns
@@ -112,13 +113,13 @@ Current focus:
 **Francesco De Vivo**  
 Frontend developer focused on clarity, calm UI, and real-world scalability.
 
-This repository is maintained as part of my professional portfolio and reflects real production-style decision making rather than tutorial patterns.
+This repository reflects production-style architectural decisions and real-world editorial requirements rather than tutorial-driven patterns.
 
 ---
 
 ## License & Usage
 
-This project is shared for **educational and portfolio purposes**.
+This project is shared for educational and portfolio purposes.
 
 Design, branding, and content concepts remain the property of their respective owners.
 
