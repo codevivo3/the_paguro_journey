@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 import { safeLang, type Lang } from '@/lib/route';
 import { getLatestRegularVideos } from '@/lib/youtube/youtube';
@@ -7,14 +7,13 @@ export const runtime = 'nodejs';
 // Optional: cache for 10 minutes on the server
 export const revalidate = 600;
 
-type RouteContext = {
-  params?: {
-    lang?: Lang;
-  };
-};
 
-export async function GET(_: Request, { params }: RouteContext) {
-  const lang = safeLang(params?.lang);
+export async function GET(
+  _: NextRequest,
+  context: { params: Promise<{ lang: string }> },
+) {
+  const { lang: rawLang } = await context.params;
+  const lang = safeLang(rawLang as Lang);
   const limit = 6;
 
   try {
