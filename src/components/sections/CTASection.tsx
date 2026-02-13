@@ -26,16 +26,14 @@ export default function CallToAction({
   const content = {
     it: {
       eyebrow: 'Call to action',
-      title: 'Lorem ipsum dolor sit amet',
-      body:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
+      title: 'Call to action IT',
+      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       cta: 'Scopri il blog',
     },
     en: {
       eyebrow: 'Call to action',
-      title: 'Lorem ipsum dolor sit amet',
-      body:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
+      title: 'Call to action EN',
+      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
       cta: 'Explore the blog',
     },
   } as const;
