@@ -18,12 +18,13 @@ export type BlogPostForIndex = {
 
   slug: string;
   publishedAt?: string;
+  sortDate?: string;
   coverImage?: SanityImageSource;
 };
 
 const BLOG_INDEX_QUERY = /* groq */ `
   *[_type == "post" && defined(slug.current) && !(_id in path("drafts.**"))]
-  | order(publishedAt desc, _createdAt desc) {
+  | order(coalesce(publishedAt, _updatedAt, _createdAt) desc) {
     _id,
 
     titleIt,
@@ -42,6 +43,7 @@ const BLOG_INDEX_QUERY = /* groq */ `
 
     "slug": slug.current,
     publishedAt,
+    "sortDate": coalesce(publishedAt, _updatedAt, _createdAt),
 
     // Support coverImage as a mediaItem ref (coverImage->image),
     // an inline object (coverImage.image), or a direct image field (coverImage)
@@ -53,6 +55,6 @@ export async function getBlogPostsForIndex(lang: 'it' | 'en' = 'it') {
   return client.fetch<BlogPostForIndex[]>(
     BLOG_INDEX_QUERY,
     { lang },
-    { next: { revalidate: 5 } },
+    { next: { revalidate: 5, tags: ['sanity', 'post'] } },
   );
 }

@@ -7,6 +7,7 @@ import BlogCardClient from '@/components/features/blog/BlogCardClient';
 import { getBlogPostsForIndex } from '@/sanity/queries/blog';
 import { urlFor } from '@/sanity/lib/image';
 
+import { formatDate } from '@/lib/date';
 import { pickLang } from '@/lib/pickLang';
 import { safeLang, withLangPrefix, type Lang } from '@/lib/route';
 
@@ -142,6 +143,9 @@ export default async function BlogPage({ params }: PageProps) {
                 pickLang(lang, post.excerptIt ?? undefined, post.excerptEn ?? undefined) ??
                 (post.excerpt ?? '');
 
+              const postDate = post.publishedAt ?? post.sortDate;
+              const meta = postDate ? formatDate(postDate, lang) : undefined;
+
               return (
                 <MasonryItem key={post._id}>
                   <BlogCardClient
@@ -152,6 +156,7 @@ export default async function BlogPage({ params }: PageProps) {
                     excerpt={resolvedExcerpt}
                     excerptIt={post.excerptIt}
                     excerptEn={post.excerptEn}
+                    meta={meta}
                     coverSrc={coverSrc}
                     mediaAspect={mediaAspect}
                     ariaLabel={`${openPostPrefix}: ${resolvedTitle}`}

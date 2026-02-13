@@ -204,15 +204,20 @@ export async function getPostBySlug(
   try {
     return await sanityClient.fetch<BlogPostBySlug | null>(
       POST_BY_SLUG_QUERY,
-      { slug, preview: options?.preview ?? false, lang: options?.lang ?? 'it' },
-      // In dev we prefer fresh data and avoid weird abort/caching edge cases.
-      isDev || options?.preview
-        ? { cache: 'no-store' }
-        : {
-            // Production: cache indefinitely and refresh via on-demand revalidation (Option 4)
-            // when this post (or any Sanity content) changes.
-            next: { tags: ['sanity', 'post', `post:${slug}`] },
-          },
+      { slug, lang: options?.lang ?? 'it' },
+      {
+        // Preview needs draft visibility; production should stay on published.
+        perspective: options?.preview ? 'previewDrafts' : 'published',
+
+        // In dev + preview we prefer fresh data and avoid weird abort/caching edge cases.
+        ...(isDev || options?.preview
+          ? { cache: 'no-store' }
+          : {
+              // Production: cache indefinitely and refresh via on-demand revalidation (Option 4)
+              // when this post (or any Sanity content) changes.
+              next: { tags: ['sanity', 'post', `post:${slug}`] },
+            }),
+      },
     );
   } catch (err) {
     // Next.js can abort in-flight fetches during navigation / HMR.

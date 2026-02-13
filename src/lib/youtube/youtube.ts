@@ -139,10 +139,25 @@ function pickLocalizedText(args: {
   snippetLocalizedDescription?: string;
   localizations?: Record<string, { title?: string; description?: string }>;
 }): { title: string; description: string } {
-  const { lang, snippetTitle, snippetDescription, snippetLocalizedTitle, snippetLocalizedDescription, localizations } =
-    args;
+  const {
+    lang,
+    snippetTitle,
+    snippetDescription,
+    snippetLocalizedTitle,
+    snippetLocalizedDescription,
+    localizations,
+  } = args;
 
-  const loc = localizations?.[lang];
+  const localizationKeys =
+    lang === 'en'
+      ? (['en', 'en-US', 'en-GB'] as const)
+      : (['it', 'it-IT'] as const);
+
+  const loc =
+    localizationKeys
+      .map((key) => localizations?.[key])
+      .find((value) => value?.title || value?.description) ??
+    localizations?.[lang];
 
   const title =
     loc?.title ??
