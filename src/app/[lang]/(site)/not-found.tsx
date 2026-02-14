@@ -1,6 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import HermitCrabLottie from '@/components/lottie/HermitCrabLottie';
 
@@ -25,10 +26,11 @@ export default function NotFound() {
 
   const t = copy[lang];
 
+
   return (
     <main className='relative flex flex-1 items-center justify-center py-10'>
       <div className='relative z-10 mx-auto mt-10 w-full space-y-4 px-6 text-center'>
-        <HermitCrabLottie className='crab-run relative z-20 translate-x-[20vw]' />
+        <HermitCrabLottie className='crab-run relative z-20' />
         <div className='relative overflow-hidden'></div>
 
         <h1 className='t-section-title text-3xl'>{t.title}</h1>
@@ -87,6 +89,58 @@ export default function NotFound() {
           fill='#d5d9b8'
         />
       </svg>
+      <style jsx global>{`
+        /* Base timing (medium screens ~ laptop sweet spot) */
+        .crab-run {
+          animation-duration: 25s;
+          animation-timing-function: linear;
+          animation-iteration-count: 1;
+          animation-fill-mode: both;
+          will-change: left
+          transform: translateZ(0);
+          backface-visibility: hidden;
+        }
+
+        /* Mobile – slightly shorter distance, slightly faster */
+        @media (max-width: 639px) {
+          .crab-run {
+            animation-duration: 15s;
+            animation-delay: 2s;
+          }
+        }
+
+        /* iPad / tablet range */
+        @media (min-width: 768px) and (max-width: 1279px) {
+          .crab-run {
+            animation-duration: 25s;
+            animation-delay: -3s;
+          }
+        }
+
+        /* Large screens */
+        @media (min-width: 1280px) {
+          .crab-run {
+            animation-duration: 35s;
+            animation-delay: -4s;
+          }
+        }
+
+        /* XL screens */
+        @media (min-width: 1536px) {
+          .crab-run {
+            animation-duration: 40s;
+            animation-delay: -6s;
+          }
+        }
+
+        /* Ultra-wide (1920px and above) */
+        @media (min-width: 1920px) {
+          .crab-run {
+            animation-duration: 55s;
+            animation-delay: -8s;
+          }
+        }
+      `}</style>
     </main>
   );
 }

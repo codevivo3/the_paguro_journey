@@ -61,7 +61,7 @@ export default function CallToAction({
         </h2>
 
         {/* Supporting copy */}
-        <p className='t-body text-sm md:text-base'>
+        <p className='t-body text-base md:text-lg'>
           {resolvedBody}
         </p>
 

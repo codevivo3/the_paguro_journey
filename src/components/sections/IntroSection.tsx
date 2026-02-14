@@ -1,6 +1,5 @@
 import type { HomeIntroData } from '@/sanity/queries/homeIntro';
 
-
 import RichText from '@/components/shared/RichText';
 import { safeLang, type Lang } from '@/lib/route';
 
@@ -23,19 +22,22 @@ type IntroSectionProps = {
   body?: PortableTextBlock[] | null;
 };
 
-export default function IntroSection({ lang, data, title, body }: IntroSectionProps) {
+export default function IntroSection({
+  lang,
+  data,
+  title,
+  body,
+}: IntroSectionProps) {
   const effectiveLang: Lang = safeLang(lang);
 
   const fallbackCopy = {
     it: {
-      title: 'Racconti di Viaggio',
-      body:
-        'Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate quis quam facilis reiciendis impedit debitis eos deleniti vero at maxime. Dolorem numquam pariatur ullam ipsum corrupti illum. Illum harum, blanditiis commodi dicta quos totam facilis, ex quod laborum corporis at. Repudiandae dolore, facilis distinctio architecto ex optio deserunt nesciunt nostrum ut doloribus veritatis porro maxime ab quisquam nam, officia expedita! Necessitatibus, minima molestiae explicabo voluptates odit cupiditate, velit dignissimos saepe qui nisi veniam, reprehenderit maxime? Distinctio architecto hic vel cumque. Aliquid necessitatibus nihil ullam eos fuga enim velit cupiditate voluptatem neque ipsam consequuntur repellat cumque doloribus minima, accusantium ex voluptate!',
+      title: 'Scopriamo il mondo insieme',
+      body: 'Viaggiamo per il mondo alla ricerca di luoghi autentici, remoti e ancora veri. Crediamo che il turismo di massa stia cancellando la magia della scoperta, e che viaggiare significhi molto più che spuntare una lista di luoghi “instagrammabili”. Nei nostri video raccontiamo storie reali, incontri, avventure e paesaggi che resistono alle mode. Il nostro obiettivo è ispirare chi viaggia a farlo con curiosità, rispetto e consapevolezza, per scoprire il mondo senza rovinarlo. Scopri il lato autentico del viaggio. <br /> Valentina & Mattia',
     },
     en: {
-      title: 'Travel Stories',
-      body:
-        'Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate quis quam facilis reiciendis impedit debitis eos deleniti vero at maxime. Dolorem numquam pariatur ullam ipsum corrupti illum. Illum harum, blanditiis commodi dicta quos totam facilis, ex quod laborum corporis at. Repudiandae dolore, facilis distinctio architecto ex optio deserunt nesciunt nostrum ut doloribus veritatis porro maxime ab quisquam nam, officia expedita! Necessitatibus, minima molestiae explicabo voluptates odit cupiditate, velit dignissimos saepe qui nisi veniam, reprehenderit maxime? Distinctio architecto hic vel cumque. Aliquid necessitatibus nihil ullam eos fuga enim velit cupiditate voluptatem neque ipsam consequuntur repellat cumque doloribus minima, accusantium ex voluptate!',
+      title: 'Let’s discover the world together',
+      body: 'We travel the world in search of places that are authentic, remote, and still untouched. <br /> We believe mass tourism is slowly erasing the magic of discovery — and that travel means far more than ticking off a list of “Instagrammable” spots. <br /> Through our videos, we share real stories, encounters, adventures, and landscapes that resist trends and passing hype. <br /> Our goal is to inspire people to travel with curiosity, respect, and awareness, to discover the world without destroying it. <br /> Discover the authentic side of travel. <br /> Valentina & Mattia',
     },
   } as const;
 
@@ -51,10 +53,18 @@ export default function IntroSection({ lang, data, title, body }: IntroSectionPr
       ? sanityTitle
       : fallback.title;
 
-  const resolvedBody = Array.isArray(body) && body.length > 0 ? body : sanityBody;
+  const resolvedBody =
+    Array.isArray(body) && body.length > 0 ? body : sanityBody;
 
   // Portable Text arrays come through as arrays; anything else falls back to plain copy.
   const isPortableText = Array.isArray(resolvedBody) && resolvedBody.length > 0;
+
+  // Intentionally split title so the last word stays on its own line
+  const titleWords = resolvedTitle.trim().split(' ');
+  const lastWord =
+    titleWords.length > 1 ? titleWords[titleWords.length - 1] : null;
+  const firstPart =
+    titleWords.length > 1 ? titleWords.slice(0, -1).join(' ') : resolvedTitle;
 
   return (
     <section className='relative overflow-hidden bg-[color:var(--paguro-bg)] py-10 md:py-16'>
@@ -110,17 +120,24 @@ export default function IntroSection({ lang, data, title, body }: IntroSectionPr
 
       <div className='relative z-10 mx-auto max-w-3xl space-y-6 px-4 md:px-6'>
         {/* Section title (uses global typography preset) */}
-        <h2 className='t-page-title-intro text-4xl md:text-6xl text-center title-divider title-divider-center mt-10 md:mt-12'>
-          {resolvedTitle}
+        <h2 className='t-page-title-intro text-[clamp(2.6rem,7vw,4.2rem)] md:text-[clamp(2.8rem,4.5vw,4.2rem)] lg:text-[clamp(2.6rem,3.8vw,4rem)] leading-tight text-center title-divider title-divider-center mt-10 md:mt-12'>
+          {lastWord ? (
+            <>
+              <span className='block lg:whitespace-nowrap'>{firstPart}</span>
+              <span className='block'>{lastWord}</span>
+            </>
+          ) : (
+            resolvedTitle
+          )}
         </h2>
 
         {/* Intro copy */}
         {isPortableText ? (
-          <div className='t-body text-sm md:text-base text-left md:text-justify'>
+          <div className='t-body text-sm md:text-base text-center'>
             <RichText value={resolvedBody ?? []} />
           </div>
         ) : (
-          <p className='t-body text-sm md:text-base text-left md:text-justify'>
+          <p className='t-body text-sm md:text-base text-center'>
             {fallback.body}
           </p>
         )}

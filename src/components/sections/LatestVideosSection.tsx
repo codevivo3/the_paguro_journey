@@ -23,7 +23,9 @@ export default async function LatestVidsSection({
   const effectiveLang: Lang = safeLang(lang);
 
   // Server-side fetch: keeps API keys and quota logic out of the client bundle
-  const latestVideos = await getLatestRegularVideos(15, { lang: effectiveLang });
+  const latestVideos = await getLatestRegularVideos(15, {
+    lang: effectiveLang,
+  });
 
   const copy = {
     it: {
@@ -49,7 +51,7 @@ export default async function LatestVidsSection({
       <div className='mx-auto max-w-5xl space-y-6 md:space-y-8'>
         <header className='space-y-2 md:space-y-3'>
           <div className='flex flex-col items-center justify-center gap-3'>
-            <h3 className='t-page-title title-divider title-divider-center'>
+            <h3 className='t-page-title title-divider title-divider-center text-[clamp(1.6rem,6vw,2.2rem)] md:text-[clamp(1.8rem,3.2vw,2.2rem)] md:whitespace-nowrap text-center'>
               {t.title}
             </h3>
           </div>

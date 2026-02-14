@@ -53,7 +53,7 @@ export default function Footer({
 
   const copy = {
     it: {
-      tagline: 'Viaggi consapevoli, destinazioni fuori rotta.',
+      tagline: 'Viaggi consapevoli, <br /> destinazioni fuori rotta.',
       blog: 'Blog',
       destinations: 'Destinazioni',
       gallery: 'Galleria',
@@ -63,7 +63,7 @@ export default function Footer({
       ariaEmail: 'Email',
     },
     en: {
-      tagline: 'Mindful travel, off-the-beaten-path destinations.',
+      tagline: 'Mindful travel, <br /> off-the-beaten-path destinations.',
       blog: 'Blog',
       destinations: 'Destinations',
       gallery: 'Gallery',
@@ -104,9 +104,10 @@ export default function Footer({
           >
             The Paguro Journey
           </Link>
-          <p className='mt-2 text-xs text-[color:var(--paguro-text)]/70'>
-            {t.tagline}
-          </p>
+          <p
+            className='mt-2 text-xs text-[color:var(--paguro-text)]/70'
+            dangerouslySetInnerHTML={{ __html: t.tagline }}
+          />
         </div>
 
         {/* Navigation */}

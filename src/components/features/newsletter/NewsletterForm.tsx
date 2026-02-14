@@ -115,6 +115,12 @@ export default function NewsletterForm({
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [emailError, setEmailError] = React.useState<string | null>(null);
+  const newsletterActive = false; // toggle to true when backend is wired
+  const buttonLabel = newsletterActive
+    ? t.cta
+    : effectiveLang === 'en'
+      ? 'Coming soon'
+      : 'Prossimamente';
 
   const emailErrorMessage =
     emailError
@@ -126,6 +132,8 @@ export default function NewsletterForm({
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
+    if (!newsletterActive) return;
+
     const res = validateEmail(email);
     if (!res.ok) {
       setEmailError(res.reason ?? 'invalid');
@@ -134,8 +142,7 @@ export default function NewsletterForm({
 
     setEmailError(null);
 
-    // Frontend-only for now. Later we’ll wire Mailchimp/Beehiiv/ConvertKit.
-    // For now: no-op or you can add a toast later.
+    // TODO: wire provider here (Mailchimp / Beehiiv / ConvertKit)
   }
 
   return (
@@ -153,6 +160,13 @@ export default function NewsletterForm({
           {t.subtitle2}
         </p>
 
+        {!newsletterActive && (
+          <p className='mt-4 text-sm text-center text-[color:var(--paguro-text-dark)]/70 italic'>
+            {effectiveLang === 'en'
+              ? 'Newsletter sign-up is currently under construction.'
+              : 'L’iscrizione alla newsletter è attualmente in fase di attivazione.'}
+          </p>
+        )}
         <form className='mt-6 flex flex-col gap-4' onSubmit={onSubmit} noValidate>
           <label className='sr-only' htmlFor='name'>
             {t.nameLabel}
@@ -193,7 +207,9 @@ export default function NewsletterForm({
             />
 
             <div className='flex justify-center md:justify-end md:ml-4'>
-              <Button className='px-10'>{t.cta}</Button>
+              <Button className='px-10' disabled={!newsletterActive}>
+                {buttonLabel}
+              </Button>
             </div>
           </div>
           {emailErrorMessage ? (

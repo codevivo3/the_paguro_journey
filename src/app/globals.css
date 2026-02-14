@@ -387,7 +387,7 @@ body:has(.studio-shell) {
     transform: translateX(-40vw) scaleX(-1);
   }
   to {
-    transform: translateX(120vw) scaleX(-1);
+    transform: translateX(115vw) scaleX(-1);
   }
 }
 
